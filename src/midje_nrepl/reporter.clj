@@ -4,7 +4,8 @@
             [midje.data.fact :as fact]
             [midje.emission.plugins.default-failure-lines :as failure-lines]
             [midje.emission.plugins.silence :as silence]
-            [midje.emission.state :as state]))
+            [midje.emission.state :as state])
+  (:import clojure.lang.Symbol))
 
 (def report (atom nil))
 
@@ -31,9 +32,10 @@
   (swap! report dissoc :top-level-description :current-test))
 
 (defn- description-for [fact]
-  (let [description (fact/best-description fact)]
-    (if-let [description-list (@report :top-level-description)]
-      (-> description-list (conj description) distinct vec)
+  (let [description (or (fact/best-description fact)
+                        (print-str (fact/source fact)))]
+    (if-let [description-vec (@report :top-level-description)]
+      (-> description-vec (conj description) distinct vec)
       [description])))
 
 (defn starting-to-check-fact [fact]
@@ -45,37 +47,47 @@
                                        :file    file
                                        :line    line})))
 
-(defn- index-for [namespace test-context]
-  (->> (get-in @report [:results namespace])
-       (take-while #(->> % :context (= test-context)))
-       count))
-
 (defn- conj-test-result! [additional-data]
   (let [{:keys [ns context] :as current-test} (@report :current-test)
-        test                                  (-> current-test (merge additional-data) (assoc :index (index-for ns context)))]
+        test                                  (merge current-test additional-data)]
     (swap! report update-in [:results ns]
            (comp vec (partial conj)) test)))
 
 (defn pass []
   (conj-test-result! {:type :pass}))
 
-(defn- diff-for [failure-map]
+(defn- message-list-for [failure-map & {:keys [drop-n] :or {drop-n 0}}]
   (->> failure-map
        failure-lines/messy-lines
-       (drop 2)
+       (drop drop-n)
        (keep identity)))
 
-(defn fail [failure-map]
-  (let [{:keys [actual expected-result position]} failure-map
-        [_ line]                                  position]
-    (conj-test-result! {:line     line
-                        :expected expected-result
-                        :actual   actual
-                        :diffs    (diff-for failure-map)
-                        :type     :fail})))
+(defmulti explain-failure :type)
 
-(defn future-fact [description-list position]
-  (conj-test-result! {:context description-list
+(defmethod explain-failure :actual-result-did-not-match-expected-value
+  [{:keys [expected-result actual] :as failure-map}]
+  {:expected expected-result
+   :actual   actual
+   :message  (message-list-for failure-map :drop-n 2)})
+
+(defmethod explain-failure :actual-result-did-not-match-checker
+  [{:keys [expected-result-form actual] :as failure-map}]
+  {:expected expected-result-form
+   :actual  actual
+   :message (message-list-for failure-map :drop-n 4)})
+
+(defmethod explain-failure :default
+  [failure-map]
+  {:message (message-list-for failure-map)})
+
+(defn fail [failure-map]
+  (let [[_ line] (failure-map :position)]
+    (conj-test-result! (merge (explain-failure failure-map)
+                              {:line line
+                               :type :fail}))))
+
+(defn future-fact [description-vec position]
+  (conj-test-result! {:context description-vec
                       :line    (last position)
                       :type    :skip}))
 
@@ -89,7 +101,7 @@
           :future-fact                      future-fact}))
 
 (defmacro with-reporter-for
-  [namespace & forms]
+  [^Symbol namespace & forms]
   `(binding [*config*                 (merge *config* {:print-level :print-facts})
              state/emission-functions emission-map]
      (reset-report! ~namespace)
