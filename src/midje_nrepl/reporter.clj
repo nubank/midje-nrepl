@@ -1,10 +1,11 @@
 (ns midje-nrepl.reporter
   (:require [clojure.java.io :as io]
-            [midje.config :refer [*config*]]
+            [midje.config :as midje.config]
             [midje.data.fact :as fact]
             [midje.emission.plugins.default-failure-lines :as failure-lines]
             [midje.emission.plugins.silence :as silence]
-            [midje.emission.state :as state])
+            [midje.emission.state :as midje.state]
+            [midje.util.exceptions :as midje.exceptions])
   (:import clojure.lang.Symbol))
 
 (def report (atom nil))
@@ -73,17 +74,24 @@
 (defmethod explain-failure :actual-result-did-not-match-checker
   [{:keys [expected-result-form actual] :as failure-map}]
   {:expected expected-result-form
-   :actual  actual
-   :message (message-list-for failure-map :drop-n 4)})
+   :actual   actual
+   :message  (message-list-for failure-map :drop-n 4)})
 
 (defmethod explain-failure :default
   [failure-map]
   {:message (message-list-for failure-map)})
 
+(defn- conj-error! [{:keys [expected-result-form actual position]}]
+  (conj-test-result! {:line     (last position)
+                      :expected expected-result-form
+                      :error    (midje.exceptions/throwable actual)
+                      :type     :error}))
+
 (defn fail [failure-map]
-  (let [[_ line] (failure-map :position)]
+  (if (midje.exceptions/captured-throwable? (:actual failure-map))
+    (conj-error! failure-map)
     (conj-test-result! (merge (explain-failure failure-map)
-                              {:line line
+                              {:line (-> failure-map :position last)
                                :type :fail}))))
 
 (defn future-fact [description-vec position]
@@ -102,8 +110,8 @@
 
 (defmacro with-reporter-for
   [^Symbol namespace & forms]
-  `(binding [*config*                 (merge *config* {:print-level :print-facts})
-             state/emission-functions emission-map]
+  `(binding [midje.config/*config*          (merge midje.config/*config* {:print-level :print-facts})
+             midje.state/emission-functions emission-map]
      (reset-report! ~namespace)
      ~@forms
      (summarize-results!)
