@@ -34,7 +34,7 @@
 
 (defn- description-for [fact]
   (let [description (or (fact/best-description fact)
-                        (print-str (fact/source fact)))]
+                        (pr-str (fact/source fact)))]
     (if-let [description-vec (@report :top-level-description)]
       (-> description-vec (conj description) distinct vec)
       [description])))
@@ -43,10 +43,11 @@
   (let [line      (fact/line fact)
         namespace (fact/namespace fact)
         file      (-> namespace the-ns meta :file io/file)]
-    (swap! report assoc :current-test {:context (description-for fact)
-                                       :ns      namespace
-                                       :file    file
-                                       :line    line})))
+    (swap! report assoc :current-test {:context    (description-for fact)
+                                       :ns         namespace
+                                       :file       file
+                                       :line       line
+                                       :test-forms (pr-str (fact/source fact))})))
 
 (defn- conj-test-result! [additional-data]
   (let [{:keys [ns context] :as current-test} (@report :current-test)
