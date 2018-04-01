@@ -2,23 +2,26 @@
   (:require [midje-nrepl.reporter :refer [with-reporter-for]])
   (:import clojure.lang.Symbol))
 
-(def ^:private test-results (atom nil))
+(def ^:private test-results (atom {}))
 
 (defmacro ^:private keeping-test-results [& forms]
   `(let [report# ~@forms]
      (reset! test-results (report# :results))
      report#))
 
-(defn- run-test*
-  [^Symbol namespace ^String test-forms]
+(defn- run-tests
+  [namespace & test-forms]
   (with-reporter-for namespace
     (binding [*ns* (the-ns namespace)]
-      (eval (read-string test-forms)))))
+      (->> (map read-string test-forms)
+           (apply list)
+           (cons 'do)
+           eval))))
 
 (defn run-test
   [^Symbol namespace ^String test-forms]
   (keeping-test-results
-   (run-test* namespace test-forms)))
+   (run-tests namespace test-forms)))
 
 (defn- run-tests-in-ns*
   [^Symbol namespace]
@@ -26,6 +29,8 @@
     (require namespace :reload)))
 
 (defn run-tests-in-ns
+  "Runs Midje tests in the provided namespace.
+   Returns the test report."
   [^Symbol namespace]
   (keeping-test-results
    (run-tests-in-ns* namespace)))
@@ -37,22 +42,22 @@
 (defn run-all-tests
   []
   (keeping-test-results
-   (let [not=zero (complement zero?)]
-     (->> ['octocat.arithmetic-test 'octocat.colls-test 'octocat.mocks-test 'clojure.core]
-          (map run-tests-in-ns*)
-          (filter #(-> % :summary :test not=zero))
-          (reduce merge-reports)))))
+   (->> ['octocat.arithmetic-test 'octocat.colls-test 'octocat.mocks-test 'clojure.core]
+        (map run-tests-in-ns*)
+        (reduce merge-reports {}))))
 
-(defn- failed-tests []
-  (->> @test-results
-       vals
-       flatten
-       (filter #(#{:error :fail} (:type %)))))
+(defn- failed-tests [results]
+  (->> results
+       (filter #(#{:error :fail} (:type %)))
+       (map (comp distinct :test-forms))))
 
 (defn re-run-failed-tests
+  "Re-runs tests that have failed in the last execution.
+  Returns the test report."
   []
   (keeping-test-results
-   (->> (failed-tests)
-        (map (fn [{:keys [ns test-forms]}]
-               (run-test* ns test-forms)))
-        (reduce merge-reports))))
+   (->> @test-results
+        (map #(->> (second %) failed-tests (cons (first %))))
+        (remove #(= 1 (count %)))
+        (map (partial apply run-tests))
+        (reduce merge-reports {}))))
