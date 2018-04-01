@@ -13,18 +13,19 @@
 (defn reset-report! [namespace]
   (reset! report
           {:results    {}
-           :summary    {:error 0 :fail 0 :ns 1 :pass 0 :skip 0 :test 0}
+           :summary    {:error 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}
            :testing-ns namespace}))
 
 (defn summarize-results! []
-  (let [namespace (@report :testing-ns)
-        results   (->> (get-in @report [:results namespace])
-                       (group-by :type)
-                       (map (fn [[type values]] {type (count values)}))
-                       (into {}))
-        tests     (->> results vals (apply +))]
+  (let [namespace  (@report :testing-ns)
+        results    (->> (get-in @report [:results namespace])
+                        (group-by :type)
+                        (map (fn [[type values]] {type (count values)}))
+                        (into {}))
+        namespaces (-> @report :results keys count)
+        tests      (->> results vals (apply +))]
     (swap! report update :summary
-           merge (assoc results :test tests))))
+           merge (assoc results :ns namespaces :test tests))))
 
 (defn starting-to-check-top-level-fact [fact]
   (swap! report assoc :top-level-description [(fact/description fact)]))
