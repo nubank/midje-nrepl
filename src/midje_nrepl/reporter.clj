@@ -63,6 +63,7 @@
 (defn- message-list-for [failure-map & {:keys [drop-n] :or {drop-n 0}}]
   (->> failure-map
        failure-lines/messy-lines
+       flatten
        (drop drop-n)
        (keep identity)))
 
@@ -78,7 +79,7 @@
   [{:keys [expected-result-form actual] :as failure-map}]
   {:expected expected-result-form
    :actual   actual
-   :message  (message-list-for failure-map :drop-n 4)})
+   :message  (message-list-for failure-map :drop-n 5)})
 
 (defmethod explain-failure :default
   [failure-map]
