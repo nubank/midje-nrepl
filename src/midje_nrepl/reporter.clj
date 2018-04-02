@@ -16,7 +16,7 @@
            :summary    {:error 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}
            :testing-ns namespace}))
 
-(defn summarize-results! []
+(defn summarize-test-results! []
   (let [namespace  (@report :testing-ns)
         results    (->> (get-in @report [:results namespace])
                         (group-by :type)
@@ -51,8 +51,9 @@
                                        :test-forms (pr-str (fact/source fact))})))
 
 (defn- conj-test-result! [additional-data]
-  (let [{:keys [ns context] :as current-test} (@report :current-test)
-        test                                  (merge current-test additional-data)]
+  (let [{:keys [context] :as current-test} (@report :current-test)
+        ns                                 (@report :testing-ns)
+        test                               (merge current-test additional-data)]
     (swap! report update-in [:results ns]
            (comp vec (partial conj)) test)))
 
@@ -116,5 +117,5 @@
              midje.state/emission-functions emission-map]
      (reset-report! ~namespace)
      ~@forms
-     (summarize-results!)
+     (summarize-test-results!)
      @report))
