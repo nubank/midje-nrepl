@@ -85,7 +85,6 @@
              (reporter/reset-report! 'octocat.arithmetic-test)
              @reporter/report => {:testing-ns 'octocat.arithmetic-test
                                   :results    {}
-
                                   :summary {:error 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})
 
        (fact "when Midje starts checking a top level fact,
