@@ -7,4 +7,5 @@
                  [org.clojure/tools.nrepl "0.2.13"]]
 
   :profiles {:dev {:dependencies [[midje "1.9.2-alpha3"]
-                                  [nubank/matcher-combinators "0.2.4"]]}})
+                                  [nubank/matcher-combinators "0.2.3"]]
+                   :plugins [                 [lein-midje "3.2.1"]]}})

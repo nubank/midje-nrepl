@@ -6,7 +6,8 @@
             [midje.emission.plugins.silence :as silence]
             [midje.emission.state :as midje.state]
             [midje.util.exceptions :as midje.exceptions])
-  (:import clojure.lang.Symbol))
+  (:import clojure.lang.Symbol
+           java.net.URI))
 
 (def report (atom nil))
 
@@ -33,6 +34,12 @@
 (defn finishing-top-level-fact [_]
   (swap! report dissoc :top-level-description :current-test))
 
+(defn- file-for [fact]
+  (-> (fact/file fact)
+      URI.
+      .getPath
+      io/file))
+
 (defn- description-for [fact]
   (let [description (or (fact/best-description fact)
                         (pr-str (fact/source fact)))]
@@ -41,14 +48,11 @@
       [description])))
 
 (defn starting-to-check-fact [fact]
-  (let [line      (fact/line fact)
-        namespace (fact/namespace fact)
-        file      (-> namespace the-ns meta :file io/file)]
-    (swap! report assoc :current-test {:context    (description-for fact)
-                                       :ns         namespace
-                                       :file       file
-                                       :line       line
-                                       :test-forms (pr-str (fact/source fact))})))
+  (swap! report assoc :current-test {:context    (description-for fact)
+                                     :ns         (fact/namespace fact)
+                                     :file       (file-for fact)
+                                     :line       (fact/line fact)
+                                     :test-forms (pr-str (fact/source fact))}))
 
 (defn- conj-test-result! [additional-data]
   (let [{:keys [context] :as current-test} (@report :current-test)
