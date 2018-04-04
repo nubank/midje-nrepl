@@ -1,5 +1,5 @@
 (ns midje-nrepl.test-runner
-  (:require [midje-nrepl.reporter :refer [with-reporter-for]])
+  (:require [midje-nrepl.reporter :as reporter :refer [with-reporter-for]])
   (:import clojure.lang.Symbol))
 
 (def test-results (atom {}))
@@ -37,21 +37,17 @@
   (keeping-test-results
    (run-tests-in-ns* namespace)))
 
-(defn- merge-reports [a-report other]
-  {:results (merge (:results a-report) (:results other))
-   :summary (merge-with + (:summary a-report) (:summary other))})
+(defn- merge-reports [reports]
+  (reduce (fn [a b]
+            {:results (merge (:results a) (:results b))
+             :summary (merge-with + (:summary a) (:summary b))})
+          reporter/no-tests reports))
 
-(defn run-all-tests
-  []
-  (keeping-test-results
-   (->> ['octocat.arithmetic-test 'octocat.colls-test 'octocat.mocks-test 'clojure.core]
-        (map run-tests-in-ns*)
-        (reduce merge-reports {}))))
-
-(defn- failed-tests [results]
+(defn- failed-test-forms [results]
   (->> results
        (filter #(#{:error :fail} (:type %)))
-       (map (comp distinct :test-forms))))
+       distinct
+       (map (comp read-string :test-forms))))
 
 (defn re-run-failed-tests
   "Re-runs tests that have failed in the last execution.
@@ -59,7 +55,7 @@
   []
   (keeping-test-results
    (->> @test-results
-        (map #(->> (second %) failed-tests (cons (first %))))
+        (map #(->> (second %) failed-test-forms (cons (first %))))
         (remove #(= 1 (count %)))
         (map (partial apply test-forms))
-        (reduce merge-reports {}))))
+        merge-reports)))
