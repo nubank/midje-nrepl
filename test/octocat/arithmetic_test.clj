@@ -1,16 +1,19 @@
 (ns octocat.arithmetic-test
-  (:require [midje.sweet :refer :all]))
+  (:require [midje.emission.state :refer [with-isolated-output-counters]]
+            [midje.sweet :refer :all]))
 
-(facts "about arithmetic operations"
+(with-isolated-output-counters
 
-       (fact (* 2 5) => 10)
+  (facts "about arithmetic operations"
 
-       (fact "this is a crazy arithmetic"
-             (+ 2 3) => 6)
+         (fact (* 2 5) => 10)
 
-       (fact "two assertions in the same fact; the former is correct while the later is wrong"
-             (+ 10 1) => 11
-             (- 4 2) => 3)
+         (fact "this is a crazy arithmetic"
+               (+ 2 3) => 6)
 
-       (fact "this will throw an unexpected exception"
-             (/ 12 0) => 0))
+         (fact "two assertions in the same fact; the former is correct while the later is wrong"
+               (+ 10 1) => 11
+               (- 4 2) => 3)
+
+         (fact "this will throw an unexpected exception"
+               (/ 12 0) => 0)))
