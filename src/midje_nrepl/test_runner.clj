@@ -9,19 +9,19 @@
      (reset! test-results (report# :results))
      report#))
 
-(defn- run-tests
-  [namespace & test-forms]
+(defn test-forms
+  [namespace & forms]
   (with-reporter-for namespace
     (binding [*ns* (the-ns namespace)]
-      (->> (map read-string test-forms)
+      (->> forms
            (apply list)
            (cons 'do)
            eval))))
 
 (defn run-test
-  [^Symbol namespace ^String test-forms]
+  [^Symbol namespace ^String forms]
   (keeping-test-results
-   (run-tests namespace test-forms)))
+   (test-forms namespace (read-string forms))))
 
 (defn- run-tests-in-ns*
   [^Symbol namespace]
@@ -29,7 +29,7 @@
     (require namespace :reload)))
 
 (defn run-tests-in-ns
-  "Runs Midje tests in the provided namespace.
+  "Runs Midje tests in the given namespace.
    Returns the test report."
   [^Symbol namespace]
   (keeping-test-results
@@ -59,5 +59,5 @@
    (->> @test-results
         (map #(->> (second %) failed-tests (cons (first %))))
         (remove #(= 1 (count %)))
-        (map (partial apply run-tests))
+        (map (partial apply test-forms))
         (reduce merge-reports {}))))

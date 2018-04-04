@@ -44,7 +44,7 @@
   (let [description (or (fact/best-description fact)
                         (pr-str (fact/source fact)))]
     (if-let [description-vec (@report :top-level-description)]
-      (-> description-vec (conj description) distinct vec)
+      (->> (conj description-vec description) distinct (keep identity) vec)
       [description])))
 
 (defn starting-to-check-fact [fact]
