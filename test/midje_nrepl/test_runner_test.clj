@@ -119,18 +119,47 @@
                         :summary    {:error 0 :fail 3 :ns 1 :pass 0 :skip 0 :test 3}
                         :testing-ns 'octocat.mocks-test})
 
-(fact "it tests the given forms"
-      (test-runner/test-forms 'midje-nrepl.test-runner-test '(with-isolated-output-counters  (fact 1 => 1))
-                              '(with-isolated-output-counters (fact (+ 3 2) => 6)))
-      => (match test-forms-report))
+(facts "about running individual tests"
 
-(fact "it runs the test form passed as a string"
-      (test-runner/run-test 'midje-nrepl.test-runner-test "(with-isolated-output-counters (fact 1 => 1))")
-      => (match individual-test-report))
+       (fact "it tests the given forms"
+             (test-runner/test-forms 'midje-nrepl.test-runner-test '(with-isolated-output-counters  (fact 1 => 1))
+                                     '(with-isolated-output-counters (fact (+ 3 2) => 6)))
+             => (match test-forms-report))
 
-(tabular (fact "it runs all tests in the given namespace"
-               (test-runner/run-tests-in-ns ?namespace) => (match ?report))
-         ?namespace ?report
-         'octocat.arithmetic-test arithmetic-test-report
-         'octocat.colls-test colls-test-report
-         'octocat.mocks-test mocks-test-report)
+       (fact "it returns an empty report when there are no tests to be run"
+             (test-runner/test-forms 'midje-nrepl.test-runner-test '())
+             => (match {:results {}
+                        :summary {:ns 0 :test 0}}))
+
+       (fact "it runs the test form passed as a string"
+             (test-runner/run-test 'midje-nrepl.test-runner-test "(with-isolated-output-counters (fact 1 => 1))")
+             => (match individual-test-report))
+
+       (fact "it returns an empty report when there are no tests to be run"
+             (test-runner/run-test 'midje-nrepl.test-runner-test "(fact)")
+             => (match {:results {}
+                        :summary {:ns 0 :test 0}}))
+
+       (fact "it keeps the results of the last execution in the current session"
+             (test-runner/run-test 'midje-nrepl.test-runner-test "(with-isolated-output-counters (fact 1 => 1))")
+             @test-runner/test-results
+             => (match (:results individual-test-report))))
+
+(facts "about running tests in a given namespace"
+
+       (tabular (fact "it runs all tests in the given namespace"
+                      (test-runner/run-tests-in-ns ?namespace) => (match ?report))
+                ?namespace ?report
+                'octocat.arithmetic-test arithmetic-test-report
+                'octocat.colls-test colls-test-report
+                'octocat.mocks-test mocks-test-report)
+
+       (fact "it returns an empty report when there are no tests to be run"
+             (test-runner/run-tests-in-ns 'octocat.no-tests)
+             => (match {:results {}
+                        :summary {:ns 0 :test 0}}))
+
+       (fact "it keeps the results of the last execution in the current session"
+             (test-runner/run-tests-in-ns 'octocat.arithmetic-test)
+             @test-runner/test-results
+             => (match (:results arithmetic-test-report))))

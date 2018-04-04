@@ -2,7 +2,7 @@
   (:require [midje-nrepl.reporter :refer [with-reporter-for]])
   (:import clojure.lang.Symbol))
 
-(def ^:private test-results (atom {}))
+(def test-results (atom {}))
 
 (defmacro ^:private keeping-test-results [& forms]
   `(let [report# ~@forms]
@@ -10,7 +10,7 @@
      report#))
 
 (defn test-forms
-  [namespace & forms]
+  [^Symbol namespace & forms]
   (with-reporter-for namespace
     (binding [*ns* (the-ns namespace)]
       (->> forms
@@ -20,6 +20,7 @@
 
 (defn run-test
   [^Symbol namespace ^String forms]
+  {:pre [(symbol? namespace) (string? forms)]}
   (keeping-test-results
    (test-forms namespace (read-string forms))))
 
@@ -32,6 +33,7 @@
   "Runs Midje tests in the given namespace.
    Returns the test report."
   [^Symbol namespace]
+  {:pre [(symbol? namespace)]}
   (keeping-test-results
    (run-tests-in-ns* namespace)))
 
