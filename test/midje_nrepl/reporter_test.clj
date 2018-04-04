@@ -81,11 +81,11 @@
 
 (facts "about the midje-nrepl's reporter"
 
-       (fact "it resets the report atom"
+       (fact "resets the report atom"
              (reporter/reset-report! 'octocat.arithmetic-test)
              @reporter/report => {:testing-ns 'octocat.arithmetic-test
                                   :results    {}
-                                  :summary {:error 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})
+                                  :summary    {:error 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})
 
        (fact "when Midje starts checking a top level fact,
 it stores its description in the report atom"
@@ -202,7 +202,7 @@ it is interpreted as an error in the test report"
                                                      :line    25
                                                      :type    :skip}]}}))
 
-       (fact "it summarizes test results, by computing the counters for each category"
+       (fact "summarizes test results, by computing the counters for each category"
              (reporter/summarize-test-results!)
              @reporter/report => (match {:summary {:error 1
                                                    :fail  1
@@ -211,7 +211,7 @@ it is interpreted as an error in the test report"
                                                    :skip  1
                                                    :test  4}}))
 
-       (tabular (fact "it explains the failures according to the failure-map's type"
+       (tabular (fact "explains the failures according to the failure-map's type"
                       (reporter/explain-failure ?failure-map) => ?result)
                 ?failure-map                    ?result
                 failure-with-simple-mismatch    {:expected 2 :actual 1 :message '()}

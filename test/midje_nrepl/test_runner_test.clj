@@ -161,26 +161,26 @@
 
 (facts "about running individual tests"
 
-       (fact "it tests the given forms"
+       (fact "tests the given forms"
              (test-runner/test-forms 'midje-nrepl.test-runner-test '(with-isolated-output-counters  (fact 1 => 1))
                                      '(with-isolated-output-counters (fact (+ 3 2) => 6)))
              => (match test-forms-report))
 
-       (fact "it returns a report with no tests when there are no tests to be run"
+       (fact "returns a report with no tests when there are no tests to be run"
              (test-runner/test-forms 'midje-nrepl.test-runner-test '())
              => (match {:results {}
                         :summary {:ns 0 :test 0}}))
 
-       (fact "it runs the test form passed as a string"
+       (fact "runs the test form passed as a string"
              (test-runner/run-test 'midje-nrepl.test-runner-test "(with-isolated-output-counters (fact 1 => 1))")
              => (match individual-test-report))
 
-       (fact "it returns a report with no tests when there are no tests to be run"
+       (fact "returns a report with no tests when there are no tests to be run"
              (test-runner/run-test 'midje-nrepl.test-runner-test "(fact)")
              => (match {:results {}
                         :summary {:ns 0 :test 0}}))
 
-       (fact "it keeps the results of the last execution in the current session"
+       (fact "the results of the last execution are kept in the current session"
              (test-runner/run-test 'midje-nrepl.test-runner-test "(with-isolated-output-counters (fact 1 => 1))")
              => (match individual-test-report)
              @test-runner/test-results
@@ -188,38 +188,38 @@
 
 (facts "about running tests in a given namespace"
 
-       (tabular (fact "it runs all tests in the given namespace"
+       (tabular (fact "runs all tests in the given namespace"
                       (test-runner/run-tests-in-ns ?namespace) => (match ?report))
                 ?namespace ?report
                 'octocat.arithmetic-test arithmetic-test-report
                 'octocat.colls-test colls-test-report
                 'octocat.mocks-test mocks-test-report)
 
-       (fact "it returns a report with no tests when there are no tests to be run"
+       (fact "returns a report with no tests when there are no tests to be run"
              (test-runner/run-tests-in-ns 'octocat.no-tests)
              => (match {:results {}
                         :summary {:ns 0 :test 0}}))
 
-       (fact "it keeps the results of the last execution in the current session"
+       (fact "the results of the last execution are kept in the current session"
              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
              @test-runner/test-results
              => (match (:results arithmetic-test-report))))
 
 (facts "about re-running tests"
 
-       (fact "it re-runs tests that have failed in the last execution"
+       (fact "re-runs tests that have failed in the last execution"
              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
              (isolate-test-forms! 'octocat.arithmetic-test)
              (test-runner/re-run-failed-tests) => (match re-run-arithmetic-test-report))
 
-       (fact "it returns a report with no tests when there are no failed tests to run"
+       (fact "returns a report with no tests when there are no failed tests to be run"
              (test-runner/run-test 'midje-nrepl.test-runner-test "(with-isolated-output-counters (fact (+ 1 2) => 3))")
              => (match {:summary {:error 0 :fail 0 :ns 1 :pass 1 :test 1}})
              (test-runner/re-run-failed-tests)
              => (match {:results {}
                         :summary {:ns 0 :test 0}}))
 
-       (fact "it also keeps the results of the last execution in the current session"
+       (fact "the results of the last execution are kept in the current session as well"
              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
              (isolate-test-forms! 'octocat.arithmetic-test)
              (test-runner/re-run-failed-tests) => (match re-run-arithmetic-test-report)
