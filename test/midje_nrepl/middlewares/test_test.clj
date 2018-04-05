@@ -1,6 +1,7 @@
 (ns midje-nrepl.middlewares.test-test
   (:require [clojure.java.io :as io]
             [clojure.tools.nrepl.transport :as transport]
+            [matcher-combinators.midje :refer [match]]
             [midje-nrepl.middlewares.test :as test]
             [midje-nrepl.test-runner :as test-runner]
             [midje.sweet :refer :all]
