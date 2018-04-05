@@ -20,7 +20,7 @@
                            :test-forms "(fact (+ 3 2) => 6)"
                            :expected   6
                            :actual     5
-                           :message    ()
+                           :message    '()
                            :type       :fail}]}
                         :summary    {:ns 1 :fail 1 :error 0 :pass 1 :test 2 :skip 0}
                         :testing-ns 'midje-nrepl.test-runner-test})
@@ -46,7 +46,7 @@
                                 :file     actual-file?
                                 :expected 6
                                 :actual   5
-                                :message  ()
+                                :message  '()
                                 :type     :fail}
                                {:context
                                 ["about arithmetic operations" "two assertions in the same fact; the former is correct while the later is wrong"]
@@ -59,7 +59,7 @@
                                 :file     actual-file?
                                 :expected 3
                                 :actual   2
-                                :message  ()
+                                :message  '()
                                 :type     :fail}
                                {:context  ["about arithmetic operations" "this will throw an unexpected exception"]
                                 :ns       'octocat.arithmetic-test
@@ -77,7 +77,7 @@
                                        :file     actual-file?
                                        :expected 6
                                        :actual   5
-                                       :message  ()
+                                       :message  '()
                                        :type     :fail}
                                       {:context
                                        ["two assertions in the same fact; the former is correct while the later is wrong"]
@@ -90,7 +90,7 @@
                                        :file     actual-file?
                                        :expected 3
                                        :actual   2
-                                       :message  ()
+                                       :message  '()
                                        :type     :fail}
                                       {:context  ["this will throw an unexpected exception"]
                                        :ns       'octocat.arithmetic-test
@@ -144,7 +144,7 @@
                            :file     actual-file?
                            :expected {:message "Hello John!"}
                            :actual   "`an-impure-function` returned this string because it was called with an unexpected argument"
-                           :message  ()
+                           :message  '()
                            :type     :fail}]}
                         :summary    {:error 0 :fail 3 :ns 1 :pass 0 :skip 0 :test 3}
                         :testing-ns 'octocat.mocks-test})

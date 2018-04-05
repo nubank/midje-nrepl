@@ -9,7 +9,7 @@
                              #:midje {:guid            "d2cd94c3346922886e796da80ab99ab764ba30f9"
                                       :source          '(fact "this is inquestionable" 1 => 1)
                                       :namespace       'octocat.arithmetic-test
-                                      :file            "file:/home/john-doe/dev/projects/octocat/test/octocat/mocks_test.clj"
+                                      :file            "file:/home/john-doe/dev/projects/octocat/test/octocat/arithmetic_test.clj"
                                       :line            10
                                       :description     "this is inquestionable"
                                       :name            "this is inquestionable"
@@ -19,7 +19,7 @@
                            #:midje {:guid            "3b649bc647f4a2e8410c2cf8f90828cc017ae13"
                                     :source          '(fact "this is wrong" 1 => 2)
                                     :namespace       'octocat.arithmetic-test
-                                    :file            "file:/home/john-doe/dev/projects/octocat/test/octocat/mocks_test.clj"
+                                    :file            "file:/home/john-doe/dev/projects/octocat/test/octocat/arithmetic_test.clj"
                                     :line            14
                                     :description     "this is wrong"
                                     :name            "this is wrong"
@@ -29,7 +29,7 @@
                                 #:midje {:guid            "1ced1998157d66cc34a347e593ded405d59ecfe2"
                                          :source          '(fact "this is impossible" (/ 10 0) => 0)
                                          :namespace       'octocat.arithmetic-test
-                                         :file            "file:/home/john-doe/dev/projects/octocat/test/octocat/mocks_test.clj"
+                                         :file            "file:/home/john-doe/dev/projects/octocat/test/octocat/arithmetic_test.clj"
                                          :line            20
                                          :description     "this is impossible"
                                          :name            "this is impossible"
@@ -75,8 +75,8 @@
                                                   :expected-call        "(an-impure-function {:first-name \"John\", :last-name \"Doe\"})"
                                                   :expected-count       :default
                                                   :expected-result-form "(an-impure-function {:first-name \"John\", :last-name \"Doe\"})"
-                                                  :position             ["mocks_test.clj" 15]})
-                                     :position ["mocks_test.clj" 15]
+                                                  :position             ["arithmetic_test.clj" 15]})
+                                     :position ["arithmetic_test.clj" 15]
                                      :type     :some-prerequisites-were-called-the-wrong-number-of-times})
 
 (facts "about the midje-nrepl's reporter"
