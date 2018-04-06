@@ -9,4 +9,6 @@
 
   :profiles {:dev {:dependencies [[midje "1.9.2-alpha3"]
                                   [nubank/matcher-combinators "0.2.3"]]
-                   :plugins [                 [lein-midje "3.2.1"]]}})
+                   :plugins [                 [lein-midje "3.2.1"]]}}
+
+  :test-paths ["integration" "test"])
