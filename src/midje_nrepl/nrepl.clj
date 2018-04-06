@@ -35,9 +35,8 @@
 (defmiddleware wrap-version
   {:expects  #{}
    :requires #{}
-   :handles  {"midje-nrepl-version"
-              {:doc     "Provides information about midje-nrepl's current version."
-               :returns {"midje-nrepl-version" "A string indicating the current version of midje-nrepl."}}}}
+   :handles  {"version"
+              {:doc "Provides information about midje-nrepl's current version."}}}
   'midje-nrepl.middlewares.version/handle-version)
 
 (def middlewares `[wrap-test
