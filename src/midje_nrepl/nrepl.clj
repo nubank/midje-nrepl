@@ -1,5 +1,6 @@
 (ns midje-nrepl.nrepl
-  (:require [clojure.tools.nrepl.middleware :refer [set-descriptor!]]))
+  (:require [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
+            [clojure.tools.nrepl.server :as nrepl.server]))
 
 (defn- get-handler-function [handler-symbol]
   (require (symbol (namespace handler-symbol)))
@@ -21,3 +22,30 @@
      (defn ~name [handler#]
        (#'middleware ~descriptor ~handler-symbol handler#))
      (set-descriptor! (var ~name) ~descriptor)))
+
+(defmiddleware wrap-test
+  {:expects  #{}
+   :requires #{}
+   :handles  {"midje-test-ns"
+              {:doc      "Runs all Midje tests in the namespace."
+               :requires {"ns" "A string indicating the namespace containing the tests to be run."}
+               :optional {}}}}
+  'midje-nrepl.middlewares.test/handle-test)
+
+(defmiddleware wrap-version
+  {:expects  #{}
+   :requires #{}
+   :handles  {"midje-nrepl-version"
+              {:doc     "Provides information about midje-nrepl's current version."
+               :returns {"midje-nrepl-version" "A string indicating the current version of midje-nrepl."}}}}
+  'midje-nrepl.middlewares.version/handle-version)
+
+(def middlewares `[wrap-test
+                   wrap-version])
+
+(defn nrepl-handler
+  [& more-middlewares]
+  (->> more-middlewares
+       (concat middlewares)
+       (map resolve)
+       (apply nrepl.server/default-handler)))
