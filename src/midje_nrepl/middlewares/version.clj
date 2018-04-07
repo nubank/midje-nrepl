@@ -4,7 +4,7 @@
             [clojure.tools.nrepl.misc :refer [response-for]]
             [clojure.tools.nrepl.transport :as transport]))
 
-(def ^:private project-clj "midje-nrepl/midje-nrepl/project.clj")
+(def ^:private project-clj "META-INF/leiningen/midje-nrepl/midje-nrepl/project.clj")
 
 (def ^:private version-regex #"^(\d+).(\d+).(\d+)-?(.*)")
 
