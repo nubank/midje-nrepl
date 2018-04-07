@@ -1,6 +1,7 @@
 (ns midje-nrepl.middlewares.version-test
   (:require [clojure.java.io :as io]
             [midje-nrepl.middlewares.version :as version]
+            [clojure.tools.nrepl.transport :as transport]
             [midje.sweet :refer :all]))
 
 (def project_clj "(defproject midje-nrepl \"1.0.0\"
@@ -28,13 +29,13 @@
                 "6.10.1-SNAPSHOT"  {:major "6" :minor "10" :incremental "1" :qualifier "SNAPSHOT"})
 
        (fact "sends the current version of this project to the nREPL client"
-             (let [message {:transport ..transport..}]
+             (let [message {:transport ..transport.. :op "version"}]
                (version/handle-version message)
                => irrelevant
                (provided
-                (transport/send ..transport.. {:status  #{:done}
-                                               :version {:major          "1"
-                                                         :minor          "0"
-                                                         :incremental    "0"
-                                                         :version-string "1.0.0"}})
+                (transport/send ..transport.. {:status      #{:done}
+                                               :midje-nrepl {:major          "1"
+                                                             :minor          "0"
+                                                             :incremental    "0"
+                                                             :version-string "1.0.0"}})
                 => irrelevant))))

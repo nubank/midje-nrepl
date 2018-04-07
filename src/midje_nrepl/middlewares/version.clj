@@ -28,4 +28,4 @@
   [{:keys [transport] :as message}]
   (transport/send transport
                   (response-for message :status :done
-                                :version (version-info (get-current-version)))))
+                                :midje-nrepl (version-info (get-current-version)))))
