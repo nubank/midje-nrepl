@@ -9,5 +9,10 @@
 
   :profiles {:dev {:dependencies [[midje "1.9.2-alpha3"]
                                   [nubank/matcher-combinators "0.2.3"]]
-                   :plugins [                 [lein-midje "3.2.1"]]}
-             :provided {:dependencies [                 [leiningen-core "2.8.1"]]}})
+                   :plugins [[lein-midje "3.2.1"]]}
+             :provided {:dependencies [[leiningen-core "2.8.1"]]}}
+
+  :test-paths ["integration" "test"]
+
+  :aliases {"unit-tests" ["midje" "midje-nrepl.*"]
+            "integration" ["midje" "integration.*"]})
