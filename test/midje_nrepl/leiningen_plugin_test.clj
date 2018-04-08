@@ -2,6 +2,7 @@
   (:require [matcher-combinators.matchers :as m]
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.leiningen-plugin :as plugin]
+            [midje-nrepl.middlewares.version :as version]
             [midje-nrepl.nrepl :as midje-nrepl]
             [midje.sweet :refer :all]))
 
@@ -30,10 +31,10 @@
                                                          (assoc-in [:repl-options :nrepl-middleware]
                                                                    [`identity])))
 
-(def deps-with-only-midje-nrepl [['midje-nrepl "0.1.0-SNAPSHOT"]])
+(def deps-with-only-midje-nrepl [['midje-nrepl "1.0.0"]])
 
 (def deps-with-clojure-and-midje-nrepl [['org.clojure/clojure "1.9.0"]
-                                        ['midje-nrepl "0.1.0-SNAPSHOT"]])
+                                        ['midje-nrepl "1.0.0"]])
 
 (def midje-nrepl-middlewares (m/in-any-order midje-nrepl/middlewares))
 
@@ -53,6 +54,8 @@
                                                                    (assoc-in [:repl-options :nrepl-middleware] midje-nrepl-middlewares-along-with-another-middleware)))
 
 (facts "about the Leiningen plugin"
+       (against-background
+        (version/get-current-version) => "1.0.0")
 
        (tabular (fact "augments the project map by injecting midje-nrepl's middlewares"
                       (plugin/middleware ?project)
