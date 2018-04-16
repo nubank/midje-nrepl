@@ -41,10 +41,3 @@
 
 (def middlewares `[wrap-test
                    wrap-version])
-
-(defn nrepl-handler
-  [& more-middlewares]
-  (->> more-middlewares
-       (concat middlewares)
-       (map resolve)
-       (apply nrepl.server/default-handler)))
