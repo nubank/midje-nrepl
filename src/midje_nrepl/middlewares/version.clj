@@ -18,10 +18,8 @@
 
 (defn version-info [^String version]
   (->> (re-matches version-regex version)
-       rest
        (remove string/blank?)
-       (zipmap [:major :minor :incremental :qualifier])
-       (#(assoc % :version-string version))))
+       (zipmap [:version-string :major :minor :incremental :qualifier])))
 
 (defn handle-version
   "Handles the `version` op, by returning information of midje-nrepl's current version."
