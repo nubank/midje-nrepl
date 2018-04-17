@@ -38,8 +38,13 @@
    :requires #{}
    :handles  {"midje-test-ns"
               {:doc      "Runs all Midje tests in the namespace."
-               :requires {"ns" "A string indicating the namespace containing the tests to be run."}
-               :optional {}}}}
+               :requires {"ns" "A string indicating the namespace containing the tests to be run."}}
+              "midje-test"
+              {:doc      "Runs a given Midje test (either an individual fact or facts)."
+               :requires {"ns"         "The namespace in which the fact(s) sent through `test-forms` should be evaluated."
+                          "test-forms" "The fact(s) to be run."}}
+              "midje-retest"
+              {:doc "Re-runs the tests that didn't pass in the last execution."}}}
   'midje-nrepl.middlewares.test/handle-test)
 
 (defmiddleware wrap-version

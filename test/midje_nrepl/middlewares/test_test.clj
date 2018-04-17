@@ -31,6 +31,20 @@
              (provided
               (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => report))
 
+       (fact "when the op is `midje-test`, it runs the given test"
+             (test/handle-test {:ns "octocat.arithmetic-test"
+                                :op "midje-test"
+                                :test-forms "(fact (+ 2 3) => 6)"
+                                :transport ..transport..}) => irrelevant
+             (provided
+              (test-runner/run-test 'octocat.arithmetic-test
+                                    "(fact (+ 2 3) => 6)") => report))
+
+       (fact "when the op is `midje-retest`, it re-runs the last failed tests"
+             (test/handle-test {:op "midje-retest" :transport ..transport..}) => irrelevant
+             (provided
+              (test-runner/re-run-failed-tests) => report))
+
        (fact "when the op doesn't match none of the supported ops, it does nothing"
              (test/handle-test {:op "eval"}) => irrelevant
              (provided
