@@ -1,26 +1,36 @@
 (ns midje-nrepl.nrepl
-  (:require [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
-            [clojure.tools.nrepl.server :as nrepl.server]))
+  (:require [clojure.set :as set]
+            [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
+            [clojure.tools.nrepl.misc :refer [response-for]]
+            [clojure.tools.nrepl.transport :as transport]))
 
-(defn- get-handler-function [handler-symbol]
-  (require (symbol (namespace handler-symbol)))
-  (resolve handler-symbol))
+(defn- explain-missing-parameters [message op-descriptor]
+  (let [key-set         #(->> % keys (map keyword) set)
+        required-params (key-set (op-descriptor :requires))
+        actual-params   (key-set message)]
+    (->> (set/difference required-params actual-params)
+         (map (comp keyword #(str "no-" %) name)))))
 
-(defn- call-handler [handler-symbol message]
-  (let [handler @(get-handler-function handler-symbol)]
-    (apply handler [message])))
+(defn- call-handler [delayed-handler {:keys [transport] :as message} op-descriptor]
+  (let [missing-params (explain-missing-parameters message op-descriptor)]
+    (if (seq missing-params)
+      (transport/send transport (response-for message :status (set (cons :error missing-params))))
+      (apply @delayed-handler [message]))))
 
-(defn- middleware [{:keys [handles]} handler-symbol higher-handler]
-  (let [supported-ops (set (keys handles))]
-    (fn [{:keys [op] :as message}]
-      (if (supported-ops op)
-        (call-handler handler-symbol message)
-        (higher-handler message)))))
+(defn middleware [descriptor delayed-handler higher-handler]
+  (fn [{:keys [op] :as message}]
+    (if-let [op-descriptor (get-in descriptor [:handles (name op)])]
+      (call-handler delayed-handler message op-descriptor)
+      (higher-handler message))))
+
+(defn delayed-handler-function [handler-symbol]
+  (delay   (require (symbol (namespace handler-symbol)))
+           (deref (resolve handler-symbol))))
 
 (defmacro defmiddleware [name descriptor handler-symbol]
-  `(do
+  `(let [delayed-handler# (delayed-handler-function ~handler-symbol)]
      (defn ~name [handler#]
-       (#'middleware ~descriptor ~handler-symbol handler#))
+       (middleware ~descriptor delayed-handler# handler#))
      (set-descriptor! (var ~name) ~descriptor)))
 
 (defmiddleware wrap-test
