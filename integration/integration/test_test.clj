@@ -6,7 +6,7 @@
             [matcher-combinators.midje :refer [match]]
             [midje.sweet :refer :all]))
 
-(defn existent-file? [candidate]
+(defn existing-file? [candidate]
   (-> candidate io/file .exists))
 
 (defn read-line-from [file-path line]
