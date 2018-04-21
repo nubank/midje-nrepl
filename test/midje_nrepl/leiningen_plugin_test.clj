@@ -2,7 +2,7 @@
   (:require [matcher-combinators.matchers :as m]
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.leiningen-plugin :as plugin]
-            [midje-nrepl.middlewares.version :as version]
+            [midje-nrepl.middleware.version :as version]
             [midje-nrepl.nrepl :as midje-nrepl]
             [midje.sweet :refer :all]))
 
@@ -26,7 +26,7 @@
                                                      :port    4001
                                                      :timeout 40000}))
 
-(def project-with-repl-options-and-nrepl-middlewares (-> project-with-repl-options
+(def project-with-repl-options-and-nrepl-middleware (-> project-with-repl-options
                                                          (assoc :dependencies '([org.clojure/clojure "1.9.0"]))
                                                          (assoc-in [:repl-options :nrepl-middleware]
                                                                    [`identity])))
@@ -36,31 +36,31 @@
 (def deps-with-clojure-and-midje-nrepl [['org.clojure/clojure "1.9.0"]
                                         ['midje-nrepl "1.0.0"]])
 
-(def midje-nrepl-middlewares (m/in-any-order midje-nrepl/middlewares))
+(def midje-nrepl-middleware (m/in-any-order midje-nrepl/middleware))
 
-(def midje-nrepl-middlewares-along-with-another-middleware (m/in-any-order (cons `identity midje-nrepl/middlewares)))
+(def midje-nrepl-middleware-along-with-another-middleware (m/in-any-order (cons `identity midje-nrepl/middleware)))
 
 (def augmented-basic-project (assoc basic-project
                                     :dependencies deps-with-only-midje-nrepl
                                     :repl-options
-                                    {:nrepl-middleware midje-nrepl-middlewares}))
+                                    {:nrepl-middleware midje-nrepl-middleware}))
 
 (def augmented-project-with-repl-options (-> project-with-repl-options
                                              (assoc                                     :dependencies deps-with-only-midje-nrepl)
-                                             (assoc-in [:repl-options :nrepl-middleware] midje-nrepl-middlewares)))
+                                             (assoc-in [:repl-options :nrepl-middleware] midje-nrepl-middleware)))
 
-(def augmented-project-with-repl-options-and-nrepl-middlewares (-> project-with-repl-options-and-nrepl-middlewares
-                                                                   (assoc :dependencies deps-with-clojure-and-midje-nrepl)
-                                                                   (assoc-in [:repl-options :nrepl-middleware] midje-nrepl-middlewares-along-with-another-middleware)))
+(def augmented-project-with-repl-options-and-nrepl-middleware (-> project-with-repl-options-and-nrepl-middleware
+                                                                  (assoc :dependencies deps-with-clojure-and-midje-nrepl)
+                                                                  (assoc-in [:repl-options :nrepl-middleware] midje-nrepl-middleware-along-with-another-middleware)))
 
 (facts "about the Leiningen plugin"
        (against-background
         (version/get-current-version) => "1.0.0")
 
-       (tabular (fact "augments the project map by injecting midje-nrepl's middlewares"
+       (tabular (fact "augments the project map by injecting midje-nrepl's middleware"
                       (plugin/middleware ?project)
                       => (match (m/equals ?augmented-project)))
                 ?project                                         ?augmented-project
                 basic-project                                    augmented-basic-project
                 project-with-repl-options                        augmented-project-with-repl-options
-                project-with-repl-options-and-nrepl-middlewares  augmented-project-with-repl-options-and-nrepl-middlewares))
+                project-with-repl-options-and-nrepl-middleware  augmented-project-with-repl-options-and-nrepl-middleware))

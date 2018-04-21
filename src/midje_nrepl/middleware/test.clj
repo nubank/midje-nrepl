@@ -1,4 +1,4 @@
-(ns midje-nrepl.middlewares.test
+(ns midje-nrepl.middleware.test
   (:require [clojure.tools.nrepl.misc :refer [response-for]]
             [clojure.tools.nrepl.transport :as transport]
             [midje-nrepl.test-runner :as test-runner]

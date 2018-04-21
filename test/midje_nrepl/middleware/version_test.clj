@@ -1,7 +1,7 @@
-(ns midje-nrepl.middlewares.version-test
+(ns midje-nrepl.middleware.version-test
   (:require [clojure.java.io :as io]
-            [midje-nrepl.middlewares.version :as version]
             [clojure.tools.nrepl.transport :as transport]
+            [midje-nrepl.middleware.version :as version]
             [midje.sweet :refer :all]))
 
 (def project_clj "(defproject midje-nrepl \"1.0.0\"

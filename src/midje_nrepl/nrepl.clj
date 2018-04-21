@@ -17,7 +17,7 @@
       (transport/send transport (response-for message :status (set (cons :error missing-params))))
       (apply @delayed-handler [message]))))
 
-(defn middleware [descriptor delayed-handler higher-handler]
+(defn make-middleware [descriptor delayed-handler higher-handler]
   (fn [{:keys [op] :as message}]
     (if-let [op-descriptor (get-in descriptor [:handles (name op)])]
       (call-handler delayed-handler message op-descriptor)
@@ -30,7 +30,7 @@
 (defmacro defmiddleware [name descriptor handler-symbol]
   `(let [delayed-handler# (delayed-handler-function ~handler-symbol)]
      (defn ~name [handler#]
-       (middleware ~descriptor delayed-handler# handler#))
+       (make-middleware ~descriptor delayed-handler# handler#))
      (set-descriptor! (var ~name) ~descriptor)))
 
 (defmiddleware wrap-test
@@ -45,14 +45,14 @@
                           "test-forms" "The fact(s) to be run."}}
               "midje-retest"
               {:doc "Re-runs the tests that didn't pass in the last execution."}}}
-  'midje-nrepl.middlewares.test/handle-test)
+  'midje-nrepl.middleware.test/handle-test)
 
 (defmiddleware wrap-version
   {:expects  #{}
    :requires #{}
    :handles  {"version"
               {:doc "Provides information about midje-nrepl's current version."}}}
-  'midje-nrepl.middlewares.version/handle-version)
+  'midje-nrepl.middleware.version/handle-version)
 
-(def middlewares `[wrap-test
-                   wrap-version])
+(def middleware `[wrap-test
+                  wrap-version])

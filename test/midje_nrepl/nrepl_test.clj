@@ -14,11 +14,11 @@
               {:doc      "Sends a personal greeting to the user."
                :requires {"first-name" "The first name of the user."
                           "last-name"  "The last name of the user."}}}}
-  'midje-nrepl.middlewares.fake/handle-greeting)
+  'midje-nrepl.middleware.fake/handle-greeting)
 
 (def fake-handler #(assoc % :something :yeah))
 
-(facts "about defining middlewares"
+(facts "about defining middleware"
 
        (fact "the middleware contains a descriptor assoc'ed into its meta"
              (meta #'wrap-greeting)

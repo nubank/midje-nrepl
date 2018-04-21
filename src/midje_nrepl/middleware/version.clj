@@ -1,4 +1,4 @@
-(ns midje-nrepl.middlewares.version
+(ns midje-nrepl.middleware.version
   (:require [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.tools.nrepl.misc :refer [response-for]]

@@ -1,4 +1,4 @@
-(ns midje-nrepl.middlewares.fake
+(ns midje-nrepl.middleware.fake
   "Fake middleware for testing purposes.")
 
 (defn handle-greeting
