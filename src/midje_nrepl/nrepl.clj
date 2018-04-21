@@ -50,7 +50,7 @@
 (defmiddleware wrap-version
   {:expects  #{}
    :requires #{}
-   :handles  {"version"
+   :handles  {"midje-nrepl-version"
               {:doc "Provides information about midje-nrepl's current version."}}}
   'midje-nrepl.middleware.version/handle-version)
 

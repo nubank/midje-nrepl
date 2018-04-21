@@ -22,7 +22,7 @@
        (zipmap [:version-string :major :minor :incremental :qualifier])))
 
 (defn handle-version
-  "Handles the `version` op, by returning information of midje-nrepl's current version."
+  "Handles the `midje-nrepl-version` op, by returning information of midje-nrepl's current version."
   [{:keys [transport] :as message}]
   (transport/send transport
                   (response-for message :status :done

@@ -4,7 +4,7 @@
             [midje.sweet :refer :all]))
 
 (fact "gets the midje-nrepl's current version"
-      (send-message {:op "version"})
+      (send-message {:op "midje-nrepl-version"})
       => (match (list {:midje-nrepl {:major       string?
                                      :minor       string?
                                      :incremental string?}})))

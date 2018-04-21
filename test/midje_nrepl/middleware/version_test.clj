@@ -29,7 +29,7 @@
                 "6.10.1-SNAPSHOT"  {:major "6" :minor "10" :incremental "1" :qualifier "SNAPSHOT"})
 
        (fact "sends the current version of this project to the nREPL client"
-             (let [message {:transport ..transport.. :op "version"}]
+             (let [message {:transport ..transport.. :op "midje-nrepl-version"}]
                (version/handle-version message)
                => irrelevant
                (provided
