@@ -1,4 +1,4 @@
-(ns midje-nrepl.leiningen-plugin
+(ns midje-nrepl.plugin
   (:require [midje-nrepl.middleware.version :as version]
             [midje-nrepl.nrepl :as midje-nrepl]))
 

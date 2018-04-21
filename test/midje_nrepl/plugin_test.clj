@@ -1,9 +1,9 @@
-(ns midje-nrepl.leiningen-plugin-test
+(ns midje-nrepl.plugin-test
   (:require [matcher-combinators.matchers :as m]
             [matcher-combinators.midje :refer [match]]
-            [midje-nrepl.leiningen-plugin :as plugin]
             [midje-nrepl.middleware.version :as version]
             [midje-nrepl.nrepl :as midje-nrepl]
+            [midje-nrepl.plugin :as plugin]
             [midje.sweet :refer :all]))
 
 (def basic-project {:description "FIXME: write description"
