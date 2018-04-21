@@ -27,9 +27,9 @@
                                                      :timeout 40000}))
 
 (def project-with-repl-options-and-nrepl-middleware (-> project-with-repl-options
-                                                         (assoc :dependencies '([org.clojure/clojure "1.9.0"]))
-                                                         (assoc-in [:repl-options :nrepl-middleware]
-                                                                   [`identity])))
+                                                        (assoc :dependencies '([org.clojure/clojure "1.9.0"]))
+                                                        (assoc-in [:repl-options :nrepl-middleware]
+                                                                  [`identity])))
 
 (def deps-with-only-midje-nrepl [['midje-nrepl "1.0.0"]])
 
