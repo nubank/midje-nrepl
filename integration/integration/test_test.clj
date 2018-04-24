@@ -24,7 +24,7 @@
        (fact "runs all tests in the specified namespace"
              (send-message {:op "midje-test-ns" :ns "octocat.arithmetic-test"})
              => (match (list {:results (complement empty?)
-                              :summary {:error 1 :fail 2 :ns 1 :pass 2 :skip 0 :test 5}}
+                              :summary {:error 1 :fact 4 :fail 2 :ns 1 :pass 2 :skip 0 :test 5}}
                              {:status ["done"]})))
 
        (fact "when the ns is missing in the message, the middleware returns an error"
@@ -52,7 +52,7 @@ it's possible to jump to the correct position of the test in question"
        (fact "re-runs tests that didn't pass in the previous execution"
              (send-message {:op "midje-retest"})
              => (match (list {:results (complement empty?)
-                              :summary {:error 1 :fail 2 :ns 1 :pass 1 :skip 0 :test 4}}
+                              :summary {:error 1 :fact 3 :fail 2 :ns 1 :pass 1 :skip 0 :test 4}}
                              {:status ["done"]})))
 
        (fact "runs the specified test"
@@ -68,7 +68,7 @@ it's possible to jump to the correct position of the test in question"
                                  :expected 6
                                  :actual   5
                                  :message  []}]}
-                              :summary    {:error 0 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}
+                              :summary    {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}
                               :testing-ns "octocat.arithmetic-test"}
                              {:status ["done"]})))
 
