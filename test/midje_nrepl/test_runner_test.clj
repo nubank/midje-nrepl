@@ -22,7 +22,7 @@
                            :actual     5
                            :message    '()
                            :type       :fail}]}
-                        :summary    {:ns 1 :fail 1 :error 0 :pass 1 :test 2 :skip 0}
+                        :summary    {:ns 1 :fact 2 :fail 1 :error 0 :pass 1 :test 2 :skip 0}
                         :testing-ns 'midje-nrepl.test-runner-test})
 
 (def individual-test-report {:results
@@ -32,7 +32,7 @@
                                 :context    ["(fact 1 => 1)"]
                                 :test-forms "(fact 1 => 1)"
                                 :type       :pass}]}
-                             :summary    {:ns 1 :fail 0 :error 0 :pass 1 :test 1 :skip 0}
+                             :summary    {:ns 1 :fact 1 :fail 0 :error 0 :pass 1 :test 1 :skip 0}
                              :testing-ns 'midje-nrepl.test-runner-test})
 
 (def arithmetic-test-report {:results
@@ -67,7 +67,7 @@
                                 :expected 0
                                 :error    #(instance? ArithmeticException %)
                                 :type     :error}]}
-                             :summary    {:error 1 :fail 2 :ns 1 :pass 2 :skip 0 :test 5}
+                             :summary    {:error 1 :fact 4 :fail 2 :ns 1 :pass 2 :skip 0 :test 5}
                              :testing-ns 'octocat.arithmetic-test})
 
 (def re-run-arithmetic-test-report {:results
@@ -98,7 +98,7 @@
                                        :expected 0
                                        :error    #(instance? ArithmeticException %)
                                        :type     :error}]}
-                                    :summary {:error 1 :fail 2 :ns 1 :pass 1 :skip 0 :test 4}})
+                                    :summary {:error 1 :fact 3 :fail 2 :ns 1 :pass 1 :skip 0 :test 4}})
 
 (def colls-test-report {:results
                         {'octocat.colls-test
@@ -126,7 +126,7 @@
                            :expected '(match (m/in-any-order [3 2 4]))
                            :actual   [1 2 3]
                            :type     :fail}]}
-                        :summary    {:error 0 :fail 4 :ns 1 :pass 0 :skip 0 :test 4}
+                        :summary    {:error 0 :fact 3 :fail 4 :ns 1 :pass 0 :skip 0 :test 4}
                         :testing-ns 'octocat.colls-test})
 
 (def mocks-test-report {:results
@@ -146,7 +146,7 @@
                            :actual   "`an-impure-function` returned this string because it was called with an unexpected argument"
                            :message  '()
                            :type     :fail}]}
-                        :summary    {:error 0 :fail 3 :ns 1 :pass 0 :skip 0 :test 3}
+                        :summary    {:error 0 :fact 1 :fail 3 :ns 1 :pass 0 :skip 0 :test 3}
                         :testing-ns 'octocat.mocks-test})
 
 (defn isolate-test-forms!
