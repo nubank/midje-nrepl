@@ -85,7 +85,7 @@
              (reporter/reset-report! 'octocat.arithmetic-test)
              @reporter/report => {:testing-ns 'octocat.arithmetic-test
                                   :results    {}
-                                  :summary    {:error 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})
+                                  :summary    {:error 0 :fact 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})
 
        (fact "when Midje starts checking a top level fact,
 it stores its description in the report atom"
@@ -205,6 +205,7 @@ it is interpreted as an error in the test report"
        (fact "summarizes test results, by computing the counters for each category"
              (reporter/summarize-test-results!)
              @reporter/report => (match {:summary {:error 1
+                                                   :fact  3
                                                    :fail  1
                                                    :ns    1
                                                    :pass  1

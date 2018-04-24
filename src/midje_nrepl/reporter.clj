@@ -12,7 +12,7 @@
 (def report (atom nil))
 
 (def no-tests {:results {}
-               :summary {:error 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})
+               :summary {:error 0 :fact 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})
 
 (defn reset-report! [namespace]
   (reset! report
@@ -20,14 +20,16 @@
 
 (defn summarize-test-results! []
   (let [namespace  (@report :testing-ns)
-        results    (->> (get-in @report [:results namespace])
+        results    (get-in @report [:results namespace])
+        counters   (->> results
                         (group-by :type)
                         (map (fn [[type values]] {type (count values)}))
                         (into {}))
         namespaces (-> @report :results keys count)
-        tests      (->> results vals (apply +))]
+        facts      (->> results (keep :id) distinct count)
+        tests      (->> counters vals (apply +))]
     (swap! report update :summary
-           merge (assoc results :ns namespaces :test tests))))
+           merge (assoc counters :fact facts :ns namespaces :test tests))))
 
 (defn starting-to-check-top-level-fact [fact]
   (swap! report assoc :top-level-description [(fact/description fact)]))
@@ -49,7 +51,8 @@
       [description])))
 
 (defn starting-to-check-fact [fact]
-  (swap! report assoc :current-test {:context    (description-for fact)
+  (swap! report assoc :current-test {:id         (fact/guid fact)
+                                     :context    (description-for fact)
                                      :ns         (fact/namespace fact)
                                      :file       (file-for fact)
                                      :line       (fact/line fact)
