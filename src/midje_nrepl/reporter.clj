@@ -1,5 +1,6 @@
 (ns midje-nrepl.reporter
   (:require [clojure.java.io :as io]
+            [clojure.pprint :as pprint]
             [midje.config :as midje.config]
             [midje.data.fact :as fact]
             [midje.emission.plugins.default-failure-lines :as failure-lines]
@@ -58,10 +59,16 @@
                                      :line       (fact/line fact)
                                      :test-forms (pr-str (fact/source fact))}))
 
+(defn prettify-expected-and-actual-values [{:keys [expected actual] :as result-map}]
+  (let [pretty-str #(with-out-str (pprint/write %))]
+    (cond-> result-map
+      expected (assoc :expected (pretty-str expected))
+      actual   (assoc :actual (pretty-str actual)))))
+
 (defn- conj-test-result! [additional-data]
   (let [{:keys [context] :as current-test} (@report :current-test)
         ns                                 (@report :testing-ns)
-        test                               (merge current-test additional-data)]
+        test                               (prettify-expected-and-actual-values (merge current-test additional-data))]
     (swap! report update-in [:results ns]
            (comp vec (partial conj)) test)))
 

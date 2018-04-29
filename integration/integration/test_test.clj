@@ -65,8 +65,8 @@ it's possible to jump to the correct position of the test in question"
                                [{:context  ["this is a crazy arithmetic"]
                                  :ns       "octocat.arithmetic-test"
                                  :type     "fail"
-                                 :expected 6
-                                 :actual   5
+                                 :expected "6"
+                                 :actual   "5"
                                  :message  []}]}
                               :summary    {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}
                               :testing-ns "octocat.arithmetic-test"}
