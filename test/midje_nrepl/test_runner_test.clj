@@ -18,8 +18,8 @@
                            :file       actual-file?
                            :context    ["(fact (+ 3 2) => 6)"]
                            :test-forms "(fact (+ 3 2) => 6)"
-                           :expected   "6"
-                           :actual     "5"
+                           :expected   "6\n"
+                           :actual     "5\n"
                            :message    '()
                            :type       :fail}]}
                         :summary    {:ns 1 :fact 2 :fail 1 :error 0 :pass 1 :test 2 :skip 0}
@@ -44,8 +44,8 @@
                                {:context  ["about arithmetic operations" "this is a crazy arithmetic"]
                                 :ns       'octocat.arithmetic-test
                                 :file     actual-file?
-                                :expected "6"
-                                :actual   "5"
+                                :expected "6\n"
+                                :actual   "5\n"
                                 :message  '()
                                 :type     :fail}
                                {:context
@@ -57,14 +57,14 @@
                                 ["about arithmetic operations" "two assertions in the same fact; the former is correct while the later is wrong"]
                                 :ns       'octocat.arithmetic-test
                                 :file     actual-file?
-                                :expected "3"
-                                :actual   "2"
+                                :expected "3\n"
+                                :actual   "2\n"
                                 :message  '()
                                 :type     :fail}
                                {:context  ["about arithmetic operations" "this will throw an unexpected exception"]
                                 :ns       'octocat.arithmetic-test
                                 :file     actual-file?
-                                :expected "0"
+                                :expected "0\n"
                                 :error    #(instance? ArithmeticException %)
                                 :type     :error}]}
                              :summary    {:error 1 :fact 4 :fail 2 :ns 1 :pass 2 :skip 0 :test 5}
@@ -75,8 +75,8 @@
                                      [{:context  ["this is a crazy arithmetic"]
                                        :ns       'octocat.arithmetic-test
                                        :file     actual-file?
-                                       :expected "6"
-                                       :actual   "5"
+                                       :expected "6\n"
+                                       :actual   "5\n"
                                        :message  '()
                                        :type     :fail}
                                       {:context
@@ -88,14 +88,14 @@
                                        ["two assertions in the same fact; the former is correct while the later is wrong"]
                                        :ns       'octocat.arithmetic-test
                                        :file     actual-file?
-                                       :expected "3"
-                                       :actual   "2"
+                                       :expected "3\n"
+                                       :actual   "2\n"
                                        :message  '()
                                        :type     :fail}
                                       {:context  ["this will throw an unexpected exception"]
                                        :ns       'octocat.arithmetic-test
                                        :file     actual-file?
-                                       :expected "0"
+                                       :expected "0\n"
                                        :error    #(instance? ArithmeticException %)
                                        :type     :error}]}
                                     :summary {:error 1 :fact 3 :fail 2 :ns 1 :pass 1 :skip 0 :test 4}})
@@ -105,26 +105,26 @@
                          [{:context  ["about Clojure collections" "one key is missing in the actual map"]
                            :ns       'octocat.colls-test
                            :file     actual-file?
-                           :expected "{:first-name \"John\", :last-name \"Doe\"}"
-                           :actual   "{:first-name \"John\"}"
+                           :expected "{:first-name \"John\", :last-name \"Doe\"}\n"
+                           :actual   "{:first-name \"John\"}\n"
                            :type     :fail}
                           {:context  ["about Clojure collections" "the rightmost isn't contained into the leftmost"]
                            :ns       'octocat.colls-test
                            :file     actual-file?
-                           :expected "(contains [1 2 3 4])"
-                           :actual   "[1 2 3]"
+                           :expected "(contains [1 2 3 4])\n"
+                           :actual   "[1 2 3]\n"
                            :type     :fail}
                           {:context  ["about Clojure collections" "the rightmost isn't contained into the leftmost"]
                            :ns       'octocat.colls-test
                            :file     actual-file?
-                           :expected "(match {:elements [:b :c]})"
-                           :actual   "{:elements [:a :b]}"
+                           :expected "(match {:elements [:b :c]})\n"
+                           :actual   "{:elements [:a :b]}\n"
                            :type     :fail}
                           {:context  ["about Clojure collections" "the leftmost doesn't have the same elements as the rightmost"]
                            :ns       'octocat.colls-test
                            :file     actual-file?
-                           :expected "(match (m/in-any-order [3 2 4]))"
-                           :actual   "[1 2 3]"
+                           :expected "(match (m/in-any-order [3 2 4]))\n"
+                           :actual   "[1 2 3]\n"
                            :type     :fail}]}
                         :summary    {:error 0 :fact 3 :fail 4 :ns 1 :pass 0 :skip 0 :test 4}
                         :testing-ns 'octocat.colls-test})
@@ -142,8 +142,8 @@
                           {:context  ["about prerequisits" "this one is mistakenly mocked out"]
                            :ns       'octocat.mocks-test
                            :file     actual-file?
-                           :expected "{:message \"Hello John!\"}"
-                           :actual   "\"`an-impure-function` returned this string because it was called with an unexpected argument\""
+                           :expected "{:message \"Hello John!\"}\n"
+                           :actual   "\"`an-impure-function` returned this string because it was called with an unexpected argument\"\n"
                            :message  '()
                            :type     :fail}]}
                         :summary    {:error 0 :fact 1 :fail 3 :ns 1 :pass 0 :skip 0 :test 3}

@@ -60,7 +60,7 @@
                                      :test-forms (pr-str (fact/source fact))}))
 
 (defn prettify-expected-and-actual-values [{:keys [expected actual] :as result-map}]
-  (let [pretty-str #(with-out-str (pprint/write %))]
+  (let [pretty-str #(with-out-str (pprint/pprint %))]
     (cond-> result-map
       expected (assoc :expected (pretty-str expected))
       actual   (assoc :actual (pretty-str actual)))))

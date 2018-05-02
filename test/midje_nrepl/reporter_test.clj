@@ -135,8 +135,8 @@ it stores the corresponding test result in the report atom"
                                                      :file       #(instance? java.io.File %)
                                                      :line       15
                                                      :test-forms "(fact \"this is wrong\" 1 => 2)"
-                                                     :expected   "2"
-                                                     :actual     "1"
+                                                     :expected   "2\n"
+                                                     :actual     "1\n"
                                                      :message    '()
                                                      :type       :fail}]}})
              (reporter/finishing-top-level-fact wrong-fact-function))
@@ -158,8 +158,8 @@ it is interpreted as an error in the test report"
                                                      :file       #(instance? java.io.File %)
                                                      :line       15
                                                      :test-forms "(fact \"this is wrong\" 1 => 2)"
-                                                     :expected   "2"
-                                                     :actual     "1"
+                                                     :expected   "2\n"
+                                                     :actual     "1\n"
                                                      :message    '()
                                                      :type       :fail}
                                                     {:context    ["this is impossible"]
@@ -167,7 +167,7 @@ it is interpreted as an error in the test report"
                                                      :file       #(instance? java.io.File %)
                                                      :line       20
                                                      :test-forms "(fact \"this is impossible\" (/ 10 0) => 0)"
-                                                     :expected   "0"
+                                                     :expected   "0\n"
                                                      :error      #(= arithmetic-exception %)
                                                      :type       :error}]}})
              (reporter/finishing-top-level-fact impossible-fact-function))
@@ -186,8 +186,8 @@ it is interpreted as an error in the test report"
                                                      :file       #(instance? java.io.File %)
                                                      :line       15
                                                      :test-forms "(fact \"this is wrong\" 1 => 2)"
-                                                     :expected   "2"
-                                                     :actual     "1"
+                                                     :expected   "2\n"
+                                                     :actual     "1\n"
                                                      :message    '()
                                                      :type       :fail}
                                                     {:context    ["this is impossible"]
@@ -195,7 +195,7 @@ it is interpreted as an error in the test report"
                                                      :file       #(instance? java.io.File %)
                                                      :line       20
                                                      :test-forms "(fact \"this is impossible\" (/ 10 0) => 0)"
-                                                     :expected   "0"
+                                                     :expected   "0\n"
                                                      :error      #(= arithmetic-exception %)
                                                      :type       :error}
                                                     {:context ["TODO"]
@@ -217,9 +217,9 @@ it is interpreted as an error in the test report"
                       => (merge {:context ["this is a test"]} ?result))
                 ?failure-map             ?result
                 {}                       {}
-                {:expected 1}            {:expected "1"}
-                {:actual 2}              {:actual "2"}
-                {:expected 1 :actual 3}  {:expected "1" :actual "3"})
+                {:expected 1}            {:expected "1\n"}
+                {:actual 2}              {:actual "2\n"}
+                {:expected 1 :actual 3}  {:expected "1\n" :actual "3\n"})
 
        (tabular (fact "explains the failures according to the failure-map's type"
                       (reporter/explain-failure ?failure-map) => ?result)
