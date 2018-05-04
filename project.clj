@@ -10,7 +10,8 @@
   :profiles {:dev {:dependencies [[midje "1.9.2-alpha3"]
                                   [nubank/matcher-combinators "0.2.3"]]
                    :plugins [[lein-midje "3.2.1"]]}
-             :provided {:dependencies [[leiningen-core "2.8.1"]]}}
+             :provided {:dependencies [[cider/cider-nrepl "0.17.0-SNAPSHOT"]
+                                       [leiningen-core "2.8.1"]]}}
 
   :test-paths ["integration" "test"]
 
