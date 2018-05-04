@@ -11,6 +11,6 @@
 
 (defn send-message [message]
   (with-open [conn (nrepl/connect :port (get-nrepl-port))]
-    (-> (nrepl/client conn 3000)
+    (-> (nrepl/client conn 6000)
         (nrepl/message message)
         doall)))

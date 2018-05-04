@@ -31,23 +31,23 @@
              (first (send-message {:op "midje-test-ns"}))
              => (match {:status (m/in-any-order ["error" "no-ns"])}))
 
-       (future-fact "the test results contain a valid path to the file at which the tests are declared"
-                    (->> (send-message {:op "midje-test-ns" :ns "octocat.arithmetic-test"})
-                         first
-                         :results
-                         :octocat.arithmetic-test
-                         (map :file))
-                    => #(every? existent-file? %))
+       (fact "the test results contain a valid path to the file at which the tests are declared"
+             (->> (send-message {:op "midje-test-ns" :ns "octocat.arithmetic-test"})
+                  first
+                  :results
+                  :octocat.arithmetic-test
+                  (map :file))
+             => #(every? existing-file? %))
 
-       (future-fact "by following the file and the line returned by a given test result,
+       (fact "by following the file and the line returned by a given test result,
 it's possible to jump to the correct position of the test in question"
-                    (let [{:keys [file line]} (->> (send-message {:op "midje-test-ns" :ns "octocat.arithmetic-test"})
-                                                   first
-                                                   :results
-                                                   :octocat.arithmetic-test
-                                                   second)]
-                      (read-line-from file line)
-                      => #"\(\+ 2 3\) => 6"))
+             (let [{:keys [file line]} (->> (send-message {:op "midje-test-ns" :ns "octocat.arithmetic-test"})
+                                            first
+                                            :results
+                                            :octocat.arithmetic-test
+                                            second)]
+               (read-line-from file line)
+               => #"\(\+ 2 3\) => 6"))
 
        (fact "re-runs tests that didn't pass in the previous execution"
              (send-message {:op "midje-retest"})
