@@ -2,6 +2,7 @@
   (:require [matcher-combinators.matchers :as m]
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.reporter :as reporter]
+            [midje.emission.api :refer [silently]]
             [midje.sweet :refer :all]
             [midje.util.exceptions :as midje.exceptions]))
 
@@ -9,7 +10,6 @@
                              #:midje {:guid            "d2cd94c3346922886e796da80ab99ab764ba30f9"
                                       :source          '(fact "this is inquestionable" 1 => 1)
                                       :namespace       'octocat.arithmetic-test
-                                      :file            "file:/home/john-doe/dev/projects/octocat/test/octocat/arithmetic_test.clj"
                                       :line            10
                                       :description     "this is inquestionable"
                                       :name            "this is inquestionable"
@@ -19,7 +19,6 @@
                            #:midje {:guid            "3b649bc647f4a2e8410c2cf8f90828cc017ae13"
                                     :source          '(fact "this is wrong" 1 => 2)
                                     :namespace       'octocat.arithmetic-test
-                                    :file            "file:/home/john-doe/dev/projects/octocat/test/octocat/arithmetic_test.clj"
                                     :line            14
                                     :description     "this is wrong"
                                     :name            "this is wrong"
@@ -29,7 +28,6 @@
                                 #:midje {:guid            "1ced1998157d66cc34a347e593ded405d59ecfe2"
                                          :source          '(fact "this is impossible" (/ 10 0) => 0)
                                          :namespace       'octocat.arithmetic-test
-                                         :file            "file:/home/john-doe/dev/projects/octocat/test/octocat/arithmetic_test.clj"
                                          :line            20
                                          :description     "this is impossible"
                                          :name            "this is impossible"
@@ -79,7 +77,13 @@
                                      :position ["arithmetic_test.clj" 15]
                                      :type     :some-prerequisites-were-called-the-wrong-number-of-times})
 
+(defn existing-file? [candidate]
+  (and (instance? java.io.File candidate)
+       (.exists candidate)))
+
 (facts "about the midje-nrepl's reporter"
+       (against-background
+        (before :contents (silently (require 'octocat.arithmetic-test))))
 
        (fact "resets the report atom"
              (reporter/reset-report! 'octocat.arithmetic-test)
@@ -98,7 +102,7 @@ it stores the information about this fact in the report map"
              @reporter/report => (match {:current-test
                                          {:context    ["this is inquestionable"]
                                           :ns         'octocat.arithmetic-test
-                                          :file       #(instance? java.io.File %)
+                                          :file       existing-file?
                                           :line       10
                                           :test-forms "(fact \"this is inquestionable\" 1 => 1)"}}))
 
@@ -108,7 +112,7 @@ it stores the corresponding test result in the report atom"
              @reporter/report => (match {:results {'octocat.arithmetic-test
                                                    [{:context    ["this is inquestionable"]
                                                      :ns         'octocat.arithmetic-test
-                                                     :file       #(instance? java.io.File %)
+                                                     :file       existing-file?
                                                      :line       10
                                                      :test-forms "(fact \"this is inquestionable\" 1 => 1)"
                                                      :type       :pass}]}}))
@@ -126,13 +130,13 @@ it stores the corresponding test result in the report atom"
              @reporter/report => (match {:results {'octocat.arithmetic-test
                                                    [{:context    ["this is inquestionable"]
                                                      :ns         'octocat.arithmetic-test
-                                                     :file       #(instance? java.io.File %)
+                                                     :file       existing-file?
                                                      :line       10
                                                      :test-forms "(fact \"this is inquestionable\" 1 => 1)"
                                                      :type       :pass}
                                                     {:context    ["this is wrong"]
                                                      :ns         'octocat.arithmetic-test
-                                                     :file       #(instance? java.io.File %)
+                                                     :file       existing-file?
                                                      :line       15
                                                      :test-forms "(fact \"this is wrong\" 1 => 2)"
                                                      :expected   "2\n"
@@ -149,13 +153,13 @@ it is interpreted as an error in the test report"
              @reporter/report => (match {:results {'octocat.arithmetic-test
                                                    [{:context    ["this is inquestionable"]
                                                      :ns         'octocat.arithmetic-test
-                                                     :file       #(instance? java.io.File %)
+                                                     :file       existing-file?
                                                      :line       10
                                                      :test-forms "(fact \"this is inquestionable\" 1 => 1)"
                                                      :type       :pass}
                                                     {:context    ["this is wrong"]
                                                      :ns         'octocat.arithmetic-test
-                                                     :file       #(instance? java.io.File %)
+                                                     :file       existing-file?
                                                      :line       15
                                                      :test-forms "(fact \"this is wrong\" 1 => 2)"
                                                      :expected   "2\n"
@@ -164,7 +168,7 @@ it is interpreted as an error in the test report"
                                                      :type       :fail}
                                                     {:context    ["this is impossible"]
                                                      :ns         'octocat.arithmetic-test
-                                                     :file       #(instance? java.io.File %)
+                                                     :file       existing-file?
                                                      :line       20
                                                      :test-forms "(fact \"this is impossible\" (/ 10 0) => 0)"
                                                      :expected   "0\n"
@@ -177,13 +181,13 @@ it is interpreted as an error in the test report"
              @reporter/report => (match {:results {'octocat.arithmetic-test
                                                    [{:context    ["this is inquestionable"]
                                                      :ns         'octocat.arithmetic-test
-                                                     :file       #(instance? java.io.File %)
+                                                     :file       existing-file?
                                                      :line       10
                                                      :test-forms "(fact \"this is inquestionable\" 1 => 1)"
                                                      :type       :pass}
                                                     {:context    ["this is wrong"]
                                                      :ns         'octocat.arithmetic-test
-                                                     :file       #(instance? java.io.File %)
+                                                     :file       existing-file?
                                                      :line       15
                                                      :test-forms "(fact \"this is wrong\" 1 => 2)"
                                                      :expected   "2\n"
@@ -192,7 +196,7 @@ it is interpreted as an error in the test report"
                                                      :type       :fail}
                                                     {:context    ["this is impossible"]
                                                      :ns         'octocat.arithmetic-test
-                                                     :file       #(instance? java.io.File %)
+                                                     :file       existing-file?
                                                      :line       20
                                                      :test-forms "(fact \"this is impossible\" (/ 10 0) => 0)"
                                                      :expected   "0\n"
@@ -236,6 +240,6 @@ it is interpreted as an error in the test report"
              @reporter/report => (match {:results
                                          {'midje-nrepl.reporter-test [{:context ["I'm pretty sure about that"]
                                                                        :ns      'midje-nrepl.reporter-test
-                                                                       :file    #(instance? java.io.File %)
+                                                                       :file    existing-file?
                                                                        :line    number?}]}
                                          :summary {:error 0 :fail 0 :ns 1 :pass 1 :test 1 :skip 0}})))

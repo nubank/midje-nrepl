@@ -6,9 +6,9 @@
             [midje.emission.plugins.default-failure-lines :as failure-lines]
             [midje.emission.plugins.silence :as silence]
             [midje.emission.state :as midje.state]
-            [midje.util.exceptions :as midje.exceptions])
-  (:import clojure.lang.Symbol
-           java.net.URI))
+            [midje.util.exceptions :as midje.exceptions]
+            [orchard.namespace :as namespace])
+  (:import clojure.lang.Symbol))
 
 (def report (atom nil))
 
@@ -39,9 +39,9 @@
   (swap! report dissoc :top-level-description :current-test))
 
 (defn- file-for [fact]
-  (-> (fact/file fact)
-      URI.
-      .getPath
+  (-> (fact/namespace fact)
+      the-ns
+      namespace/ns-path
       io/file))
 
 (defn- description-for [fact]
