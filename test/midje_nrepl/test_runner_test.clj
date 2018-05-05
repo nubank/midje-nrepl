@@ -23,8 +23,7 @@
                            :actual     "5\n"
                            :message    '()
                            :type       :fail}]}
-                        :summary    {:ns 1 :fact 2 :fail 1 :error 0 :pass 1 :test 2 :skip 0}
-                        :testing-ns 'midje-nrepl.test-runner-test})
+                        :summary {:ns 1 :fact 2 :fail 1 :error 0 :pass 1 :test 2 :skip 0}})
 
 (def individual-test-report {:results
                              {'midje-nrepl.test-runner-test
@@ -33,8 +32,7 @@
                                 :context    ["(fact 1 => 1)"]
                                 :test-forms "(fact 1 => 1)"
                                 :type       :pass}]}
-                             :summary    {:ns 1 :fact 1 :fail 0 :error 0 :pass 1 :test 1 :skip 0}
-                             :testing-ns 'midje-nrepl.test-runner-test})
+                             :summary {:ns 1 :fact 1 :fail 0 :error 0 :pass 1 :test 1 :skip 0}})
 
 (def arithmetic-test-report {:results
                              {'octocat.arithmetic-test
@@ -68,8 +66,7 @@
                                 :expected "0\n"
                                 :error    #(instance? ArithmeticException %)
                                 :type     :error}]}
-                             :summary    {:error 1 :fact 4 :fail 2 :ns 1 :pass 2 :skip 0 :test 5}
-                             :testing-ns 'octocat.arithmetic-test})
+                             :summary {:error 1 :fact 4 :fail 2 :ns 1 :pass 2 :skip 0 :test 5}})
 
 (def re-run-arithmetic-test-report {:results
                                     {'octocat.arithmetic-test
@@ -127,8 +124,7 @@
                            :expected "(match (m/in-any-order [3 2 4]))\n"
                            :actual   "[1 2 3]\n"
                            :type     :fail}]}
-                        :summary    {:error 0 :fact 3 :fail 4 :ns 1 :pass 0 :skip 0 :test 4}
-                        :testing-ns 'octocat.colls-test})
+                        :summary {:error 0 :fact 3 :fail 4 :ns 1 :pass 0 :skip 0 :test 4}})
 
 (def mocks-test-report {:results
                         {'octocat.mocks-test
@@ -147,8 +143,7 @@
                            :actual   "\"`an-impure-function` returned this string because it was called with an unexpected argument\"\n"
                            :message  '()
                            :type     :fail}]}
-                        :summary    {:error 0 :fact 1 :fail 3 :ns 1 :pass 0 :skip 0 :test 3}
-                        :testing-ns 'octocat.mocks-test})
+                        :summary {:error 0 :fact 1 :fail 3 :ns 1 :pass 0 :skip 0 :test 3}})
 
 (defn isolate-test-forms!
   "Workaround to test the re-run feature without modifying Midje counters."

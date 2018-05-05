@@ -1,5 +1,5 @@
 (ns midje-nrepl.test-runner
-  (:require [midje-nrepl.reporter :as reporter :refer [with-reporter-for]])
+  (:require [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]])
   (:import clojure.lang.Symbol))
 
 (def test-results (atom {}))
