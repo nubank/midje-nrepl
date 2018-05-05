@@ -68,8 +68,7 @@ it's possible to jump to the correct position of the test in question"
                                  :expected "6\n"
                                  :actual   "5\n"
                                  :message  []}]}
-                              :summary    {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}
-                              :testing-ns "octocat.arithmetic-test"}
+                              :summary    {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}}
                              {:status ["done"]})))
 
        (fact "when the parameters ns and/or test-forms are missing in the message,
