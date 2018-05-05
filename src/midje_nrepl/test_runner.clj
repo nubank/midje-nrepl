@@ -11,7 +11,7 @@
 
 (defn test-forms
   [^Symbol namespace & forms]
-  (with-reporter-for namespace
+  (with-in-memory-reporter namespace
     (binding [*ns* (the-ns namespace)]
       (->> forms
            (apply list)
@@ -26,7 +26,7 @@
 
 (defn- run-tests-in-ns*
   [^Symbol namespace]
-  (with-reporter-for namespace
+  (with-in-memory-reporter namespace
     (require namespace :reload)))
 
 (defn run-tests-in-ns

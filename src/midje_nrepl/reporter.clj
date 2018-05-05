@@ -15,9 +15,15 @@
 (def no-tests {:results {}
                :summary {:error 0 :fact 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})
 
+(defn- file-for [namespace]
+  (some-> (the-ns namespace)
+          namespace/ns-path
+          io/file))
+
 (defn reset-report! [namespace]
   (reset! report
-          (assoc no-tests                :testing-ns namespace)))
+          (assoc no-tests                :testing-ns namespace
+                 :file (file-for namespace))))
 
 (defn summarize-test-results! []
   (let [namespace  (@report :testing-ns)
@@ -32,17 +38,14 @@
     (swap! report update :summary
            merge (assoc counters :fact facts :ns namespaces :test tests))))
 
+(defn drop-irrelevant-keys! []
+  (swap! report dissoc :testing-ns :file))
+
 (defn starting-to-check-top-level-fact [fact]
   (swap! report assoc :top-level-description [(fact/description fact)]))
 
 (defn finishing-top-level-fact [_]
   (swap! report dissoc :top-level-description :current-test))
-
-(defn- file-for [fact]
-  (-> (fact/namespace fact)
-      the-ns
-      namespace/ns-path
-      io/file))
 
 (defn- description-for [fact]
   (let [description (or (fact/best-description fact)
@@ -52,12 +55,13 @@
       [description])))
 
 (defn starting-to-check-fact [fact]
-  (swap! report assoc :current-test {:id         (fact/guid fact)
-                                     :context    (description-for fact)
-                                     :ns         (fact/namespace fact)
-                                     :file       (file-for fact)
-                                     :line       (fact/line fact)
-                                     :test-forms (pr-str (fact/source fact))}))
+  (let [{:keys [testing-ns file]} @report]
+    (swap! report assoc :current-test {:id         (fact/guid fact)
+                                       :context    (description-for fact)
+                                       :ns         testing-ns
+                                       :file       file
+                                       :line       (fact/line fact)
+                                       :test-forms (pr-str (fact/source fact))})))
 
 (defn prettify-expected-and-actual-values [{:keys [expected actual] :as result-map}]
   (let [pretty-str #(with-out-str (pprint/pprint %))]
@@ -127,11 +131,12 @@
           :finishing-top-level-fact         finishing-top-level-fact
           :future-fact                      future-fact}))
 
-(defmacro with-reporter-for
+(defmacro with-in-memory-reporter
   [^Symbol namespace & forms]
   `(binding [midje.config/*config*          (merge midje.config/*config* {:print-level :print-facts})
              midje.state/emission-functions emission-map]
      (reset-report! ~namespace)
      ~@forms
      (summarize-test-results!)
+     (drop-irrelevant-keys!)
      @report))

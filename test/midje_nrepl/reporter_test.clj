@@ -87,9 +87,10 @@
 
        (fact "resets the report atom"
              (reporter/reset-report! 'octocat.arithmetic-test)
-             @reporter/report => {:testing-ns 'octocat.arithmetic-test
-                                  :results    {}
-                                  :summary    {:error 0 :fact 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})
+             @reporter/report => (match (m/equals {:testing-ns 'octocat.arithmetic-test
+                                                   :file       existing-file?
+                                                   :results    {}
+                                                   :summary    {:error 0 :fact 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})))
 
        (fact "when Midje starts checking a top level fact,
 it stores its description in the report atom"
@@ -120,7 +121,7 @@ it stores the corresponding test result in the report atom"
        (fact "when Midje finishes a top-level fact,
 it dissoc's some keys from the report atom"
              (reporter/finishing-top-level-fact correct-fact-function)
-             (keys @reporter/report) => (match (m/in-any-order [:results :summary :testing-ns])))
+             (keys @reporter/report) => (match (m/in-any-order [:results :summary :testing-ns :file])))
 
        (fact "when the test fails,
 it stores the corresponding test result in the report atom"
@@ -216,6 +217,11 @@ it is interpreted as an error in the test report"
                                                    :skip  1
                                                    :test  4}}))
 
+       (fact "drops irrelevant keys from the report map"
+             (keys @reporter/report) => (match (m/in-any-order [:results :summary :testing-ns :file]))
+             (reporter/drop-irrelevant-keys!)
+             (keys @reporter/report) => (match (m/in-any-order [:results :summary])))
+
        (tabular (fact "prettifies expected and/or actual values when they are present in the failure map"
                       (reporter/prettify-expected-and-actual-values (merge {:context ["this is a test"]} ?failure-map))
                       => (merge {:context ["this is a test"]} ?result))
@@ -233,7 +239,7 @@ it is interpreted as an error in the test report"
                 failure-with-prerequisit-error  {:message '("These calls were not made the right number of times:" "    (an-impure-function {:first-name \"John\", :last-name \"Doe\"}) [expected at least once, actually never called]")})
 
        (fact "the macro below evaluates the forms with the reporter in context"
-             (reporter/with-reporter-for 'midje-nrepl.reporter-test
+             (reporter/with-in-memory-reporter 'midje-nrepl.reporter-test
                (fact "I'm pretty sure about that"
                      1 => 1))
 
