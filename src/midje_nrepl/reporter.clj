@@ -72,7 +72,11 @@
 (defn- conj-test-result! [additional-data]
   (let [{:keys [context] :as current-test} (@report :current-test)
         ns                                 (@report :testing-ns)
-        test                               (prettify-expected-and-actual-values (merge current-test additional-data))]
+        index                              (count (get-in @report [:results ns]))
+        test                               (-> current-test
+                                               (assoc :index index)
+                                               (merge additional-data)
+                                               prettify-expected-and-actual-values)]
     (swap! report update-in [:results ns]
            (comp vec (partial conj)) test)))
 

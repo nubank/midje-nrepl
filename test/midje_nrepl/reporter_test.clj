@@ -112,6 +112,7 @@ it stores the corresponding test result in the report atom"
              (reporter/pass)
              @reporter/report => (match {:results {'octocat.arithmetic-test
                                                    [{:context    ["this is inquestionable"]
+                                                     :index      0
                                                      :ns         'octocat.arithmetic-test
                                                      :file       existing-file?
                                                      :line       10
@@ -130,12 +131,14 @@ it stores the corresponding test result in the report atom"
              (reporter/fail failure-with-simple-mismatch)
              @reporter/report => (match {:results {'octocat.arithmetic-test
                                                    [{:context    ["this is inquestionable"]
+                                                     :index      0
                                                      :ns         'octocat.arithmetic-test
                                                      :file       existing-file?
                                                      :line       10
                                                      :test-forms "(fact \"this is inquestionable\" 1 => 1)"
                                                      :type       :pass}
                                                     {:context    ["this is wrong"]
+                                                     :index      1
                                                      :ns         'octocat.arithmetic-test
                                                      :file       existing-file?
                                                      :line       15
@@ -153,12 +156,14 @@ it is interpreted as an error in the test report"
              (reporter/fail failure-with-unexpected-exception)
              @reporter/report => (match {:results {'octocat.arithmetic-test
                                                    [{:context    ["this is inquestionable"]
+                                                     :index      0
                                                      :ns         'octocat.arithmetic-test
                                                      :file       existing-file?
                                                      :line       10
                                                      :test-forms "(fact \"this is inquestionable\" 1 => 1)"
                                                      :type       :pass}
                                                     {:context    ["this is wrong"]
+                                                     :index      1
                                                      :ns         'octocat.arithmetic-test
                                                      :file       existing-file?
                                                      :line       15
@@ -168,6 +173,7 @@ it is interpreted as an error in the test report"
                                                      :message    '()
                                                      :type       :fail}
                                                     {:context    ["this is impossible"]
+                                                     :index      2
                                                      :ns         'octocat.arithmetic-test
                                                      :file       existing-file?
                                                      :line       20
@@ -181,12 +187,14 @@ it is interpreted as an error in the test report"
              (reporter/future-fact ["TODO"] ["arithmetic_test.clj" 25])
              @reporter/report => (match {:results {'octocat.arithmetic-test
                                                    [{:context    ["this is inquestionable"]
+                                                     :index      0
                                                      :ns         'octocat.arithmetic-test
                                                      :file       existing-file?
                                                      :line       10
                                                      :test-forms "(fact \"this is inquestionable\" 1 => 1)"
                                                      :type       :pass}
                                                     {:context    ["this is wrong"]
+                                                     :index      1
                                                      :ns         'octocat.arithmetic-test
                                                      :file       existing-file?
                                                      :line       15
@@ -196,6 +204,7 @@ it is interpreted as an error in the test report"
                                                      :message    '()
                                                      :type       :fail}
                                                     {:context    ["this is impossible"]
+                                                     :index      2
                                                      :ns         'octocat.arithmetic-test
                                                      :file       existing-file?
                                                      :line       20
@@ -204,6 +213,7 @@ it is interpreted as an error in the test report"
                                                      :error      #(= arithmetic-exception %)
                                                      :type       :error}
                                                     {:context ["TODO"]
+                                                     :index   3
                                                      :line    25
                                                      :type    :skip}]}}))
 
@@ -245,6 +255,7 @@ it is interpreted as an error in the test report"
 
              @reporter/report => (match {:results
                                          {'midje-nrepl.reporter-test [{:context ["I'm pretty sure about that"]
+                                                                       :index   0
                                                                        :ns      'midje-nrepl.reporter-test
                                                                        :file    existing-file?
                                                                        :line    number?}]}
