@@ -63,12 +63,13 @@ it's possible to jump to the correct position of the test in question"
              => (match (list {:results
                               {:octocat.arithmetic-test
                                [{:context  ["this is a crazy arithmetic"]
+                                 :index    0
                                  :ns       "octocat.arithmetic-test"
                                  :type     "fail"
                                  :expected "6\n"
                                  :actual   "5\n"
                                  :message  []}]}
-                              :summary    {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}}
+                              :summary {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}}
                              {:status ["done"]})))
 
        (fact "when the parameters ns and/or test-forms are missing in the message,

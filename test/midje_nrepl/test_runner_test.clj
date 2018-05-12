@@ -13,11 +13,13 @@
                          [{:ns         'midje-nrepl.test-runner-test
                            :file       existing-file?
                            :context    ["(fact 1 => 1)"]
+                           :index      0
                            :test-forms "(fact 1 => 1)"
                            :type       :pass}
                           {:ns         'midje-nrepl.test-runner-test
                            :file       existing-file?
                            :context    ["(fact (+ 3 2) => 6)"]
+                           :index      1
                            :test-forms "(fact (+ 3 2) => 6)"
                            :expected   "6\n"
                            :actual     "5\n"
@@ -30,6 +32,7 @@
                               [{:ns         'midje-nrepl.test-runner-test
                                 :file       existing-file?
                                 :context    ["(fact 1 => 1)"]
+                                :index      0
                                 :test-forms "(fact 1 => 1)"
                                 :type       :pass}]}
                              :summary {:ns 1 :fact 1 :fail 0 :error 0 :pass 1 :test 1 :skip 0}})
@@ -37,10 +40,12 @@
 (def arithmetic-test-report {:results
                              {'octocat.arithmetic-test
                               [{:context ["about arithmetic operations" "(fact (* 2 5) => 10 :position (pointer.core/line-number-known 9))"]
+                                :index   0
                                 :ns      'octocat.arithmetic-test
                                 :file    existing-file?
                                 :type    :pass}
                                {:context  ["about arithmetic operations" "this is a crazy arithmetic"]
+                                :index    1
                                 :ns       'octocat.arithmetic-test
                                 :file     existing-file?
                                 :expected "6\n"
@@ -49,11 +54,13 @@
                                 :type     :fail}
                                {:context
                                 ["about arithmetic operations" "two assertions in the same fact; the former is correct while the later is wrong"]
-                                :ns   'octocat.arithmetic-test
-                                :file existing-file?
-                                :type :pass}
+                                :index 2
+                                :ns    'octocat.arithmetic-test
+                                :file  existing-file?
+                                :type  :pass}
                                {:context
                                 ["about arithmetic operations" "two assertions in the same fact; the former is correct while the later is wrong"]
+                                :index    3
                                 :ns       'octocat.arithmetic-test
                                 :file     existing-file?
                                 :expected "3\n"
@@ -61,6 +68,7 @@
                                 :message  '()
                                 :type     :fail}
                                {:context  ["about arithmetic operations" "this will throw an unexpected exception"]
+                                :index    4
                                 :ns       'octocat.arithmetic-test
                                 :file     existing-file?
                                 :expected "0\n"
@@ -71,6 +79,7 @@
 (def re-run-arithmetic-test-report {:results
                                     {'octocat.arithmetic-test
                                      [{:context  ["this is a crazy arithmetic"]
+                                       :index    0
                                        :ns       'octocat.arithmetic-test
                                        :file     existing-file?
                                        :expected "6\n"
@@ -79,11 +88,13 @@
                                        :type     :fail}
                                       {:context
                                        ["two assertions in the same fact; the former is correct while the later is wrong"]
-                                       :ns   'octocat.arithmetic-test
-                                       :file existing-file?
-                                       :type :pass}
+                                       :index 1
+                                       :ns    'octocat.arithmetic-test
+                                       :file  existing-file?
+                                       :type  :pass}
                                       {:context
                                        ["two assertions in the same fact; the former is correct while the later is wrong"]
+                                       :index    2
                                        :ns       'octocat.arithmetic-test
                                        :file     existing-file?
                                        :expected "3\n"
@@ -91,6 +102,7 @@
                                        :message  '()
                                        :type     :fail}
                                       {:context  ["this will throw an unexpected exception"]
+                                       :index    3
                                        :ns       'octocat.arithmetic-test
                                        :file     existing-file?
                                        :expected "0\n"
@@ -101,24 +113,28 @@
 (def colls-test-report {:results
                         {'octocat.colls-test
                          [{:context  ["about Clojure collections" "one key is missing in the actual map"]
+                           :index    0
                            :ns       'octocat.colls-test
                            :file     existing-file?
                            :expected "{:first-name \"John\", :last-name \"Doe\"}\n"
                            :actual   "{:first-name \"John\"}\n"
                            :type     :fail}
                           {:context  ["about Clojure collections" "the rightmost isn't contained into the leftmost"]
+                           :index    1
                            :ns       'octocat.colls-test
                            :file     existing-file?
                            :expected "(contains [1 2 3 4])\n"
                            :actual   "[1 2 3]\n"
                            :type     :fail}
                           {:context  ["about Clojure collections" "the rightmost isn't contained into the leftmost"]
+                           :index    2
                            :ns       'octocat.colls-test
                            :file     existing-file?
                            :expected "(match {:elements [:b :c]})\n"
                            :actual   "{:elements [:a :b]}\n"
                            :type     :fail}
                           {:context  ["about Clojure collections" "the leftmost doesn't have the same elements as the rightmost"]
+                           :index    3
                            :ns       'octocat.colls-test
                            :file     existing-file?
                            :expected "(match (m/in-any-order [3 2 4]))\n"
@@ -129,14 +145,17 @@
 (def mocks-test-report {:results
                         {'octocat.mocks-test
                          [{:context ["about prerequisits" "this one is mistakenly mocked out"]
+                           :index   0
                            :ns      'octocat.mocks-test
                            :file    existing-file?
                            :type    :fail}
                           {:context ["about prerequisits" "this one is mistakenly mocked out"]
+                           :index   1
                            :ns      'octocat.mocks-test
                            :file    existing-file?
                            :type    :fail}
                           {:context  ["about prerequisits" "this one is mistakenly mocked out"]
+                           :index    2
                            :ns       'octocat.mocks-test
                            :file     existing-file?
                            :expected "{:message \"Hello John!\"}\n"
