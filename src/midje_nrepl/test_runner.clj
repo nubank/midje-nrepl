@@ -4,6 +4,10 @@
 
 (def test-results (atom {}))
 
+(defn get-exception-at [^Symbol ns ^Integer index]
+  {:pre [(symbol? ns) (or (zero? index) (pos-int? index))]}
+  (get-in @test-results [ns index :error]))
+
 (defmacro ^:private caching-test-results [& forms]
   `(let [report# ~@forms]
      (reset! test-results (report# :results))

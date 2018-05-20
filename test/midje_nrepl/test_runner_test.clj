@@ -240,3 +240,16 @@
              (test-runner/re-run-failed-tests) => (match re-run-arithmetic-test-report)
              @test-runner/test-results
              => (match (:results re-run-arithmetic-test-report))))
+
+(facts "about getting test stacktraces"
+
+       (fact "given a namespace symbol and an index, returns the exception stored at these coordinates"
+             (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => irrelevant
+             (test-runner/get-exception-at 'octocat.arithmetic-test 4) => #(instance? ArithmeticException %))
+
+       (tabular (fact "when there is no exception at the supplied position, returns nil"
+                      (test-runner/get-exception-at ?ns ?index) => nil)
+                ?ns                       ?index
+                'octocat.arithmetic-test       0
+                'octocat.arithmetic-test      10
+                'octocat.colls-test            2))
