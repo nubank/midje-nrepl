@@ -11,41 +11,70 @@
              {'octocat.arithmetic-test
               [{:context  ["about arithmetic operations" "this is a crazy arithmetic"]
                 :ns       'octocat.arithmetic-test
-                :file     (io/file "file:/home/john-doe/dev/projects/octocat/test/octocat/arithmetic_test.clj")
+                :file     (io/file "/home/john-doe/dev/projects/octocat/test/octocat/arithmetic_test.clj")
+                :index    0
                 :expected 6
                 :actual   5
                 :message  '()
                 :type     :fail}]}
-             :summary    {:error 0 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}
-             :testing-ns 'octocat.arithmetic-test})
+             :summary {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}})
 
 (def transformed-report (misc/transform-value report))
 
+(def exception (RuntimeException. "An unexpected error was thrown" (ArithmeticException. "Divid by zero")))
+
 (facts "about handling test operations"
-       (against-background
-        (transport/send ..transport.. transformed-report) => irrelevant
-        (transport/send ..transport.. (match {:status #{:done}})) => irrelevant)
 
-       (fact "when the op is `midje-test-ns`, it runs all tests in the given namespace"
-             (test/handle-test {:ns "octocat.arithmetic-test" :op "midje-test-ns" :transport ..transport..}) => irrelevant
-             (provided
-              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => report))
-
-       (fact "when the op is `midje-test`, it runs the given test"
-             (test/handle-test {:ns "octocat.arithmetic-test"
-                                :op "midje-test"
-                                :test-forms "(fact (+ 2 3) => 6)"
+       (fact "runs all tests in the given namespace and sends the report to the client"
+             (test/handle-test {:op        "midje-test-ns"
+                                :ns        "octocat.arithmetic-test"
                                 :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/run-test 'octocat.arithmetic-test
-                                    "(fact (+ 2 3) => 6)") => report))
+              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => report
+              (transport/send ..transport.. transformed-report) => irrelevant
+              (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
-       (fact "when the op is `midje-retest`, it re-runs the last failed tests"
-             (test/handle-test {:op "midje-retest" :transport ..transport..}) => irrelevant
+       (fact "runs the given test and sends the report to the client"
+             (test/handle-test {:op         "midje-test"
+                                :ns         "octocat.arithmetic-test"
+                                :test-forms "(fact (+ 2 3) => 6)"
+                                :transport  ..transport..}) => irrelevant
              (provided
-              (test-runner/re-run-failed-tests) => report))
+              (test-runner/run-test 'octocat.arithmetic-test "(fact (+ 2 3) => 6)") => report
+              (transport/send ..transport.. transformed-report) => irrelevant
+              (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
-       (fact "when the op doesn't match none of the supported ops, it does nothing"
-             (test/handle-test {:op "eval"}) => irrelevant
+       (fact "re-runs non-passing tests and sends the report to the client"
+             (test/handle-test {:op        "midje-retest"
+                                :transport ..transport..}) => irrelevant
              (provided
-              (transport/send anything anything) => irrelevant :times 0)))
+              (test-runner/re-run-failed-tests) => report
+              (transport/send ..transport.. transformed-report) => irrelevant
+              (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
+
+       (fact "sends the stacktrace of a given erring test to the client"
+             (test/handle-test {:op        "midje-test-stacktrace"
+                                :ns        "octocat.arithmetic-test"
+                                :index     2
+                                :print-fn  println
+                                :transport ..transport..}) => irrelevant
+             (provided
+              (test-runner/get-exception-at 'octocat.arithmetic-test 2) => exception
+              (transport/send ..transport.. (match {:class      "java.lang.RuntimeException"
+                                                    :message    "An unexpected error was thrown"
+                                                    :stacktrace (complement empty?)}))  => irrelevant
+              (transport/send ..transport.. (match {:class      "java.lang.ArithmeticException"
+                                                    :message    "Divid by zero"
+                                                    :stacktrace (complement empty?)})) => irrelevant
+              (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
+
+       (fact "sends a :no-test-stacktrace status when there is no stacktrace to be returned at the given position"
+             (test/handle-test {:op        "midje-test-stacktrace"
+                                :ns        "octocat.arithmetic-test"
+                                :index     0
+                                :print-fn  println
+                                :transport ..transport..}) => irrelevant
+             (provided
+              (test-runner/get-exception-at 'octocat.arithmetic-test 0) => nil
+              (transport/send ..transport.. (match {:status #{:no-stacktrace}})) => irrelevant
+              (transport/send ..transport.. (match {:status #{:done}})) => irrelevant)))
