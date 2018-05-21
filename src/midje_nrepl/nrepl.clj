@@ -44,7 +44,12 @@
                :requires {"ns"         "The namespace in which the fact(s) sent through `test-forms` should be evaluated."
                           "test-forms" "The fact(s) to be run."}}
               "midje-retest"
-              {:doc "Re-runs the tests that didn't pass in the last execution."}}}
+              {:doc "Re-runs the tests that didn't pass in the last execution."}
+              "midje-test-stacktrace"
+              {:doc      "Returns the stacktrace of a given erring test. Returns the status `no-stacktrace` if there is no stacktrace for the specified test."
+               :requires {"ns"       "A string indicating the namespace of the erring test."
+                          "index"    "An integer indicating the index of the erring test in question."
+                          "print-fn" "Fully qualified name of a print function that will be used to print stacktraces."}}}}
   'midje-nrepl.middleware.test/handle-test)
 
 (defmiddleware wrap-version
