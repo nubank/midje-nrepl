@@ -5,7 +5,8 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/tools.nrepl "0.2.13"]
-                 [cider/orchard "0.1.0-SNAPSHOT"]]
+                 [cider/orchard "0.1.0-SNAPSHOT"]
+                 [rewrite-clj "0.6.0"]]
 
   :profiles {:dev {:dependencies [[midje "1.9.2-alpha3"]
                                   [nubank/matcher-combinators "0.2.3"]]
