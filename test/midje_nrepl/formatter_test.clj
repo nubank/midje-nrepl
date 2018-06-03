@@ -2,56 +2,54 @@
   (:require [midje-nrepl.formatter :as formatter]
             [midje.sweet :refer :all]))
 
-(tabular (fact "centers the text according to the width"
-               (formatter/center ?text ?width) => ?result)
-         ?text ?width ?result
-         "text" 4 "text"
-         "text" 13 "    text     "
-         "hello" 15 "     hello     "
-         "text" 20 "        text        "
-         "hello" 20 "       hello        ")
-
-(tabular (fact "aligns the text according to the alignment option and the width"
-               (formatter/align ?text ?alignment ?width) => ?result)
-         ?text ?alignment ?width ?result
-         "text" :center 4 "text"
-         "text" :center 20 "        text        "
-         "text" :left 4 "text"
-         "text" :left 20  "text                "
-         "text" :right 4 "text"
-         "text" :right 20 "                text"
-         "hello" :left 11 "hello      "
-         "hello" :right 15 "          hello")
+(tabular (fact "determines the padding left and right to the supplied text according to the alignment option and the width"
+               (formatter/padding ?text ?alignment ?width)
+               => {:padding-left  ?padding-left
+                   :padding-right ?padding-right})
+         ?text ?alignment ?width ?padding-left ?padding-right
+         "text" :center 4 0 0
+         "text" :center 13 4 5
+         "hello" :center 15 5 5
+         "text" :center 20 8 8
+         "hello" :center 20 7 8
+         "text" :left 4 0 0
+         "text" :left 20 0 16
+         "text" :right 4 0 0
+         "text" :right 20 16 0
+         "hello" :left 11 0 6
+         "hello" :right 15 10 0)
 
 (def table ["?x" "?y" "?result"
             "4" "5" "9"
             "122" "3" "125"
             "1000" "250" "1250"])
 
-(def right-aligned-table ["  ?x" " ?y" "?result"
-                          "   4" "  5" "      9"
-                          " 122" "  3" "    125"
-                          "1000" "250" "   1250"])
+(def right-aligned-table [{:padding-left 2 :padding-right 0} {:padding-left 1 :padding-right 0} {:padding-left 0 :padding-right 0}
+                          {:padding-left 3 :padding-right 0} {:padding-left 2 :padding-right 0} {:padding-left 6 :padding-right 0}
+                          {:padding-left 1 :padding-right 0} {:padding-left 2 :padding-right 0} {:padding-left 4 :padding-right 0}
+                          {:padding-left 0 :padding-right 0} {:padding-left 0 :padding-right 0} {:padding-left 3 :padding-right 0}])
 
-(def right-aligned-table-with-centered-headers (into [" ?x " "?y " "?result"]
+(def centered-headers [{:padding-left 1 :padding-right 1} {:padding-left 0 :padding-right 1} {:padding-left 0 :padding-right 0}])
+
+(def right-aligned-table-with-centered-headers (into centered-headers
                                                      (drop 3 right-aligned-table)))
 
-(def left-aligned-table ["?x  " "?y " "?result"
-                         "4   " "5  " "9      "
-                         "122 " "3  " "125    "
-                         "1000" "250" "1250   "])
+(def left-aligned-table [{:padding-left 0 :padding-right 2} {:padding-left 0 :padding-right 1} {:padding-left 0 :padding-right 0}
+                         {:padding-left 0 :padding-right 3} {:padding-left 0 :padding-right 2} {:padding-left 0 :padding-right 6}
+                         {:padding-left 0 :padding-right 1} {:padding-left 0 :padding-right 2} {:padding-left 0 :padding-right 4}
+                         {:padding-left 0 :padding-right 0} {:padding-left 0 :padding-right 0} {:padding-left 0 :padding-right 3}])
 
-(def left-aligned-table-with-centered-headers (into [" ?x " "?y " "?result"]
+(def left-aligned-table-with-centered-headers (into centered-headers
                                                     (drop 3 left-aligned-table)))
 
-(def centered-table [" ?x " "?y " "?result"
-                     " 4  " " 5 " "   9   "
-                     "122 " " 3 " "  125  "
-                     "1000" "250" " 1250  "])
+(def centered-table (into centered-headers
+                          [{:padding-left 1 :padding-right 2} {:padding-left 1 :padding-right 1} {:padding-left 3 :padding-right 3}
+                           {:padding-left 0 :padding-right 1} {:padding-left 1 :padding-right 1} {:padding-left 2 :padding-right 2}
+                           {:padding-left 0 :padding-right 0} {:padding-left 0 :padding-right 0} {:padding-left 1 :padding-right 2}]))
 
-(tabular (fact "aligns the supplied table"
-               (formatter/align-table ?table {:alignment       ?alignment
-                                              :center-headers? ?center-headers}) => ?aligned-table)
+(tabular (fact "determines the paddings for the supplied table according to the alignment options"
+               (formatter/paddings-for-table ?table {:alignment       ?alignment
+                                                     :center-headers? ?center-headers}) => ?aligned-table)
          ?table ?alignment ?center-headers ?aligned-table
          table :right false right-aligned-table
          table :left false left-aligned-table
