@@ -1,7 +1,11 @@
 (ns midje-nrepl.formatter
-  (:require [rewrite-clj.custom-zipper.utils :refer [remove-right-while]]
+  (:require [rewrite-clj.custom-zipper.utils :refer [remove-left-while remove-right-while]]
             [rewrite-clj.zip :as zip]
             [rewrite-clj.zip.whitespace :as whitespace]))
+
+(defn- indicate-the-leftmost-cells [[leftmost-column :as table]]
+  (-> (map #(assoc % :leftmost-cell? true) leftmost-column)
+      (cons (rest table))))
 
 (defn- centered [text-length padding-size width]
   (let [padding-left  (int (/ padding-size 2))
@@ -37,17 +41,19 @@
   (->> cells
        (partition (number-of-columns cells))
        (apply map (partial paddings-for-column options))
+       indicate-the-leftmost-cells
        (apply interleave)))
 
 (def ^:private whitespace-but-not-linebreak? #(and (not (zip/linebreak? %))
                                                    (zip/whitespace? %)))
 
-(defn- align [zloc {:keys [padding-left padding-right]} {:keys [border-spacing]}]
-  (-> zloc
-      (remove-right-while whitespace-but-not-linebreak?)
-      (whitespace/insert-space-left (+ 2 padding-left))
-      (whitespace/insert-space-right (+ padding-right 1))
-      zip/right))
+(defn- align [zloc {:keys [leftmost-cell? padding-left padding-right] :as p} {:keys [border-spacing indent-size]}]
+  (let [left-space (if leftmost-cell? (+ indent-size padding-left) padding-left)]
+    (-> zloc
+        (cond-> leftmost-cell? (remove-left-while whitespace-but-not-linebreak?))
+        (remove-right-while whitespace-but-not-linebreak?)
+        (whitespace/insert-space-left left-space)
+        (whitespace/insert-space-right (+ padding-right border-spacing)))))
 
 (defn- get-aligned-cells [zloc options]
   (loop [zloc  zloc
@@ -64,4 +70,19 @@
            paddings (get-aligned-cells zloc options)]
       (if-not (zip/right zloc)
         (zip/root-string (align zloc (first paddings) options))
-        (recur (align zloc (first paddings) options) (rest paddings))))))
+        (recur (zip/right (align zloc (first paddings) options)) (rest paddings))))))
+
+(def tabular1 "(tabular (fact \"about basic arithmetic operations\"
+  (?operation ?a ?b) => ?result)
+  ?operation ?a ?b ?result
+  + 2 5 10
+  + 10 4 14
+  - 100 25 75
+    * 123 69 8487
+  / 15 8 15/8
+  / 4284 126 34)")
+
+(format-tabular tabular1 {:alignment       :right
+                          :center-headers? true
+                          :border-spacing  1
+                          :indent-size     2})

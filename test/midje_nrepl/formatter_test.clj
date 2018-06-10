@@ -24,28 +24,28 @@
             "122" "3" "125"
             "1000" "250" "1250"])
 
-(def right-aligned-table [{:padding-left 2 :padding-right 0} {:padding-left 1 :padding-right 0} {:padding-left 0 :padding-right 0}
-                          {:padding-left 3 :padding-right 0} {:padding-left 2 :padding-right 0} {:padding-left 6 :padding-right 0}
-                          {:padding-left 1 :padding-right 0} {:padding-left 2 :padding-right 0} {:padding-left 4 :padding-right 0}
-                          {:padding-left 0 :padding-right 0} {:padding-left 0 :padding-right 0} {:padding-left 3 :padding-right 0}])
+(def right-aligned-table [{:leftmost-cell? true :padding-left 2 :padding-right 0} {:padding-left 1 :padding-right 0} {:padding-left 0 :padding-right 0}
+                          {:leftmost-cell? true :padding-left 3 :padding-right 0} {:padding-left 2 :padding-right 0} {:padding-left 6 :padding-right 0}
+                          {:leftmost-cell? true :padding-left 1 :padding-right 0} {:padding-left 2 :padding-right 0} {:padding-left 4 :padding-right 0}
+                          {:leftmost-cell? true :padding-left 0 :padding-right 0} {:padding-left 0 :padding-right 0} {:padding-left 3 :padding-right 0}])
 
-(def centered-headers [{:padding-left 1 :padding-right 1} {:padding-left 0 :padding-right 1} {:padding-left 0 :padding-right 0}])
+(def centered-headers [{:leftmost-cell? true :padding-left 1 :padding-right 1} {:padding-left 0 :padding-right 1} {:padding-left 0 :padding-right 0}])
 
 (def right-aligned-table-with-centered-headers (into centered-headers
                                                      (drop 3 right-aligned-table)))
 
-(def left-aligned-table [{:padding-left 0 :padding-right 2} {:padding-left 0 :padding-right 1} {:padding-left 0 :padding-right 0}
-                         {:padding-left 0 :padding-right 3} {:padding-left 0 :padding-right 2} {:padding-left 0 :padding-right 6}
-                         {:padding-left 0 :padding-right 1} {:padding-left 0 :padding-right 2} {:padding-left 0 :padding-right 4}
-                         {:padding-left 0 :padding-right 0} {:padding-left 0 :padding-right 0} {:padding-left 0 :padding-right 3}])
+(def left-aligned-table [{:leftmost-cell? true :padding-left 0 :padding-right 2} {:padding-left 0 :padding-right 1} {:padding-left 0 :padding-right 0}
+                         {:leftmost-cell? true :padding-left 0 :padding-right 3} {:padding-left 0 :padding-right 2} {:padding-left 0 :padding-right 6}
+                         {:leftmost-cell? true :padding-left 0 :padding-right 1} {:padding-left 0 :padding-right 2} {:padding-left 0 :padding-right 4}
+                         {:leftmost-cell? true :padding-left 0 :padding-right 0} {:padding-left 0 :padding-right 0} {:padding-left 0 :padding-right 3}])
 
 (def left-aligned-table-with-centered-headers (into centered-headers
                                                     (drop 3 left-aligned-table)))
 
 (def centered-table (into centered-headers
-                          [{:padding-left 1 :padding-right 2} {:padding-left 1 :padding-right 1} {:padding-left 3 :padding-right 3}
-                           {:padding-left 0 :padding-right 1} {:padding-left 1 :padding-right 1} {:padding-left 2 :padding-right 2}
-                           {:padding-left 0 :padding-right 0} {:padding-left 0 :padding-right 0} {:padding-left 1 :padding-right 2}]))
+                          [{:leftmost-cell? true :padding-left 1 :padding-right 2} {:padding-left 1 :padding-right 1} {:padding-left 3 :padding-right 3}
+                           {:leftmost-cell? true :padding-left 0 :padding-right 1} {:padding-left 1 :padding-right 1} {:padding-left 2 :padding-right 2}
+                           {:leftmost-cell? true :padding-left 0 :padding-right 0} {:padding-left 0 :padding-right 0} {:padding-left 1 :padding-right 2}]))
 
 (tabular (fact "determines the paddings for the supplied table according to the alignment options"
                (formatter/paddings-for-table ?table {:alignment       ?alignment
