@@ -67,3 +67,20 @@
     * 123 69 8487
   / 15 8 15/8
   / 4284 126 34)")
+
+(def formatted-tabular1 "(tabular (fact \"about basic arithmetic operations\"
+  (?operation ?a ?b) => ?result)
+  ?operation   ?a  ?b ?result
+           +    2   5      10
+           +   10  4      14
+           -  100  25      75
+           *  123  69    8487
+           /   15   8    15/8
+            / 4284 126      34 )")
+
+(fact "formats the tabular fact according to the supplied options"
+      (formatter/format-tabular tabular1 {:alignment :right
+                                          :center-headers? false
+                                          :border-spacing 1
+                                          :indent-size 2})
+      => formatted-tabular1)
