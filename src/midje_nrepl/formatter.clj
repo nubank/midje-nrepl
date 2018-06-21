@@ -3,9 +3,13 @@
             [rewrite-clj.zip :as zip]
             [rewrite-clj.zip.whitespace :as whitespace]))
 
-(defn- indicate-leftmost-cells [[leftmost-column :as table]]
-  (-> (map #(assoc % :leftmost-cell? true) leftmost-column)
-      (cons (rest table))))
+(defn- indicate-leftmost-cells [table]
+  (let [leftmost-column  (first table)
+        rightmost-column (last table)
+        other-columns    (butlast (rest table))]
+    (-> (map #(assoc % :leftmost-cell? true) leftmost-column)
+        (cons other-columns)
+        (concat (list (map #(assoc % :rightmost-cell? true) rightmost-column))))))
 
 (defn- centered [text-length padding-size width]
   (let [padding-left  (int (/ padding-size 2))
@@ -47,13 +51,13 @@
 (def ^:private whitespace-but-not-linebreak? #(and (not (zip/linebreak? %))
                                                    (zip/whitespace? %)))
 
-(defn- align [zloc {:keys [leftmost-cell? padding-left padding-right]} {:keys [border-spacing indent-size]}]
+(defn- align [zloc {:keys [leftmost-cell? rightmost-cell? padding-left padding-right]} {:keys [border-spacing indent-size]}]
   (let [offset-left (if leftmost-cell? (+ indent-size padding-left) padding-left)]
     (-> zloc
         (cond-> leftmost-cell? (remove-left-while whitespace-but-not-linebreak?))
         (remove-right-while whitespace-but-not-linebreak?)
         (whitespace/insert-space-left offset-left)
-        (whitespace/insert-space-right (+ padding-right border-spacing)))))
+        (cond-> (not rightmost-cell?) (whitespace/insert-space-right (+ padding-right border-spacing))))))
 
 (defn- get-padding-values-for-cells [zloc options]
   (loop [zloc  zloc
