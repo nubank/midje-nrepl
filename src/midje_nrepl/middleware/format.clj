@@ -8,5 +8,5 @@
                                                        :center-headers? false
                                                        :border-spacing  1
                                                        :indent-size     2})]
-    (transport/send transport (response-for message :code formatted-code))
+    (transport/send transport (response-for message :formatted-code formatted-code))
     (transport/send transport (response-for message :status :done))))
