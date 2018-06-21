@@ -33,6 +33,13 @@
        (make-middleware ~descriptor delayed-handler# handler#))
      (set-descriptor! (var ~name) ~descriptor)))
 
+(defmiddleware wrap-format
+  {:expects  #{}
+   :requires #{}
+   :handles  {"midje-format-tabular"
+              {:requires {"code" "The tabular sexpr to be formatted"}}}}
+  'midje-nrepl.middleware.format/handle-format)
+
 (defmiddleware wrap-test
   {:expects  #{}
    :requires #{}
@@ -59,5 +66,6 @@
               {:doc "Provides information about midje-nrepl's current version."}}}
   'midje-nrepl.middleware.version/handle-version)
 
-(def middleware `[wrap-test
+(def middleware `[wrap-format
+                  wrap-test
                   wrap-version])
