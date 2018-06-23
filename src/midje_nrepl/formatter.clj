@@ -1,9 +1,11 @@
 (ns midje-nrepl.formatter
-  (:require [rewrite-clj.custom-zipper.utils :refer [remove-left-while remove-right-while]]
+  (:require [rewrite-clj.custom-zipper.utils
+             :refer
+             [remove-left-while remove-right-while]]
             [rewrite-clj.zip :as zip]
             [rewrite-clj.zip.whitespace :as whitespace]))
 
-(defn- indicate-leftmost-cells [table]
+(defn- mark-leftmost-and-rightmost-cells [table]
   (let [leftmost-column  (first table)
         rightmost-column (last table)
         other-columns    (butlast (rest table))]
@@ -45,7 +47,7 @@
   (->> cells
        (partition (number-of-columns cells))
        (apply map (partial paddings-for-column options))
-       indicate-leftmost-cells
+       mark-leftmost-and-rightmost-cells
        (apply interleave)))
 
 (def ^:private whitespace-but-not-linebreak? #(and (not (zip/linebreak? %))
@@ -66,10 +68,13 @@
       (paddings-for-table cells options)
       (recur (zip/right zloc) (conj cells (zip/string zloc))))))
 
+(defn- move-to-first-header [sexpr]
+  (-> (zip/of-string sexpr)
+      zip/down
+      (zip/find (comp column-header? zip/string))))
+
 (defn format-tabular [sexpr options]
-  (let [zloc (-> (zip/of-string sexpr)
-                 zip/down
-                 (zip/find (comp column-header? zip/string)))]
+  (let [zloc (move-to-first-header sexpr)]
     (loop [zloc     zloc
            paddings (get-padding-values-for-cells zloc options)]
       (if-not (zip/right zloc)
