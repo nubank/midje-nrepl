@@ -3,7 +3,7 @@
             [midje.sweet :refer :all]))
 
 (tabular (fact "determines the padding left and right to the supplied text according to the alignment option and the width"
-               (formatter/padding ?text ?alignment ?width)
+               (formatter/paddings ?text ?alignment ?width)
                => {:padding-left  ?padding-left
                    :padding-right ?padding-right})
          ?text ?alignment ?width ?padding-left ?padding-right
@@ -40,7 +40,7 @@
                      {:leftmost-cell? true :padding-left 0 :padding-right 0} {:padding-left 0 :padding-right 0} {:rightmost-cell? true :padding-left 1 :padding-right 2}])
 
 (tabular (fact "determines the paddings for the supplied table according to the alignment options"
-               (formatter/paddings-for-table ?table {:alignment ?alignment}) => ?aligned-table)
+               (formatter/paddings-for-cells ?table {:alignment ?alignment}) => ?aligned-table)
          ?table ?alignment ?aligned-table
          table :right right-aligned-table
          table :left left-aligned-table

@@ -5,7 +5,7 @@
             [rewrite-clj.zip :as zip]
             [rewrite-clj.zip.whitespace :as whitespace]))
 
-(defn- mark-leftmost-and-rightmost-cells [table]
+(defn- identify-leftmost-and-rightmost-cells [table]
   (let [leftmost-column  (first table)
         rightmost-column (last table)
         other-columns    (butlast (rest table))]
@@ -19,7 +19,7 @@
     {:padding-left  padding-left
      :padding-right padding-right}))
 
-(defn padding [text alignment width]
+(defn paddings [text alignment width]
   (let [length       (count text)
         padding-size (- width length)]
     (case alignment
@@ -32,7 +32,7 @@
 
 (defn- paddings-for-column [{:keys [alignment]} & cells]
   (let [width (column-width cells)]
-    (map #(padding % alignment width) cells)))
+    (map #(paddings % alignment width) cells)))
 
 (defn- column-header? [value]
   (boolean (re-find #"^\?" value)))
@@ -40,11 +40,11 @@
 (defn- number-of-columns [values]
   (count (take-while column-header? values)))
 
-(defn paddings-for-table [cells options]
+(defn paddings-for-cells [cells options]
   (->> cells
        (partition (number-of-columns cells))
        (apply map (partial paddings-for-column options))
-       mark-leftmost-and-rightmost-cells
+       identify-leftmost-and-rightmost-cells
        (apply interleave)))
 
 (def ^:private whitespace-but-not-linebreak? #(and (not (zip/linebreak? %))
@@ -58,11 +58,11 @@
         (whitespace/insert-space-left offset-left)
         (cond-> (not rightmost-cell?) (whitespace/insert-space-right (+ padding-right border-spacing))))))
 
-(defn- get-padding-values-for-cells [zloc options]
+(defn- paddings-for-tabular-sexpr [zloc options]
   (loop [zloc  zloc
          cells []]
     (if (zip/end? zloc)
-      (paddings-for-table cells options)
+      (paddings-for-cells cells options)
       (recur (zip/right zloc) (conj cells (zip/string zloc))))))
 
 (defn- move-to-first-header [sexpr]
@@ -73,7 +73,7 @@
 (defn format-tabular [sexpr options]
   (let [zloc (move-to-first-header sexpr)]
     (loop [zloc     zloc
-           paddings (get-padding-values-for-cells zloc options)]
+           paddings (paddings-for-tabular-sexpr zloc options)]
       (if-not (zip/right zloc)
         (zip/root-string (align zloc (first paddings) options))
         (recur (zip/right (align zloc (first paddings) options)) (rest paddings))))))
