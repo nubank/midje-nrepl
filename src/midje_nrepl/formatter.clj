@@ -30,12 +30,9 @@
 (defn- column-width [cells]
   (->> cells (apply max-key count) count))
 
-(defn- paddings-for-column [{:keys [alignment center-headers?]} & [header & others :as cells]]
-  (let [width             (column-width cells)
-        padding-for-cells (partial map #(padding % alignment width))]
-    (if-not center-headers?
-      (padding-for-cells cells)
-      (cons (padding header :center width) (padding-for-cells others)))))
+(defn- paddings-for-column [{:keys [alignment]} & cells]
+  (let [width (column-width cells)]
+    (map #(padding % alignment width) cells)))
 
 (defn- column-header? [value]
   (boolean (re-find #"^\?" value)))
