@@ -91,10 +91,17 @@
       sexpr-must-be-tabular
       (zip/find (comp table-header? zip/string))))
 
-(defn format-tabular [sexpr options]
-  (let [zloc (move-to-first-header sexpr)]
-    (loop [zloc     zloc
-           paddings (paddings-for-tabular-sexpr zloc options)]
-      (if-not (zip/right zloc)
-        (zip/root-string (align zloc (first paddings) options))
-        (recur (zip/right (align zloc (first paddings) options)) (rest paddings))))))
+(defn format-tabular
+  ([sexpr]
+   (format-tabular sexpr {}))
+  ([sexpr options]
+   {:pre [sexpr]}
+   (let [options (merge {:alignment      :right
+                         :border-spacing 1
+                         :indent-size    2} options)
+         zloc    (move-to-first-header sexpr)]
+     (loop [zloc     zloc
+            paddings (paddings-for-tabular-sexpr zloc options)]
+       (if-not (zip/right zloc)
+         (zip/root-string (align zloc (first paddings) options))
+         (recur (zip/right (align zloc (first paddings) options)) (rest paddings)))))))

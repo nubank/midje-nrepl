@@ -88,10 +88,8 @@
 (defn throws-match [matcher]
   (throws clojure.lang.ExceptionInfo #(matcher-combinators/match? (matcher-combinators/match matcher (ex-data %)))))
 
-(tabular (fact "formats the tabular fact according to the supplied options"
-               (formatter/format-tabular ?tabular {:alignment      :right
-                                                   :border-spacing 1
-                                                   :indent-size    2})
+(tabular (fact "formats the tabular fact according to default options"
+               (formatter/format-tabular ?tabular)
                => ?result)
          ?tabular ?result
          basic-tabular right-aligned-basic-tabular
