@@ -4,12 +4,12 @@
             [midje-nrepl.middleware.format :as format]
             [midje.sweet :refer :all]))
 
-(def tabular1 "(tabular (fact (+ ?x ?y) => ?z)
+(def basic-tabular "(tabular (fact (+ ?x ?y) => ?z)
   ?x ?y ?z
   1000 15 1015
   2 1 3)")
 
-(def formatted-tabular1 "(tabular (fact (+ ?x ?y) => ?z)
+(def formatted-basic-tabular "(tabular (fact (+ ?x ?y) => ?z)
     ?x ?y   ?z
   1000 15 1015
      2  1    3)")
@@ -18,8 +18,8 @@
 
        (fact "takes a tabular sexpr, formats it and returns the formatted sexpr to the client"
              (format/handle-format {:transport ..transport..
-                                    :code      tabular1})
+                                    :code      basic-tabular})
              => irrelevant
              (provided
-              (transport/send ..transport.. (match {:formatted-code formatted-tabular1})) => irrelevant
+              (transport/send ..transport.. (match {:formatted-code formatted-basic-tabular})) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant)))
