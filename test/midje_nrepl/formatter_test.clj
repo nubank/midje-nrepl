@@ -1,5 +1,6 @@
 (ns midje-nrepl.formatter-test
-  (:require [midje-nrepl.formatter :as formatter]
+  (:require [matcher-combinators.core :as matcher-combinators]
+            [midje-nrepl.formatter :as formatter]
             [midje.sweet :refer :all]))
 
 (tabular (fact "determines the padding left and right to the supplied text according to the alignment option and the width"
@@ -46,7 +47,7 @@
          table :left left-aligned-table
          table :center centered-table)
 
-(def tabular1 "(tabular (fact \"about basic arithmetic operations\"
+(def basic-tabular "(tabular (fact \"about basic arithmetic operations\"
   (?operation ?a ?b) => ?result)
   ?operation ?a ?b ?result
   + 2 5 10
@@ -56,7 +57,7 @@
   / 15 8 15/8
   / 4284 126 34)")
 
-(def formatted-tabular1 "(tabular (fact \"about basic arithmetic operations\"
+(def right-aligned-basic-tabular "(tabular (fact \"about basic arithmetic operations\"
   (?operation ?a ?b) => ?result)
   ?operation   ?a  ?b ?result
            +    2   5      10
@@ -66,9 +67,35 @@
            /   15   8    15/8
            / 4284 126      34)")
 
-(fact "formats the tabular fact according to the supplied options"
-      (formatter/format-tabular tabular1 {:alignment       :right
-                                          :center-headers? false
-                                          :border-spacing  1
-                                          :indent-size     2})
-      => formatted-tabular1)
+(def just-a-fact "(fact \"this isn't a tabular\"
+  (+ 1 2) => 3)")
+
+(def just-a-vector "[:blue :red :yellow]")
+
+(def tabular-with-no-headers "(tabular (fact \"this is an invalid tabular\"
+  (inc ?x) => ?y)
+  1 2
+  20 21
+  100 101)")
+
+(def malformed-tabular "(tabular (fact \"this one is malformed\"
+  (inc ?x) => ?y)
+  ?x ?y
+  1 2
+  10
+  100 101)")
+
+(defn throws-match [matcher]
+  (throws clojure.lang.ExceptionInfo #(matcher-combinators/match? (matcher-combinators/match matcher (ex-data %)))))
+
+(tabular (fact "formats the tabular fact according to the supplied options"
+               (formatter/format-tabular ?tabular {:alignment      :right
+                                                   :border-spacing 1
+                                                   :indent-size    2})
+               => ?result)
+         ?tabular ?result
+         basic-tabular right-aligned-basic-tabular
+         just-a-fact (throws-match {:type ::formatter/no-tabular})
+         just-a-vector (throws-match {:type ::formatter/no-tabular})
+         tabular-with-no-headers (throws-match {:type ::formatter/no-table-headers})
+         malformed-tabular (throws-match {:type ::formatter/malformed-table}))

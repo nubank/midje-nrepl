@@ -5,6 +5,10 @@
             [rewrite-clj.zip :as zip]
             [rewrite-clj.zip.whitespace :as whitespace]))
 
+(defn- throw-exception [type message & others]
+  (throw (ex-info (name type) (merge {:type    type
+                                      :message message} (apply hash-map others)))))
+
 (defn- identify-leftmost-and-rightmost-cells [table]
   (let [leftmost-column  (first table)
         rightmost-column (last table)
@@ -34,18 +38,28 @@
   (let [width (column-width cells)]
     (map #(paddings % alignment width) cells)))
 
-(defn- column-header? [value]
+(defn- table-must-be-well-formed [number-of-columns cells]
+  (if (zero? (mod (count cells) number-of-columns))
+    cells
+    (throw-exception ::malformed-table "Table isn't well formed: not all rows have the same number of cells")))
+
+(defn- table-header? [value]
   (boolean (re-find #"^\?" value)))
 
-(defn- number-of-columns [values]
-  (count (take-while column-header? values)))
+(defn- number-of-columns [cells]
+  (let [number-of-headers (count (take-while table-header? cells))]
+    (if-not (zero? number-of-headers)
+      number-of-headers
+      (throw-exception ::no-table-headers "Table has no headers"))))
 
 (defn paddings-for-cells [cells options]
-  (->> cells
-       (partition (number-of-columns cells))
-       (apply map (partial paddings-for-column options))
-       identify-leftmost-and-rightmost-cells
-       (apply interleave)))
+  (let [number-of-columns (number-of-columns cells)]
+    (->> cells
+         (table-must-be-well-formed number-of-columns)
+         (partition number-of-columns)
+         (apply map (partial paddings-for-column options))
+         identify-leftmost-and-rightmost-cells
+         (apply interleave))))
 
 (def ^:private whitespace-but-not-linebreak? #(and (not (zip/linebreak? %))
                                                    (zip/whitespace? %)))
@@ -65,10 +79,17 @@
       (paddings-for-cells cells options)
       (recur (zip/right zloc) (conj cells (zip/string zloc))))))
 
+(defn- sexpr-must-be-tabular [zloc]
+  (let [sexpr (zip/sexpr zloc)]
+    (if (and (symbol? sexpr) (= (symbol (name sexpr)) 'tabular))
+      zloc
+      (throw-exception ::no-tabular "Sexpr must be a tabular fact" :sexpr (zip/root-string zloc)))))
+
 (defn- move-to-first-header [sexpr]
   (-> (zip/of-string sexpr)
       zip/down
-      (zip/find (comp column-header? zip/string))))
+      sexpr-must-be-tabular
+      (zip/find (comp table-header? zip/string))))
 
 (defn format-tabular [sexpr options]
   (let [zloc (move-to-first-header sexpr)]
