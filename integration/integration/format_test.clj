@@ -24,4 +24,10 @@
 
        (fact "when the code is missing in the message, the middleware returns an error"
              (first (send-message {:op "midje-format-tabular"}))
-             => (match {:status (m/in-any-order ["error" "no-code"])})))
+             => (match {:status (m/in-any-order ["error" "no-code"])}))
+
+       (fact "when the user sends invalid sexprs (like a non-tabular one), the middleware returns meaningful error responses"
+             (first (send-message {:op   "midje-format-tabular"
+                                   :code "(fact 1 => 1)"}))
+             => (match {:error-message "Sexpr must be a tabular fact"
+                        :status        (m/in-any-order ["error" "no-tabular"])})))
