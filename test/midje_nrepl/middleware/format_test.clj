@@ -1,6 +1,7 @@
 (ns midje-nrepl.middleware.format-test
   (:require [clojure.tools.nrepl.transport :as transport]
             [matcher-combinators.midje :refer [match]]
+            [midje-nrepl.formatter :as formatter]
             [midje-nrepl.middleware.format :as format]
             [midje.sweet :refer :all]))
 
@@ -22,4 +23,17 @@
              => irrelevant
              (provided
               (transport/send ..transport.. (match {:formatted-code formatted-basic-tabular})) => irrelevant
-              (transport/send ..transport.. (match {:status #{:done}})) => irrelevant)))
+              (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
+
+       (fact "when the formatter throws a known exception, responds with a meaningful error to the client"
+             (format/handle-format {:transport ..transport..
+                                    :code      "(+ 1 2)"}) => irrelevant
+             (provided
+              (transport/send ..transport.. (match {:error-message string?
+                                                    :status        #{:error :no-tabular}}))   => irrelevant))
+
+       (fact "when the formatter throws an unknown exception, propagates it"
+             (format/handle-format {:transport ..transport..
+                                    :code      ..code..}) => (throws Exception #"Boom!")
+             (provided
+              (formatter/format-tabular ..code..) =throws=> (Exception. "Boom!"))))

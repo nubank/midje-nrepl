@@ -7,7 +7,7 @@
 
 (defn- throw-exception [type message & others]
   (throw (ex-info (name type) (merge {:type    type
-                                      :message message} (apply hash-map others)))))
+                                      :error-message message} (apply hash-map others)))))
 
 (defn- identify-leftmost-and-rightmost-cells [table]
   (let [leftmost-column  (first table)

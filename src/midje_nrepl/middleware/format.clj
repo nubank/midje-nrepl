@@ -3,8 +3,8 @@
                         [clojure.tools.nrepl.transport :as transport]
                         [midje-nrepl.formatter :as formatter]))
 
-(defn- send-error [{:keys [transport] :as message} {:keys [type reason]}]
-  (transport/send transport (response-for message :reason reason
+(defn- send-error-response [{:keys [transport] :as message} {:keys [type error-message]}]
+  (transport/send transport (response-for message :error-message error-message
                                           :status #{:error (keyword (name type))})))
 
 (defn- formatter-exception? [type]
@@ -12,10 +12,10 @@
        (= (symbol (namespace type))
           'midje-nrepl.formatter)))
 
-(defn- handle-exception [exception message]
+(defn- handle-error [exception message]
   (let [{:keys [type] :as ex-data} (ex-data exception)]
     (if (formatter-exception? type)
-      (send-error message ex-data)
+      (send-error-response message ex-data)
       (throw exception))))
 
 (defn- try-to-format-tabular-fact [{:keys [code transport] :as message}]
@@ -27,4 +27,4 @@
   (try
     (try-to-format-tabular-fact message)
     (catch Exception e
-      (handle-exception e))))
+      (handle-error e message))))
