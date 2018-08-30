@@ -2,6 +2,7 @@
   (:require [clojure.tools.nrepl.middleware :as middleware]
             [clojure.tools.nrepl.transport :as transport]
             [matcher-combinators.midje :refer [match]]
+            [midje-nrepl.middleware.fake :as fake]
             [midje-nrepl.nrepl :refer [defmiddleware]]
             [midje.sweet :refer :all]))
 
@@ -16,7 +17,14 @@
                           "last-name"  "The last name of the user."}}}}
   'midje-nrepl.middleware.fake/handle-greeting)
 
-(def fake-handler #(assoc % :something :yeah))
+(defmiddleware wrap-simple-delegation
+  {:expects  #{}
+   :requires #{}
+   :handles  {"delegate"
+              {:doc "Simply delegates to the higher handler, by assoc'ying a `::delegated` key into the message"}}}
+  'midje-nrepl.middleware.fake/handle-simple-delegation)
+
+(def fake-handler #(assoc % ::I-am-fake true))
 
 (facts "about defining middleware"
 
@@ -30,9 +38,9 @@
 it simply calls the higher handler"
              (-> (wrap-greeting fake-handler)
                  (apply [{:op "eval" :code "(+ 1 2)"}]))
-             =>                 {:op        "eval"
-                                 :code      "(+ 1 2)"
-                                 :something :yeah})
+             =>                 {:op         "eval"
+                                 :code       "(+ 1 2)"
+                                 ::I-am-fake true})
 
        (fact "when the message's op matches the middleware's op,
 it replies to the message"
@@ -40,6 +48,13 @@ it replies to the message"
                  (apply [{:op "greeting"}]))
              => {:op       "greeting"
                  :greeting "Hello!"})
+
+       (fact "the handler function can take two parameters; the message and the higher handler"
+             (-> (wrap-simple-delegation fake-handler)
+                 (apply [{:op "delegate"}]))
+             => (match {:op              "delegate"
+                        ::I-am-fake      true
+                        ::fake/delegated true}))
 
        (tabular (fact "returns an error when required parameters are missing"
                       (-> (wrap-greeting identity)

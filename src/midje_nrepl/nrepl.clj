@@ -4,6 +4,20 @@
             [clojure.tools.nrepl.misc :refer [response-for]]
             [clojure.tools.nrepl.transport :as transport]))
 
+(defn- greatest-arity-of [handler-var]
+  {:post [(or (= % 1) (= % 2))]}
+  (->> handler-var
+       meta
+       :arglists
+       (map count)
+       (apply max)))
+
+(defn- try-to-call-handler [delayed-handler higher-handler message]
+  (let [args (if (= 1 (greatest-arity-of @delayed-handler))
+               [message]
+               [message higher-handler])]
+    (apply @@delayed-handler args)))
+
 (defn- explain-missing-parameters [message op-descriptor]
   (let [key-set         #(->> % keys (map keyword) set)
         required-params (key-set (op-descriptor :requires))
@@ -11,24 +25,24 @@
     (->> (set/difference required-params actual-params)
          (map (comp keyword #(str "no-" %) name)))))
 
-(defn- call-handler [delayed-handler {:keys [transport] :as message} op-descriptor]
+(defn- call-handler [delayed-handler higher-handler {:keys [transport] :as message} op-descriptor]
   (let [missing-params (explain-missing-parameters message op-descriptor)]
     (if (seq missing-params)
       (transport/send transport (response-for message :status (set/union #{:done :error} missing-params)))
-      (apply @delayed-handler [message]))))
+      (try-to-call-handler delayed-handler higher-handler message))))
 
 (defn make-middleware [descriptor delayed-handler higher-handler]
   (fn [{:keys [op] :as message}]
     (if-let [op-descriptor (get-in descriptor [:handles (name op)])]
-      (call-handler delayed-handler message op-descriptor)
+      (call-handler delayed-handler higher-handler message op-descriptor)
       (higher-handler message))))
 
-(defn delayed-handler-function [handler-symbol]
+(defn delayed-handler-var [handler-symbol]
   (delay   (require (symbol (namespace handler-symbol)))
-           (deref (resolve handler-symbol))))
+           (resolve handler-symbol)))
 
 (defmacro defmiddleware [name descriptor handler-symbol]
-  `(let [delayed-handler# (delayed-handler-function ~handler-symbol)]
+  `(let [delayed-handler# (delayed-handler-var ~handler-symbol)]
      (defn ~name [handler#]
        (make-middleware ~descriptor delayed-handler# handler#))
      (set-descriptor! (var ~name) ~descriptor)))
