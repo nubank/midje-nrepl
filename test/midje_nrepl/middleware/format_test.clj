@@ -30,7 +30,7 @@
                                     :code      "(+ 1 2)"}) => irrelevant
              (provided
               (transport/send ..transport.. (match {:error-message string?
-                                                    :status        #{:error :no-tabular}}))   => irrelevant))
+                                                    :status        #{:done :error :no-tabular}}))   => irrelevant))
 
        (fact "when the formatter throws an unknown exception, propagates it"
              (format/handle-format {:transport ..transport..

@@ -29,7 +29,7 @@
 
        (fact "when the ns is missing in the message, the middleware returns an error"
              (first (send-message {:op "midje-test-ns"}))
-             => (match {:status (m/in-any-order ["error" "no-ns"])}))
+             => (match {:status (m/in-any-order ["done" "error" "no-ns"])}))
 
        (fact "the test results contain a valid path to the file at which the tests are declared"
              (->> (send-message {:op "midje-test-ns" :ns "octocat.arithmetic-test"})
@@ -75,7 +75,7 @@ it's possible to jump to the correct position of the test in question"
        (fact "when the parameters ns and/or test-forms are missing in the message,
 the middleware returns an error"
              (first (send-message {:op "midje-test"}))
-             => (match {:status (m/in-any-order ["error" "no-ns" "no-test-forms"])}))
+             => (match {:status (m/in-any-order ["done" "error" "no-ns" "no-test-forms"])}))
 
        (fact "gets the stacktrace of the given erring test"
              (let [namespace          "octocat.arithmetic-test"
@@ -104,4 +104,4 @@ the middleware returns an error"
        (fact "when the parameters ns, index and/or print-fn are missing in the message,
 the middleware returns an error"
              (first (send-message {:op "midje-test-stacktrace"}))
-             => (match {:status (m/in-any-order ["error" "no-ns" "no-index" "no-print-fn"])})))
+             => (match {:status (m/in-any-order ["done" "error" "no-ns" "no-index" "no-print-fn"])})))

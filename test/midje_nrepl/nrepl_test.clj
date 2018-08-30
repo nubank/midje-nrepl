@@ -47,9 +47,9 @@ it replies to the message"
                       (provided
                        (transport/send ..transport.. {:status ?status}) => irrelevant))
                 ?message              ?status
-                {:first-name "John"}  #{:error :no-last-name}
-                {:last-name "Doe"}    #{:error :no-first-name}
-                {}                    #{:error :no-first-name :no-last-name})
+                {:first-name "John"}  #{:done :error :no-last-name}
+                {:last-name "Doe"}    #{:done :error :no-first-name}
+                {}                    #{:done :error :no-first-name :no-last-name})
 
        (fact "calls the middleware normally when all required parameters are provided"
              (-> (wrap-greeting fake-handler)

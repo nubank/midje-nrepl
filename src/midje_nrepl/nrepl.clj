@@ -14,7 +14,7 @@
 (defn- call-handler [delayed-handler {:keys [transport] :as message} op-descriptor]
   (let [missing-params (explain-missing-parameters message op-descriptor)]
     (if (seq missing-params)
-      (transport/send transport (response-for message :status (set (cons :error missing-params))))
+      (transport/send transport (response-for message :status (set/union #{:done :error} missing-params)))
       (apply @delayed-handler [message]))))
 
 (defn make-middleware [descriptor delayed-handler higher-handler]

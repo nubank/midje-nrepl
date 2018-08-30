@@ -5,7 +5,7 @@
 
 (defn- send-error-response [{:keys [transport] :as message} {:keys [type error-message]}]
   (transport/send transport (response-for message :error-message error-message
-                                          :status #{:error (keyword (name type))})))
+                                          :status #{:done :error (keyword (name type))})))
 
 (defn- formatter-exception? [type]
   (and type
