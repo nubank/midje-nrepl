@@ -54,7 +54,7 @@ it replies to the message"
                  (apply [{:op "delegate"}]))
              => (match {:op              "delegate"
                         ::I-am-fake      true
-                        ::fake/delegated true}))
+                        ::fake/delegated? true}))
 
        (tabular (fact "returns an error when required parameters are missing"
                       (-> (wrap-greeting identity)

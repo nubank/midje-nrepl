@@ -7,4 +7,4 @@
     "personal-greeting" (assoc message :greeting (format "Hello %s %s!" first-name last-name))))
 
 (defn handle-simple-delegation [message higher-handler]
-  (higher-handler (assoc message ::delegated true)))
+  (higher-handler (assoc message ::delegated? true)))

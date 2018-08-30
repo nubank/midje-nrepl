@@ -15,6 +15,10 @@
 (def no-tests {:results {}
                :summary {:error 0 :fact 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})
 
+(defn has-test-results? []
+  (or (= @report nil)
+      (-> @report :summary :test zero? not)))
+
 (defn- file-for [namespace]
   (some-> (name namespace)
           namespace/ns-path

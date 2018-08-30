@@ -92,6 +92,9 @@
                                                    :results    {}
                                                    :summary    {:error 0 :fact 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})))
 
+       (fact "returns false because the reporter has no test results"
+             (reporter/has-test-results?) => false)
+
        (fact "when Midje starts checking a top level fact,
 it stores its description in the report atom"
              (reporter/starting-to-check-top-level-fact correct-fact-function)
@@ -226,6 +229,9 @@ it is interpreted as an error in the test report"
                                                    :pass  1
                                                    :skip  1
                                                    :test  4}}))
+
+       (fact "returns true because now the reporter has test results"
+             (reporter/has-test-results?) => true)
 
        (fact "drops irrelevant keys from the report map"
              (keys @reporter/report) => (match (m/in-any-order [:results :summary :testing-ns :file]))
