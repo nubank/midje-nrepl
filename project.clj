@@ -9,7 +9,7 @@
                  [rewrite-clj "0.6.0"]]
 
   :profiles {:dev {:dependencies [[midje "1.9.2-alpha3"]
-                                  [nubank/matcher-combinators "0.2.3"]]
+                                  [nubank/matcher-combinators "0.2.8"]]
                    :plugins [[lein-midje "3.2.1"]]}
              :provided {:dependencies [[cider/cider-nrepl "0.17.0-SNAPSHOT"]
                                        [leiningen-core "2.8.1"]]}}

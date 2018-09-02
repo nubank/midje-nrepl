@@ -1,30 +1,20 @@
 (ns midje-nrepl.middleware.load-test
-  (:require [midje-nrepl.middleware.load :as load]
+  (:require [clojure.test :refer [*load-tests*]]
             [matcher-combinators.midje :refer [match]]
-            [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]]
+            [midje-nrepl.middleware.load :as load]
             [midje.sweet :refer :all]))
 
-(defn load-test-namespace-handler [message]
-  (with-in-memory-reporter 'octocat.arithmetic-test
-    (require 'octocat.arithmetic-test :reload))
-  (assoc message ::loaded? true))
+(def incoming-message {:session (atom {#'*ns* "octocat.arithmetic-test"})})
+
+(defn base-handler [message]
+  (assoc message ::base-handler-called? true))
 
 (facts "about the load middleware"
+       (let [resulting-message (load/handle-load incoming-message base-handler)]
 
-       (fact "the dummy handler above loads a given test namespace and assoc's a key into the message map"
-             (load-test-namespace-handler {:op "load"})
-             => (match {:op       "load"
-                        ::loaded? true}))
-
-       (fact "now as tests were executed, the reporter has some test results"
-             (reporter/has-test-results?) => true)
-
-       (fact "the load handler delegates the incoming message to the higher handler as expected"
-             (load/handle-load {:op "load"} load-test-namespace-handler)
-             => (match {:op       "load"
-                        ::loaded? true}))
-
-       (fact "as the handle-load function binds `clojure.test/*load-tests*` to false, Midje doesn't check the facts when the namespace is loaded,
-so the reporter has no test results"
-             (reporter/has-test-results?) => false
-             ))
+         (fact "the load middleware delegates to the base handler by keeping the session as an atom"
+               resulting-message => (match {::base-handler-called? true
+                                            :session               (partial instance? clojure.lang.Atom)})) (fact "the load middleware assoc's the `*load-tests*` var into the session"
+                                                                                                                  @(resulting-message :session)
+                                                                                                                  => (match {#'*ns*         "octocat.arithmetic-test"
+                                                                                                                             #'*load-tests* false}))))

@@ -1,6 +1,8 @@
 (ns midje-nrepl.nrepl
   (:require [clojure.set :as set]
             [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
+            [clojure.tools.nrepl.middleware.load-file :as load-file]
+            [clojure.tools.nrepl.middleware.interruptible-eval :as eval]
             [clojure.tools.nrepl.misc :refer [response-for]]
             [clojure.tools.nrepl.transport :as transport]))
 
@@ -55,12 +57,9 @@
   'midje-nrepl.middleware.format/handle-format)
 
 (defmiddleware wrap-load
-  {:expects  #{"eval" "load-file"}
-   :requires #{}
-   :handles  {"eval"
-              {:doc "Delegates to the next `eval` middleware, by preventing Midje facts from being run"}
-              "load-file"
-              {:doc "Delegates to the next `load-file` middleware, by preventing Midje facts from being run"}}}
+  {:expects #{#'eval/interruptible-eval}
+   :handles {"eval"
+             {:doc "Delegates to the next `eval` middleware, by preventing Midje facts from being run"}}}
   'midje-nrepl.middleware.load/handle-load)
 
 (defmiddleware wrap-test
