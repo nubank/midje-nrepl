@@ -7,21 +7,17 @@
             [midje.sweet :refer :all]))
 
 (defmiddleware wrap-greeting
-  {:expects  #{}
-   :requires #{}
-   :handles  {"greeting"
-              {:doc "Sends a generic greeting to the user."}
-              "personal-greeting"
-              {:doc      "Sends a personal greeting to the user."
-               :requires {"first-name" "The first name of the user."
-                          "last-name"  "The last name of the user."}}}}
+  {:handles {"greeting"
+             {:doc "Sends a generic greeting to the user."}
+             "personal-greeting"
+             {:doc      "Sends a personal greeting to the user."
+              :requires {"first-name" "The first name of the user."
+                         "last-name"  "The last name of the user."}}}}
   'midje-nrepl.middleware.fake/handle-greeting)
 
 (defmiddleware wrap-simple-delegation
-  {:expects  #{}
-   :requires #{}
-   :handles  {"delegate"
-              {:doc "Simply delegates to the higher handler, by assoc'ying a `::delegated` key into the message"}}}
+  {:handles {"delegate"
+             {:doc "Simply delegates to the higher handler, by assoc'ying a `::delegated` key into the message"}}}
   'midje-nrepl.middleware.fake/handle-simple-delegation)
 
 (def fake-handler #(assoc % ::I-am-fake true))
@@ -35,7 +31,7 @@
                                    {:doc "Sends a generic greeting to the user."}}}}))
 
        (fact "when the middleware is called with a message that doesn't match its op,
-it simply calls the higher handler"
+it simply calls the base handler"
              (-> (wrap-greeting fake-handler)
                  (apply [{:op "eval" :code "(+ 1 2)"}]))
              =>                 {:op         "eval"
@@ -49,11 +45,11 @@ it replies to the message"
              => {:op       "greeting"
                  :greeting "Hello!"})
 
-       (fact "the handler function can take two parameters; the message and the higher handler"
+       (fact "the handler function can take two parameters; the message and the base handler"
              (-> (wrap-simple-delegation fake-handler)
                  (apply [{:op "delegate"}]))
-             => (match {:op              "delegate"
-                        ::I-am-fake      true
+             => (match {:op               "delegate"
+                        ::I-am-fake       true
                         ::fake/delegated? true}))
 
        (tabular (fact "returns an error when required parameters are missing"
