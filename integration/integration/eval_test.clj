@@ -45,4 +45,11 @@
                             :file      (read-file-content arithmetic-test)
                             :file-path arithmetic-test})
              => (match (list (map-without-key :out)
-                             {:status ["done"]}))))
+                             {:status ["done"]})))
+
+       (fact "facts are run when the client sends the parameter `load-tests?` set as true"
+             (send-message {:op          "eval"
+                            :load-tests? "true"
+                            :code        "(fact 1 => 2)"
+                            :ns          "octocat.arithmetic-test"})
+             => (match (m/prefix [{:out (partial re-find #"FAIL")}]))))

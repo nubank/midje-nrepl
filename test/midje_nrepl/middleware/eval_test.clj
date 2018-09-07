@@ -19,5 +19,13 @@
              (-> (eval/handle-eval incoming-message base-handler)
                  :session
                  deref)
-             => {#'*ns* "octocat.arithmetic-test"
-                 #'*load-tests* false}))
+             => {#'*ns*         "octocat.arithmetic-test"
+                 #'*load-tests* false})
+
+       (fact "clients can override the above behavior by sending the parameter `load-tests?` in the message"
+             (-> (assoc incoming-message :load-tests? "true")
+                 (eval/handle-eval base-handler)
+                 :session
+                 deref)
+             => {#'*ns*         "octocat.arithmetic-test"
+                 #'*load-tests* true}))
