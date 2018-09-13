@@ -56,7 +56,7 @@
    {"eval"
     {:doc "Delegates to `interruptible-eval` middleware, by preventing Midje facts from being run"}
     "warm-ast-cache"
-    {}}}
+    {:doc "Delegates to `refactor-nrepl/wrap-refactor` by preventing Midje facts from being run"}}}
   'midje-nrepl.middleware.inhibit-tests/handle-inhibit-tests)
 
 (defmiddleware wrap-format
