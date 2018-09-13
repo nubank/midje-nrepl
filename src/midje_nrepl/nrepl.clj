@@ -49,10 +49,14 @@
        (make-middleware ~descriptor delayed-handler# handler#))
      (set-descriptor! (var ~name) ~descriptor)))
 
-(defmiddleware wrap-eval
-  {:expects #{#'eval/interruptible-eval}
-   :handles {"eval"
-             {:doc "Delegates to `interruptible-eval` middleware, by preventing Midje facts from being run"}}}
+(defmiddleware wrap-inhibit-tests
+  {:expects #{#'eval/interruptible-eval
+              #'refactor-nrepl/wrap-refactor}
+   :handles
+   {"eval"
+    {:doc "Delegates to `interruptible-eval` middleware, by preventing Midje facts from being run"}
+    "warm-ast-cache"
+    {}}}
   'midje-nrepl.middleware.inhibit-tests/handle-inhibit-tests)
 
 (defmiddleware wrap-format
@@ -61,12 +65,6 @@
    :handles  {"midje-format-tabular"
               {:requires {"code" "The tabular sexpr to be formatted"}}}}
   'midje-nrepl.middleware.format/handle-format)
-
-(defmiddleware wrap-refactor
-  {:expects #{#'refactor-nrepl/wrap-refactor}
-   :handles {"warm-ast-cache"
-             {}}}
-  'midje-nrepl.middleware.inhibit-tests/handle-inhibit-tests)
 
 (defmiddleware wrap-test
   {:expects  #{}
@@ -94,8 +92,7 @@
               {:doc "Provides information about midje-nrepl's current version."}}}
   'midje-nrepl.middleware.version/handle-version)
 
-(def middleware `[wrap-eval
-                  wrap-format
-                  wrap-refactor
+(def middleware `[wrap-format
+                  wrap-inhibit-tests
                   wrap-test
                   wrap-version])

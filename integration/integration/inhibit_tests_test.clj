@@ -19,7 +19,7 @@
   (fn [map]
     (not (set/subset? #{key} (set (keys map))))))
 
-(facts "about evaluating code without loading tests"
+(facts "about evaluating code without running tests"
 
        (fact "the nREPL continues to evaluate sexprs normally even with the wrap-eval middleware in the stack"
              (send-message {:op "eval" :code "(* 7 8)"})
@@ -53,3 +53,28 @@
                             :code        "(fact 1 => 2)"
                             :ns          "octocat.arithmetic-test"})
              => (match (m/prefix [{:out (partial re-find #"FAIL")}]))))
+
+(def hello-world-file (io/file octocat "target" "hello-world.txt"))
+
+(defn safe-delete-hello-world-file []
+  (when (.exists hello-world-file)
+    (io/delete-file hello-world-file)))
+
+(facts "about refactor operations"
+
+       (fact "when Midje facts in the namespace `octocat.side-effects-test` are run, a file called hello-world.txt is created"
+             (safe-delete-hello-world-file)
+             (send-message {:op          "eval"
+                            :load-tests? "true"
+                            :code        "(require 'octocat.side-effects-test :reload)"})
+             (.exists hello-world-file) => true)
+
+       (fact "the warm-ast-cache middleware continues working as expected"
+             (safe-delete-hello-world-file)
+             (send-message {:op "warm-ast-cache"})
+             => (match (list {:ast-statuses "(octocat.arithmetic-test \"OK\" octocat.side-effects-test \"OK\")"
+                              :status       ["done"]})))
+
+       (fact "Midje facts aren't run by the warm-ast-cache middleware, so the file hello-world.txt wasn't created again"
+             (.exists hello-world-file)
+             => false))
