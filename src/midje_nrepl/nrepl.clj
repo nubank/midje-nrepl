@@ -53,7 +53,7 @@
   {:expects #{#'eval/interruptible-eval}
    :handles {"eval"
              {:doc "Delegates to `interruptible-eval` middleware, by preventing Midje facts from being run"}}}
-  'midje-nrepl.middleware.eval/handle-inhibit-tests)
+  'midje-nrepl.middleware.inhibit-tests/handle-inhibit-tests)
 
 (defmiddleware wrap-format
   {:expects  #{}
@@ -66,7 +66,7 @@
   {:expects #{#'refactor-nrepl/wrap-refactor}
    :handles {"warm-ast-cache"
              {}}}
-  'midje-nrepl.middleware.eval/handle-inhibit-tests)
+  'midje-nrepl.middleware.inhibit-tests/handle-inhibit-tests)
 
 (defmiddleware wrap-test
   {:expects  #{}
