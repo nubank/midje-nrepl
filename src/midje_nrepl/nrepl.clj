@@ -3,7 +3,8 @@
             [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
             [clojure.tools.nrepl.middleware.interruptible-eval :as eval]
             [clojure.tools.nrepl.misc :refer [response-for]]
-            [clojure.tools.nrepl.transport :as transport]))
+            [clojure.tools.nrepl.transport :as transport]
+            [refactor-nrepl.middleware :as refactor-nrepl]))
 
 (defn- greatest-arity-of [handler-var]
   {:post [(or (= % 1) (= % 2))]}
@@ -52,7 +53,7 @@
   {:expects #{#'eval/interruptible-eval}
    :handles {"eval"
              {:doc "Delegates to `interruptible-eval` middleware, by preventing Midje facts from being run"}}}
-  'midje-nrepl.middleware.eval/handle-eval)
+  'midje-nrepl.middleware.eval/handle-inhibit-tests)
 
 (defmiddleware wrap-format
   {:expects  #{}
@@ -60,6 +61,12 @@
    :handles  {"midje-format-tabular"
               {:requires {"code" "The tabular sexpr to be formatted"}}}}
   'midje-nrepl.middleware.format/handle-format)
+
+(defmiddleware wrap-refactor
+  {:expects #{#'refactor-nrepl/wrap-refactor}
+   :handles {"warm-ast-cache"
+             {}}}
+  'midje-nrepl.middleware.eval/handle-inhibit-tests)
 
 (defmiddleware wrap-test
   {:expects  #{}
@@ -89,5 +96,6 @@
 
 (def middleware `[wrap-eval
                   wrap-format
+                  wrap-refactor
                   wrap-test
                   wrap-version])

@@ -1,4 +1,4 @@
-(ns integration.eval-test
+(ns integration.inhibit-tests-test
   (:require [clojure.java.io :as io]
             [clojure.set :as set]
             [integration.helpers :refer [send-message]]
