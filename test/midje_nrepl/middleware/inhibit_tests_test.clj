@@ -7,8 +7,8 @@
             [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]]
             [midje.sweet :refer :all]))
 
-(def eval-message {:op "eval"
-                   :code "(+ 1 2)"
+(def eval-message {:op      "eval"
+                   :code    "(+ 1 2)"
                    :session (atom {#'*ns* "octocat.arithmetic-test"})})
 
 (defn fake-interruptible-eval-handler [{:keys [code] :as message}]
@@ -43,19 +43,34 @@
              => {#'*ns*         "octocat.arithmetic-test"
                  #'*load-tests* false}))
 
-(def warm-ast-cache-message {:op "warm-ast-cache"})
-
-(defn fake-warm-ast-cache-handler [{:keys [transport] :as message}]
+(defn fake-load-ns-handler [{:keys [transport] :as message}]
   (assoc message
          :test-report (with-in-memory-reporter 'octocat.arithmetic-test
                         (require 'octocat.arithmetic-test :reload)
                         (transport/send transport (response-for message :status :done)))))
 
-(facts "about handling messages with a `warm-ast-cache` op"
+(facts "about loading namespaces without running facts"
 
-       (fact "delegates to the base handler without running tests"
-             (inhibit-tests/handle-inhibit-tests (assoc warm-ast-cache-message :transport ..transport..) fake-warm-ast-cache-handler)
-             => (match {:op "warm-ast-cache"
-                        :test-report reporter/no-tests})
-             (provided
-              (transport/send ..transport.. anything) => irrelevant)))
+       (tabular (fact "delegates to the base handler without running tests"
+                      (inhibit-tests/handle-inhibit-tests {:op ?op :transport ..transport..} fake-load-ns-handler)
+                      => (match {:op          ?op
+                                 :test-report reporter/no-tests})
+                      (provided
+                       (transport/send ..transport.. anything) => irrelevant))
+                ?op
+                "warm-ast-cache"
+                "refresh"
+                "refresh-all")
+
+       (tabular (fact "the above behavior can be overridden by setting the parameter `load-tests?` to true in the message"
+                      (inhibit-tests/handle-inhibit-tests {:op          ?op
+                                                           :load-tests? "true"
+                                                           :transport   ..transport..} fake-load-ns-handler)
+                      => (match {:op          ?op
+                                 :test-report {:summary {:test #(> % 0)}}})
+                      (provided
+                       (transport/send ..transport.. anything) => irrelevant))
+                ?op
+                "warm-ast-cache"
+                "refresh"
+                "refresh-all"))

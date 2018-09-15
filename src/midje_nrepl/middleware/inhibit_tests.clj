@@ -17,7 +17,7 @@
         (alter-var-root #'*load-tests* (constantly load-tests?)))
       (transport/send transport message))))
 
-(defn- handle-warm-ast-cache [{:keys [transport load-tests?] :as message} base-handler]
+(defn- forward-with-transport-proxy [{:keys [transport load-tests?] :as message} base-handler]
   (let [current-value-of-*load-tests* *load-tests*]
     (alter-var-root #'*load-tests* (constantly load-tests?))
     (base-handler (assoc message :transport (transport-proxy transport current-value-of-*load-tests*)))))
@@ -31,4 +31,4 @@
   (let [message (update message :load-tests? (fnil #(Boolean/parseBoolean %) "false"))]
     (case op
       "eval"           (evaluate-without-running-tests message base-handler)
-      "warm-ast-cache" (handle-warm-ast-cache message base-handler))))
+      ("refresh" "refresh-all" "warm-ast-cache") (forward-with-transport-proxy message base-handler))))
