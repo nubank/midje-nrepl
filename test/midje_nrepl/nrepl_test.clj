@@ -1,10 +1,16 @@
 (ns midje-nrepl.nrepl-test
-  (:require [clojure.tools.nrepl.middleware :as middleware]
+  (:require [cider.nrepl :as cider]
+            [clojure.tools.nrepl.middleware :as middleware]
+            [clojure.tools.nrepl.middleware.interruptible-eval :as eval]
             [clojure.tools.nrepl.transport :as transport]
             [matcher-combinators.midje :refer [match]]
+            [midje-nrepl.helpers :refer [dep-in-classpath?]]
             [midje-nrepl.middleware.fake :as fake]
-            [midje-nrepl.nrepl :refer [defmiddleware]]
-            [midje.sweet :refer :all]))
+            [midje-nrepl.nrepl
+             :refer
+             [defmiddleware middleware-vars-expected-by-wrap-inhibit-tests]]
+            [midje.sweet :refer :all]
+            [refactor-nrepl.middleware :as refactor-nrepl]))
 
 (defmiddleware wrap-greeting
   {:handles {"greeting"
@@ -22,7 +28,7 @@
 
 (def fake-handler #(assoc % ::I-am-fake true))
 
-(facts "about defining middleware"
+(facts "about defining middleware functions"
 
        (fact "the middleware contains a descriptor assoc'ed into its meta"
              (meta #'wrap-greeting)
@@ -65,4 +71,16 @@ it replies to the message"
        (fact "calls the middleware normally when all required parameters are provided"
              (-> (wrap-greeting fake-handler)
                  (apply [{:op "personal-greeting" :first-name "John" :last-name "Doe"}]))
-             => (match {:greeting "Hello John Doe!"})))
+             => (match {:greeting "Hello John Doe!"}))
+
+       (fact "returns a set of vars representing middleware functions in a lower level from `wrap-inhibit-tests`;
+`refactor-nrepl.middleware/wrap-refactor` is included in this set because `refactor-nrepl` is at the classpath"
+             (middleware-vars-expected-by-wrap-inhibit-tests)
+             => #{#'eval/interruptible-eval #'cider/wrap-refresh #'refactor-nrepl/wrap-refactor})
+
+       (fact "when `refactor-nrepl` isn't present at the classpat,
+`refactor-nrepl.middleware/wrap-refactor` isn't returned"
+             (middleware-vars-expected-by-wrap-inhibit-tests)
+             => #{#'eval/interruptible-eval #'cider/wrap-refresh}
+             (provided
+              (dep-in-classpath? "refactor-nrepl") => false)))

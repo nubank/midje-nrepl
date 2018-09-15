@@ -5,7 +5,7 @@
             [clojure.tools.nrepl.middleware.interruptible-eval :as eval]
             [clojure.tools.nrepl.misc :refer [response-for]]
             [clojure.tools.nrepl.transport :as transport]
-            [refactor-nrepl.middleware :as refactor-nrepl]))
+            [midje-nrepl.helpers :refer [dep-in-classpath?]]))
 
 (defn- greatest-arity-of [handler-var]
   {:post [(or (= % 1) (= % 2))]}
@@ -57,17 +57,28 @@
               {:requires {"code" "The tabular sexpr to be formatted"}}}}
   'midje-nrepl.middleware.format/handle-format)
 
+(defn middleware-vars-expected-by-wrap-inhibit-tests []
+  (let [middleware-vars #{#'eval/interruptible-eval
+                          #'cider/wrap-refresh}]
+    (if (dep-in-classpath? "refactor-nrepl")
+      (set/union middleware-vars #{(resolve 'refactor-nrepl.middleware/wrap-refactor)})
+      middleware-vars)))
+
 (defmiddleware wrap-inhibit-tests
-  {:expects #{#'eval/interruptible-eval
-              #'cider/wrap-refresh
-              #'refactor-nrepl/wrap-refactor}
+  {:expects (middleware-vars-expected-by-wrap-inhibit-tests)
    :handles
    {"eval"
-    {:doc "Delegates to `interruptible-eval` middleware, by preventing Midje facts from being run"}
+    {:doc      "Delegates to `interruptible-eval` middleware, by preventing Midje facts from being run"
+     :optional {"load-tests?" "If set to \"true\" any Midje fact loaded in the current operation will be run automatically (defaults to \"false\")."}}
     "warm-ast-cache"
-    {:doc "Delegates to `refactor-nrepl/wrap-refactor` by preventing Midje facts from being run"}
-    "refresh"     {}
-    "refresh-all" {}}}
+    {:doc      "Delegates to `refactor-nrepl.middleware/wrap-refactor` middleware, by preventing Midje facts from being run"
+     :optional {"load-tests?" "If set to \"true\" any Midje fact loaded in the current operation will be run automatically (defaults to \"false\")."}}
+    "refresh"
+    {:doc      "Delegates to `cider.nrepl/wrap-refresh` by preventing Midje facts from being run"
+     :optional {"load-tests?" "If set to \"true\" any Midje fact loaded in the current operation will be run automatically (defaults to \"false\")."}}
+    "refresh-all"
+    {:doc      "Delegates to `cider.nrepl/wrap-refresh` by preventing Midje facts from being run"
+     :optional {"load-tests?" "If set to \"true\" any Midje fact loaded in the current operation will be run automatically (defaults to \"false\")."}}}}
   'midje-nrepl.middleware.inhibit-tests/handle-inhibit-tests)
 (defmiddleware wrap-test
   {:expects  #{}
