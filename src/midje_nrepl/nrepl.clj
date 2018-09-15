@@ -1,5 +1,6 @@
 (ns midje-nrepl.nrepl
-  (:require [clojure.set :as set]
+  (:require [cider.nrepl :as cider]
+            [clojure.set :as set]
             [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
             [clojure.tools.nrepl.middleware.interruptible-eval :as eval]
             [clojure.tools.nrepl.misc :refer [response-for]]
@@ -49,16 +50,6 @@
        (make-middleware ~descriptor delayed-handler# handler#))
      (set-descriptor! (var ~name) ~descriptor)))
 
-(defmiddleware wrap-inhibit-tests
-  {:expects #{#'eval/interruptible-eval
-              #'refactor-nrepl/wrap-refactor}
-   :handles
-   {"eval"
-    {:doc "Delegates to `interruptible-eval` middleware, by preventing Midje facts from being run"}
-    "warm-ast-cache"
-    {:doc "Delegates to `refactor-nrepl/wrap-refactor` by preventing Midje facts from being run"}}}
-  'midje-nrepl.middleware.inhibit-tests/handle-inhibit-tests)
-
 (defmiddleware wrap-format
   {:expects  #{}
    :requires #{}
@@ -66,6 +57,18 @@
               {:requires {"code" "The tabular sexpr to be formatted"}}}}
   'midje-nrepl.middleware.format/handle-format)
 
+(defmiddleware wrap-inhibit-tests
+  {:expects #{#'eval/interruptible-eval
+              #'cider/wrap-refresh
+              #'refactor-nrepl/wrap-refactor}
+   :handles
+   {"eval"
+    {:doc "Delegates to `interruptible-eval` middleware, by preventing Midje facts from being run"}
+    "warm-ast-cache"
+    {:doc "Delegates to `refactor-nrepl/wrap-refactor` by preventing Midje facts from being run"}
+    "refresh"     {}
+    "refresh-all" {}}}
+  'midje-nrepl.middleware.inhibit-tests/handle-inhibit-tests)
 (defmiddleware wrap-test
   {:expects  #{}
    :requires #{}

@@ -60,7 +60,7 @@
   (when (.exists hello-world-file)
     (io/delete-file hello-world-file)))
 
-(facts "about refactor operations"
+(facts "about loading namespaces without running tests"
 
        (fact "when Midje facts in the namespace `octocat.side-effects-test` are run, a file called hello-world.txt is created"
              (safe-delete-hello-world-file)
@@ -72,9 +72,23 @@
        (fact "the warm-ast-cache middleware continues working as expected"
              (safe-delete-hello-world-file)
              (send-message {:op "warm-ast-cache"})
-             => (match (list {:ast-statuses "(octocat.arithmetic-test \"OK\" octocat.side-effects-test \"OK\")"
-                              :status       ["done"]})))
+             => (match [{:ast-statuses "(octocat.arithmetic-test \"OK\" octocat.side-effects-test \"OK\")"
+                         :status       ["done"]}]))
 
-       (fact "Midje facts aren't run by the warm-ast-cache middleware, so the file hello-world.txt wasn't created again"
+       (fact "Midje facts weren't run by the warm-ast-cache middleware, so the file hello-world.txt wasn't created again"
+             (.exists hello-world-file)
+             => false)
+
+       (facts "the Cider's wrap-refresh middleware continue working as expected"
+              (send-message {:op "refresh"})
+              => (match (m/embeds [{:status ["ok"]}
+                                   {:status ["done"]}])))
+
+       (facts "the operation `refresh-all` continues working too"
+              (send-message {:op "refresh-all"})
+              => (match (m/embeds [{:status ["ok"]}
+                                   {:status ["done"]}])))
+
+       (fact "Midje facts weren't run by the Cider's wrap-refresh middleware, so the file hello-world.txt wasn't created"
              (.exists hello-world-file)
              => false))

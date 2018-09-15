@@ -49,7 +49,7 @@
                         (require 'octocat.arithmetic-test :reload)
                         (transport/send transport (response-for message :status :done)))))
 
-(facts "about loading namespaces without running facts"
+(facts "about loading namespaces without running tests"
 
        (tabular (fact "delegates to the base handler without running tests"
                       (inhibit-tests/handle-inhibit-tests {:op ?op :transport ..transport..} fake-load-ns-handler)
