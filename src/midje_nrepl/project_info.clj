@@ -8,25 +8,22 @@
 (defn- current-working-dir []
   (.getCanonicalFile (io/file ".")))
 
-(defn- read-test-paths []
-  (let [cwd          (current-working-dir)
-        project-file (io/file cwd leiningen-project-file)]
+(defn- read-leiningen-project []
+  (let [project-file (io/file (current-working-dir) leiningen-project-file)]
     (with-open [reader (PushbackReader. (FileReader. project-file))]
-      (->> (read reader)
-           (drop-while #(not (keyword? %)))
-           (apply hash-map)
-           :test-paths
-           (map #(hash-map % (io/file cwd %)))
-           (apply merge)))))
+      (read reader))))
 
-(defn find-test-dirs []
-  (keys (read-test-paths)))
+(defn- read-project-map []
+  (->> (read-leiningen-project)
+       rest
+       (apply hash-map)))
 
-(defn find-test-namespaces
-  ([]
-   (find-test-namespaces (find-test-dirs)))
-  ([test-dirs]
-   (let [test-paths (read-test-paths)]
-     (->> test-dirs
-          (map #(get test-paths %))
-          (mapcat namespace.find/find-namespaces-in-dir)))))
+(defn get-test-paths []
+  (->> (read-project-map)
+       :test-paths
+       sort))
+
+(defn get-test-namespaces [test-paths]
+  (->> test-paths
+       (map (partial io/file (current-working-dir)))
+       (mapcat namespace.find/find-namespaces-in-dir)))
