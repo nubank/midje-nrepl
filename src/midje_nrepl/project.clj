@@ -27,7 +27,7 @@
          (filter existing-dir?)
          sort)))
 
-(defn get-test-namespaces-in [& test-paths]
+(defn get-test-namespaces-in [test-paths]
   (->> test-paths
        (map (partial io/file (project-working-dir)))
        (mapcat namespace.find/find-namespaces-in-dir)

@@ -1,5 +1,6 @@
 (ns midje-nrepl.test-runner
-  (:require [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]])
+  (:require [midje-nrepl.project :as project]
+            [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]])
   (:import clojure.lang.Symbol))
 
 (def test-results (atom {}))
@@ -8,13 +9,12 @@
   {:pre [(symbol? ns) (or (zero? index) (pos-int? index))]}
   (get-in @test-results [ns index :error]))
 
-(defmacro ^:private caching-test-results [& forms]
+(defmacro caching-test-results [& forms]
   `(let [report# ~@forms]
      (reset! test-results (report# :results))
      report#))
 
-(defn test-forms
-  [^Symbol namespace & forms]
+(defn test-forms [^Symbol namespace & forms]
   (with-in-memory-reporter namespace
     (binding [*ns* (the-ns namespace)]
       (->> forms
@@ -22,14 +22,12 @@
            (cons 'do)
            eval))))
 
-(defn run-test
-  [^Symbol namespace ^String forms]
+(defn run-test [^Symbol namespace ^String forms]
   {:pre [(symbol? namespace) (string? forms)]}
   (caching-test-results
    (test-forms namespace (read-string forms))))
 
-(defn- run-tests-in-ns*
-  [^Symbol namespace]
+(defn- run-tests-in-ns* [^Symbol namespace]
   (with-in-memory-reporter namespace
     (require namespace :reload)))
 
@@ -41,7 +39,7 @@
   (caching-test-results
    (run-tests-in-ns* namespace)))
 
-(defn- merge-reports [reports]
+(defn- merge-test-reports [reports]
   (reduce (fn [a b]
             {:results (merge (:results a) (:results b))
              :summary (merge-with + (:summary a) (:summary b))})
@@ -62,4 +60,11 @@
         (map #(->> (second %) failed-test-forms (cons (first %))))
         (remove #(= 1 (count %)))
         (map (partial apply test-forms))
-        merge-reports)))
+        merge-test-reports)))
+
+(defn run-all-tests []
+  (let [test-paths (project/get-test-paths)]
+    (caching-test-results (->> test-paths
+                               project/get-test-namespaces-in
+                               (map run-tests-in-ns*)
+                               merge-test-reports))))

@@ -57,7 +57,7 @@
               (project/existing-dir? "src/test/clojure") => false))
 
        (fact "returns all namespaces declared within the provided test paths sorted alphabetically"
-             (project/get-test-namespaces-in "test/octocat")
+             (project/get-test-namespaces-in ["test/octocat"])
              => ['octocat.arithmetic-test
                  'octocat.colls-test
                  'octocat.mocks-test

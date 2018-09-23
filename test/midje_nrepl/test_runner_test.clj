@@ -1,5 +1,6 @@
 (ns midje-nrepl.test-runner-test
   (:require [matcher-combinators.midje :refer [match]]
+            [midje-nrepl.project :as project]
             [midje-nrepl.test-runner :as test-runner]
             [midje.emission.state :refer [with-isolated-output-counters]]
             [midje.sweet :refer :all]))
@@ -164,6 +165,11 @@
                            :type     :fail}]}
                         :summary {:error 0 :fact 1 :fail 3 :ns 1 :pass 0 :skip 0 :test 3}})
 
+(def all-tests-report {:results (merge (:results arithmetic-test-report)
+                                       (:results colls-test-report)
+                                       (:results mocks-test-report))
+                       :summary {:error 1 :fact 8 :fail 9 :ns 3 :pass 2 :skip 0 :test 12}})
+
 (defn isolate-test-forms!
   "Workaround to test the re-run feature without modifying Midje counters."
   [namespace]
@@ -219,6 +225,14 @@
              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
              @test-runner/test-results
              => (match (:results arithmetic-test-report))))
+
+(facts "about running all tests in the project"
+       (against-background
+        (project/get-test-paths) => ["test/octocat"])
+
+       (fact "runs all tests in the project"
+             (test-runner/run-all-tests)
+             => (match all-tests-report)))
 
 (facts "about re-running tests"
 
