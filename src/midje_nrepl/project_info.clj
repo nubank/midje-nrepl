@@ -1,4 +1,4 @@
-(ns midje-nrepl.project
+(ns midje-nrepl.project-info
   (:require [clojure.java.io :as io]
             [clojure.tools.namespace.find :as namespace.find])
   (:import (java.io FileReader PushbackReader)))

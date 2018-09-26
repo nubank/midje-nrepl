@@ -1,6 +1,6 @@
 (ns midje-nrepl.test-runner-test
   (:require [matcher-combinators.midje :refer [match]]
-            [midje-nrepl.project :as project]
+            [midje-nrepl.project-info :as project-info]
             [midje-nrepl.test-runner :as test-runner]
             [midje.emission.state :refer [with-isolated-output-counters]]
             [midje.sweet :refer :all]))
@@ -201,7 +201,7 @@
              => (match {:results {}
                         :summary {:ns 0 :test 0}}))
 
-       (fact "the results of the last execution are kept in the current session"
+       (fact "results of the last execution are kept in the current session"
              (test-runner/run-test 'midje-nrepl.test-runner-test "(with-isolated-output-counters (fact 1 => 1))")
              => (match individual-test-report)
              @test-runner/test-results
@@ -221,18 +221,31 @@
              => (match {:results {}
                         :summary {:ns 0 :test 0}}))
 
-       (fact "the results of the last execution are kept in the current session"
+       (fact "results of the last execution are kept in the current session"
              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
              @test-runner/test-results
              => (match (:results arithmetic-test-report))))
 
 (facts "about running all tests in the project"
        (against-background
-        (project/get-test-paths) => ["test/octocat"])
+        (project-info/get-test-paths) => ["test/octocat"])
 
        (fact "runs all tests in the project"
              (test-runner/run-all-tests)
-             => (match all-tests-report)))
+             => (match all-tests-report))
+
+       (fact "returns a report with no tests when there are no tests to be run"
+             (test-runner/run-all-tests)
+             => (match {:results {}
+                        :summary {:ns 0 :test 0}})
+             (provided
+              (project-info/get-test-namespaces-in ["test/octocat"]) => ['octocat.no-tests]))
+
+       (fact "results of the last execution are kept in the current session"
+             (test-runner/run-all-tests)
+             => (match all-tests-report)
+             @test-runner/test-results
+             => (match (:results all-tests-report))))
 
 (facts "about re-running tests"
 
@@ -248,7 +261,7 @@
              => (match {:results {}
                         :summary {:ns 0 :test 0}}))
 
-       (fact "the results of the last execution are kept in the current session as well"
+       (fact "results of the last execution are kept in the current session as well"
              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
              (isolate-test-forms! 'octocat.arithmetic-test)
              (test-runner/re-run-failed-tests) => (match re-run-arithmetic-test-report)

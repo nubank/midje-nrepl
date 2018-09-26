@@ -1,5 +1,5 @@
 (ns midje-nrepl.test-runner
-  (:require [midje-nrepl.project :as project]
+  (:require [midje-nrepl.project-info :as project-info]
             [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]])
   (:import clojure.lang.Symbol))
 
@@ -63,8 +63,8 @@
         merge-test-reports)))
 
 (defn run-all-tests []
-  (let [test-paths (project/get-test-paths)]
+  (let [test-paths (project-info/get-test-paths)]
     (caching-test-results (->> test-paths
-                               project/get-test-namespaces-in
+                               project-info/get-test-namespaces-in
                                (map run-tests-in-ns*)
                                merge-test-reports))))
