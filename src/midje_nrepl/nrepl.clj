@@ -83,7 +83,9 @@
 (defmiddleware wrap-test
   {:expects  #{}
    :requires #{}
-   :handles  {"midje-test-ns"
+   :handles  {"midje-test-all"
+              {:doc "Runs all Midje tests in the project"}
+              "midje-test-ns"
               {:doc      "Runs all Midje tests in the namespace."
                :requires {"ns" "A string indicating the namespace containing the tests to be run."}}
               "midje-test"
