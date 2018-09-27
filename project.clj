@@ -5,13 +5,14 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/tools.nrepl "0.2.13"]
-                 [cider/orchard "0.1.0-SNAPSHOT"]
+                 [cider/orchard "0.3.0"]
                  [rewrite-clj "0.6.0"]]
 
   :profiles {:dev {:dependencies [[midje "1.9.2-alpha3"]
-                                  [nubank/matcher-combinators "0.2.3"]]
+                                  [nubank/matcher-combinators "0.3.2"]]
                    :plugins [[lein-midje "3.2.1"]]}
-             :provided {:dependencies [[cider/cider-nrepl "0.17.0-SNAPSHOT"]
+             :provided {:dependencies [[cider/cider-nrepl "0.17.0"]
+                                       [refactor-nrepl "2.4.0"]
                                        [leiningen-core "2.8.1"]]}}
 
   :test-paths ["integration" "test"]

@@ -1,8 +1,25 @@
 (ns midje-nrepl.nrepl
-  (:require [clojure.set :as set]
+  (:require [cider.nrepl :as cider]
+            [clojure.set :as set]
             [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
+            [clojure.tools.nrepl.middleware.interruptible-eval :as eval]
             [clojure.tools.nrepl.misc :refer [response-for]]
-            [clojure.tools.nrepl.transport :as transport]))
+            [clojure.tools.nrepl.transport :as transport]
+            [midje-nrepl.helpers :refer [dep-in-classpath?]]))
+
+(defn- greatest-arity-of [handler-var]
+  {:post [(or (= % 1) (= % 2))]}
+  (->> handler-var
+       meta
+       :arglists
+       (map count)
+       (apply max)))
+
+(defn- try-to-call-handler [delayed-handler base-handler message]
+  (let [args (if (= 1 (greatest-arity-of @delayed-handler))
+               [message]
+               [message base-handler])]
+    (apply @@delayed-handler args)))
 
 (defn- explain-missing-parameters [message op-descriptor]
   (let [key-set         #(->> % keys (map keyword) set)
@@ -11,24 +28,24 @@
     (->> (set/difference required-params actual-params)
          (map (comp keyword #(str "no-" %) name)))))
 
-(defn- call-handler [delayed-handler {:keys [transport] :as message} op-descriptor]
+(defn- call-handler [delayed-handler base-handler {:keys [transport] :as message} op-descriptor]
   (let [missing-params (explain-missing-parameters message op-descriptor)]
     (if (seq missing-params)
       (transport/send transport (response-for message :status (set/union #{:done :error} missing-params)))
-      (apply @delayed-handler [message]))))
+      (try-to-call-handler delayed-handler base-handler message))))
 
-(defn make-middleware [descriptor delayed-handler higher-handler]
+(defn make-middleware [descriptor delayed-handler base-handler]
   (fn [{:keys [op] :as message}]
     (if-let [op-descriptor (get-in descriptor [:handles (name op)])]
-      (call-handler delayed-handler message op-descriptor)
-      (higher-handler message))))
+      (call-handler delayed-handler base-handler message op-descriptor)
+      (base-handler message))))
 
-(defn delayed-handler-function [handler-symbol]
+(defn delayed-handler-var [handler-symbol]
   (delay   (require (symbol (namespace handler-symbol)))
-           (deref (resolve handler-symbol))))
+           (resolve handler-symbol)))
 
 (defmacro defmiddleware [name descriptor handler-symbol]
-  `(let [delayed-handler# (delayed-handler-function ~handler-symbol)]
+  `(let [delayed-handler# (delayed-handler-var ~handler-symbol)]
      (defn ~name [handler#]
        (make-middleware ~descriptor delayed-handler# handler#))
      (set-descriptor! (var ~name) ~descriptor)))
@@ -40,6 +57,29 @@
               {:requires {"code" "The tabular sexpr to be formatted"}}}}
   'midje-nrepl.middleware.format/handle-format)
 
+(defn middleware-vars-expected-by-wrap-inhibit-tests []
+  (let [middleware-vars #{#'eval/interruptible-eval
+                          #'cider/wrap-refresh}]
+    (if (dep-in-classpath? "refactor-nrepl")
+      (set/union middleware-vars #{(resolve 'refactor-nrepl.middleware/wrap-refactor)})
+      middleware-vars)))
+
+(defmiddleware wrap-inhibit-tests
+  {:expects (middleware-vars-expected-by-wrap-inhibit-tests)
+   :handles
+   {"eval"
+    {:doc      "Delegates to `interruptible-eval` middleware, by preventing Midje facts from being run"
+     :optional {"load-tests?" "If set to \"true\" any Midje fact loaded in the current operation will be run automatically (defaults to \"false\")."}}
+    "warm-ast-cache"
+    {:doc      "Delegates to `refactor-nrepl.middleware/wrap-refactor` middleware, by preventing Midje facts from being run"
+     :optional {"load-tests?" "If set to \"true\" any Midje fact loaded in the current operation will be run automatically (defaults to \"false\")."}}
+    "refresh"
+    {:doc      "Delegates to `cider.nrepl/wrap-refresh` by preventing Midje facts from being run"
+     :optional {"load-tests?" "If set to \"true\" any Midje fact loaded in the current operation will be run automatically (defaults to \"false\")."}}
+    "refresh-all"
+    {:doc      "Delegates to `cider.nrepl/wrap-refresh` by preventing Midje facts from being run"
+     :optional {"load-tests?" "If set to \"true\" any Midje fact loaded in the current operation will be run automatically (defaults to \"false\")."}}}}
+  'midje-nrepl.middleware.inhibit-tests/handle-inhibit-tests)
 (defmiddleware wrap-test
   {:expects  #{}
    :requires #{}
@@ -67,5 +107,6 @@
   'midje-nrepl.middleware.version/handle-version)
 
 (def middleware `[wrap-format
+                  wrap-inhibit-tests
                   wrap-test
                   wrap-version])
