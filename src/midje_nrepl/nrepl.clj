@@ -5,7 +5,7 @@
             [clojure.tools.nrepl.middleware.interruptible-eval :as eval]
             [clojure.tools.nrepl.misc :refer [response-for]]
             [clojure.tools.nrepl.transport :as transport]
-            [midje-nrepl.helpers :refer [dep-in-classpath?]]))
+            [midje-nrepl.project-info :as project-info]))
 
 (defn- greatest-arity-of [handler-var]
   {:post [(or (= % 1) (= % 2))]}
@@ -60,7 +60,7 @@
 (defn middleware-vars-expected-by-wrap-inhibit-tests []
   (let [middleware-vars #{#'eval/interruptible-eval
                           #'cider/wrap-refresh}]
-    (if (dep-in-classpath? "refactor-nrepl")
+    (if (project-info/dependency-in-classpath? "refactor-nrepl")
       (set/union middleware-vars #{(resolve 'refactor-nrepl.middleware/wrap-refactor)})
       middleware-vars)))
 

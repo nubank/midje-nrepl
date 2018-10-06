@@ -1,9 +1,19 @@
 (ns midje-nrepl.project-info
   (:require [clojure.java.io :as io]
-            [clojure.tools.namespace.find :as namespace.find])
-  (:import (java.io FileReader PushbackReader)))
+            [clojure.tools.namespace.find :as namespace.find]
+            [orchard.classpath :as classpath])
+  (:import [java.io FileReader PushbackReader]))
 
 (def ^:private leiningen-project-file "project.clj")
+
+(defn dependency-in-classpath?
+  "Returns true if a given dependency is in the project's classpath, or false otherwise."
+  [^String dep-name]
+  (let [pattern (re-pattern (str "/" dep-name ".*\\.jar$"))]
+    (->> (classpath/classpath)
+         (map #(.getPath %))
+         (some (partial re-find pattern))
+         boolean)))
 
 (defn- project-working-dir []
   (.getCanonicalFile (io/file ".")))

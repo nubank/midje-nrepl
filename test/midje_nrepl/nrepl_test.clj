@@ -4,11 +4,11 @@
             [clojure.tools.nrepl.middleware.interruptible-eval :as eval]
             [clojure.tools.nrepl.transport :as transport]
             [matcher-combinators.midje :refer [match]]
-            [midje-nrepl.helpers :refer [dep-in-classpath?]]
             [midje-nrepl.middleware.fake :as fake]
             [midje-nrepl.nrepl
              :refer
              [defmiddleware middleware-vars-expected-by-wrap-inhibit-tests]]
+            [midje-nrepl.project-info :as project-info]
             [midje.sweet :refer :all]
             [refactor-nrepl.middleware :as refactor-nrepl]))
 
@@ -63,10 +63,10 @@ it replies to the message"
                           (apply [(merge {:op "personal-greeting" :transport ..transport..} ?message)])) => irrelevant
                       (provided
                        (transport/send ..transport.. {:status ?status}) => irrelevant))
-                ?message              ?status
-                {:first-name "John"}  #{:done :error :no-last-name}
-                {:last-name "Doe"}    #{:done :error :no-first-name}
-                {}                    #{:done :error :no-first-name :no-last-name})
+                ?message                                      ?status
+                {:first-name "John"}                #{:done :error :no-last-name}
+                {:last-name "Doe"}               #{:done :error :no-first-name}
+                {} #{:done :error :no-first-name :no-last-name})
 
        (fact "calls the middleware normally when all required parameters are provided"
              (-> (wrap-greeting fake-handler)
@@ -83,4 +83,4 @@ it replies to the message"
              (middleware-vars-expected-by-wrap-inhibit-tests)
              => #{#'eval/interruptible-eval #'cider/wrap-refresh}
              (provided
-              (dep-in-classpath? "refactor-nrepl") => false)))
+              (project-info/dependency-in-classpath? "refactor-nrepl") => false)))

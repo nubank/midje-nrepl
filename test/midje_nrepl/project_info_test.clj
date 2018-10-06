@@ -13,6 +13,16 @@
 
 (facts "about getting information of the current project"
 
+       (tabular (fact "returns true if the dependency is in the current project's classpath or false otherwise"
+                      (project-info/dependency-in-classpath? ?dependency) => ?result)
+                ?dependency ?result
+                "clojure"    true
+                "cider-nrepl"    true
+                "refactor-nrepl"    true
+                "midje"    true
+                "amazonica"   false
+                "bouncycastle"   false)
+
        (fact "reads the project.clj file of the current project and returns its contents as a list"
              (project-info/read-leiningen-project)
              => (match (m/prefix (list 'defproject 'midje-nrepl string?))))
