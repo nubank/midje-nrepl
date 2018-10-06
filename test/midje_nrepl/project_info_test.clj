@@ -19,7 +19,8 @@
 
        (fact "reads the project.clj file of the current project and returns it as a map"
              (project-info/read-project-map)
-             => (match {:project-name+version ['octocat "1.0.0"]
+             => (match {:name 'octocat
+                        :version "1.0.0"
                         :dependencies         [['org.clojure/clojure "1.9.0"]]
                         :test-paths           ["test" "src/test/clojure"]})
              (provided

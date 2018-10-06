@@ -15,7 +15,8 @@
 
 (defn read-project-map []
   (let [[_ project-name version & others] (read-leiningen-project)]
-    (into {:project-name+version [project-name version]}
+    (into {:name    project-name
+           :version version}
           (apply hash-map others))))
 
 (defn existing-dir? [candidate]
