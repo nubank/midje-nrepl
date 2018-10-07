@@ -1,29 +1,21 @@
 (ns midje-nrepl.reporter
-  (:require [clojure.java.io :as io]
-            [clojure.pprint :as pprint]
+  (:require [clojure.pprint :as pprint]
             [midje.config :as midje.config]
             [midje.data.fact :as fact]
             [midje.emission.plugins.default-failure-lines :as failure-lines]
             [midje.emission.plugins.silence :as silence]
             [midje.emission.state :as midje.state]
-            [midje.util.exceptions :as midje.exceptions]
-            [orchard.namespace :as namespace])
-  (:import clojure.lang.Symbol))
+            [midje.util.exceptions :as midje.exceptions]))
 
 (def report (atom nil))
 
 (def no-tests {:results {}
                :summary {:error 0 :fact 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})
 
-(defn- file-for [namespace]
-  (some-> (name namespace)
-          namespace/ns-path
-          io/file))
-
-(defn reset-report! [namespace]
+(defn reset-report! [{:keys [ns file]}]
   (reset! report
-          (assoc no-tests                :testing-ns namespace
-                 :file (file-for namespace))))
+          (assoc no-tests                :testing-ns ns
+                 :file file)))
 
 (defn summarize-test-results! []
   (let [namespace  (@report :testing-ns)
@@ -136,10 +128,12 @@
           :future-fact                      future-fact}))
 
 (defmacro with-in-memory-reporter
-  [^Symbol namespace & forms]
-  `(binding [midje.config/*config*          (merge midje.config/*config* {:print-level :print-facts})
+  [{:keys [ns file] :as context} & forms]
+  `(binding [*ns*                           (the-ns ~ns)
+             *file*                         (str ~file)
+             midje.config/*config*          (merge midje.config/*config* {:print-level :print-facts})
              midje.state/emission-functions emission-map]
-     (reset-report! ~namespace)
+     (reset-report! ~context)
      ~@forms
      (summarize-test-results!)
      (drop-irrelevant-keys!)
