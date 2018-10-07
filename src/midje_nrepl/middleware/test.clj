@@ -8,6 +8,10 @@
 (defn- send-report [{:keys [transport] :as message} report]
   (transport/send transport (response-for message (misc/transform-value report))))
 
+(defn- test-all-reply [message]
+  (let [report (test-runner/run-all-tests)]
+    (send-report message report)))
+
 (defn- test-ns-reply [{:keys [ns] :as message}]
   (let [namespace (symbol ns)
         report    (test-runner/run-tests-in-ns namespace)]
@@ -32,6 +36,7 @@
 
 (defn handle-test [{:keys [op transport] :as message}]
   (case op
+    "midje-test-all"        (test-all-reply message)
     "midje-test-ns"         (test-ns-reply message)
     "midje-test"            (test-reply message)
     "midje-retest"          (retest-reply message)

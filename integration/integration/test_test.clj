@@ -77,6 +77,13 @@ the middleware returns an error"
              (first (send-message {:op "midje-test"}))
              => (match {:status (m/in-any-order ["done" "error" "no-ns" "no-test-forms"])}))
 
+       (fact "runs all tests in the project"
+             (send-message {:op "midje-test-all"})
+             => (match (list {:results {:octocat.arithmetic-test   (complement empty?)
+                                        :octocat.side-effects-test (complement empty?)}
+                              :summary {:error 1 :fact 5 :fail 2 :ns 2 :pass 3 :skip 0 :test 6}}
+                             {:status ["done"]})))
+
        (fact "gets the stacktrace of the given erring test"
              (let [namespace          "octocat.arithmetic-test"
                    {:keys [ns index]} (->> (send-message {:op "midje-test-ns" :ns namespace})

@@ -7,30 +7,38 @@
             [midje.sweet :refer :all]
             [orchard.misc :as misc]))
 
-(def report {:results
-             {'octocat.arithmetic-test
-              [{:context  ["about arithmetic operations" "this is a crazy arithmetic"]
-                :ns       'octocat.arithmetic-test
-                :file     (io/file "/home/john-doe/dev/projects/octocat/test/octocat/arithmetic_test.clj")
-                :index    0
-                :expected 6
-                :actual   5
-                :message  '()
-                :type     :fail}]}
-             :summary {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}})
+(def test-report {:results
+                  {'octocat.arithmetic-test
+                   [{:context  ["about arithmetic operations" "this is a crazy arithmetic"]
+                     :ns       'octocat.arithmetic-test
+                     :file     (io/file "/home/john-doe/dev/projects/octocat/test/octocat/arithmetic_test.clj")
+                     :index    0
+                     :expected 6
+                     :actual   5
+                     :message  '()
+                     :type     :fail}]}
+                  :summary {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}})
 
-(def transformed-report (misc/transform-value report))
+(def transformed-report (misc/transform-value test-report))
 
 (def exception (RuntimeException. "An unexpected error was thrown" (ArithmeticException. "Divid by zero")))
 
 (facts "about handling test operations"
+
+       (fact "run all tests in the project and sends the report to the client"
+             (test/handle-test {:op        "midje-test-all"
+                                :transport ..transport..}) => irrelevant
+             (provided
+              (test-runner/run-all-tests) => test-report
+              (transport/send ..transport.. transformed-report) => irrelevant
+              (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
        (fact "runs all tests in the given namespace and sends the report to the client"
              (test/handle-test {:op        "midje-test-ns"
                                 :ns        "octocat.arithmetic-test"
                                 :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => report
+              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => test-report
               (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
@@ -40,7 +48,7 @@
                                 :test-forms "(fact (+ 2 3) => 6)"
                                 :transport  ..transport..}) => irrelevant
              (provided
-              (test-runner/run-test 'octocat.arithmetic-test "(fact (+ 2 3) => 6)") => report
+              (test-runner/run-test 'octocat.arithmetic-test "(fact (+ 2 3) => 6)") => test-report
               (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
@@ -48,7 +56,7 @@
              (test/handle-test {:op        "midje-retest"
                                 :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/re-run-failed-tests) => report
+              (test-runner/re-run-failed-tests) => test-report
               (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
