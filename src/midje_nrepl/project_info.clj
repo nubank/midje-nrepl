@@ -1,7 +1,8 @@
 (ns midje-nrepl.project-info
   (:require [clojure.java.io :as io]
             [clojure.tools.namespace.find :as namespace.find]
-            [orchard.classpath :as classpath])
+            [orchard.classpath :as classpath]
+            [orchard.namespace :as namespace])
   (:import [java.io FileReader PushbackReader]))
 
 (def ^:private leiningen-project-file "project.clj")
@@ -14,6 +15,11 @@
          (map #(.getPath %))
          (some (partial re-find pattern))
          boolean)))
+
+(defn file-for [namespace]
+  (some-> (name namespace)
+          namespace/ns-path
+          io/file))
 
 (defn- project-working-dir []
   (.getCanonicalFile (io/file ".")))
