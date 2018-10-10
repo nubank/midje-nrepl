@@ -48,12 +48,12 @@
 
 (defn starting-to-check-fact [fact]
   (let [{:keys [testing-ns file]} @report]
-    (swap! report assoc :current-test {:id         (fact/guid fact)
-                                       :context    (description-for fact)
-                                       :ns         testing-ns
-                                       :file       file
-                                       :line       (fact/line fact)
-                                       :test-forms (pr-str (fact/source fact))})))
+    (swap! report assoc :current-test {:id      (fact/guid fact)
+                                       :context (description-for fact)
+                                       :ns      testing-ns
+                                       :file    file
+                                       :line    (fact/line fact)
+                                       :source  (pr-str (fact/source fact))})))
 
 (defn prettify-expected-and-actual-values [{:keys [expected actual] :as result-map}]
   (let [pretty-str #(with-out-str (pprint/pprint %))]
