@@ -1,11 +1,14 @@
 (ns midje-nrepl.test-runner
-  (:require [midje-nrepl.project-info :as project-info]
+  (:require [clojure.java.io :as io]
+            [clojure.main :as clojure.main]
+            [midje-nrepl.project-info :as project-info]
             [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]])
-  (:import clojure.lang.Symbol))
+  (:import [clojure.lang LineNumberingPushbackReader Symbol]
+           java.io.StringReader))
 
 (def test-results (atom {}))
 
-(defn get-exception-at [^Symbol ns ^Integer index]
+(defn get-exception-at [ns index]
   {:pre [(symbol? ns) (or (zero? index) (pos-int? index))]}
   (get-in @test-results [ns index :error]))
 
@@ -14,30 +17,37 @@
      (reset! test-results (report# :results))
      report#))
 
-(defn test-forms [^Symbol namespace & forms]
-  (with-in-memory-reporter namespace
-    (binding [*ns* (the-ns namespace)]
-      (->> forms
-           (apply list)
-           (cons 'do)
-           eval))))
+(defn- source-pushback-reader [source line]
+  (let [reader (LineNumberingPushbackReader. (StringReader. source))]
+    (.setLineNumber reader line)
+    reader))
 
-(defn run-test [^Symbol namespace ^String forms]
-  {:pre [(symbol? namespace) (string? forms)]}
+(defn- make-pushback-reader [file source line]
+  (if source
+    (source-pushback-reader source line)
+    (LineNumberingPushbackReader. (io/reader file))))
+
+(defn- evaluate-facts [{:keys [ns source line] :or {line 1}}]
+  {:pre [(symbol? ns) (or (nil? source) (string? source)) (pos-int? line)]}
+  (let [file   (project-info/file-for ns)
+        reader (make-pushback-reader file source line)]
+    (with-in-memory-reporter {:ns ns :file file}
+      (clojure.main/repl
+       :read                         #(read reader false %2)
+       :need-prompt (constantly false)
+       :prompt (fn [])
+       :print (fn [_])))))
+
+(defn run-test [namespace line source]
   (caching-test-results
-   (test-forms namespace (read-string forms))))
-
-(defn- run-tests-in-ns* [^Symbol namespace]
-  (with-in-memory-reporter namespace
-    (require namespace :reload)))
+   (evaluate-facts {:ns namespace :source source :line line})))
 
 (defn run-tests-in-ns
   "Runs Midje tests in the given namespace.
    Returns the test report."
-  [^Symbol namespace]
-  {:pre [(symbol? namespace)]}
+  [namespace]
   (caching-test-results
-   (run-tests-in-ns* namespace)))
+   (evaluate-facts {:ns namespace})))
 
 (defn- merge-test-reports [reports]
   (reduce (fn [a b]
@@ -45,26 +55,23 @@
              :summary (merge-with + (:summary a) (:summary b))})
           reporter/no-tests reports))
 
-(defn- failed-test-forms [results]
+(defn- non-passing-tests [results]
   (->> results
-       (filter #(#{:error :fail} (:type %)))
-       distinct
-       (map (comp read-string :test-forms))))
+       (filter #(#{:error :fail} (:type %)))))
 
 (defn re-run-failed-tests
   "Re-runs tests that have failed in the last execution.
   Returns the test report."
   []
-  (caching-test-results
-   (->> @test-results
-        (map #(->> (second %) failed-test-forms (cons (first %))))
-        (remove #(= 1 (count %)))
-        (map (partial apply test-forms))
-        merge-test-reports)))
+  (->> @test-results
+       non-passing-tests
+       (map evaluate-facts)
+       #_        merge-test-reports))
 
 (defn run-all-tests []
   (let [test-paths (project-info/get-test-paths)]
     (caching-test-results (->> test-paths
                                project-info/get-test-namespaces-in
-                               (map run-tests-in-ns*)
+                               (map #(evaluate-facts {:ns %}))
                                merge-test-reports))))
+(re-run-failed-tests)
