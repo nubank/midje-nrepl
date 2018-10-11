@@ -90,8 +90,10 @@
                :requires {"ns" "A string indicating the namespace containing the tests to be run."}}
               "midje-test"
               {:doc      "Runs a given Midje test (either an individual fact or facts)."
-               :requires {"ns"         "The namespace in which the fact(s) sent through `test-forms` should be evaluated."
-                          "test-forms" "The fact(s) to be run."}}
+               :requires {"ns"     "The namespace in which the fact(s) sent through `test-forms` should be evaluated."
+                          "source" "The fact(s) to be run."}
+               :optional
+               {"line" "The line number where the facts to be tested starts."}}
               "midje-retest"
               {:doc "Re-runs the tests that didn't pass in the last execution."}
               "midje-test-stacktrace"

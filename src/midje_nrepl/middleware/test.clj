@@ -17,9 +17,9 @@
         report    (test-runner/run-tests-in-ns namespace)]
     (send-report message report)))
 
-(defn- test-reply [{:keys [ns test-forms] :as message}]
+(defn- test-reply [{:keys [ns line source] :as message}]
   (let [namespace (symbol ns)
-        report    (test-runner/run-test namespace test-forms)]
+        report    (test-runner/run-test namespace line source)]
     (send-report message report)))
 
 (defn- retest-reply [message]
