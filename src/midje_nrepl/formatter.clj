@@ -1,19 +1,25 @@
 (ns midje-nrepl.formatter
-  (:require [rewrite-clj.custom-zipper.utils
+  (:require [clojure.string :as string]
+            [rewrite-clj.custom-zipper.utils
              :refer
              [remove-left-while remove-right-while]]
             [rewrite-clj.zip :as zip]
-            [rewrite-clj.zip.whitespace :as whitespace]))
+            [rewrite-clj.zip.whitespace :as whitespace]
+            [clojure.string :as string]
+            [orchard.misc :as misc]))
 
 (defn- throw-exception [type message & others]
   (throw (ex-info (name type) (merge {:type    type
                                       :error-message message} (apply hash-map others)))))
 
-(defn- identify-leftmost-and-rightmost-cells [table]
+(defn- identify-leftmost-and-rightmost-cells [{:keys [deliniated-header?]} table]
   (let [leftmost-column  (first table)
         rightmost-column (last table)
         other-columns    (butlast (rest table))]
-    (-> (map #(assoc % :leftmost-cell? true) leftmost-column)
+    (-> (map (fn [leftmost-cell]
+               (-> leftmost-cell
+                   (assoc  :leftmost-cell? true)
+                   (update :padding-left (if deliniated-header? inc identity)))) leftmost-column)
         (cons other-columns)
         (concat (list (map #(assoc % :rightmost-cell? true) rightmost-column))))))
 
@@ -34,7 +40,7 @@
 (defn- column-width [cells]
   (->> cells (apply max-key count) count))
 
-(defn- paddings-for-column [{:keys [alignment]} & cells]
+(defn- paddings-for-column [{:keys [alignment deliniated-header?]} & cells]
   (let [width (column-width cells)]
     (map #(paddings % alignment width) cells)))
 
@@ -44,21 +50,22 @@
     (throw-exception ::malformed-table "Table isn't well formed: not all rows have the same number of cells")))
 
 (defn- table-header? [value]
-  (boolean (re-find #"^\?" value)))
+  (boolean (re-find #"^\?|^\[\?" value)))
 
-(defn- number-of-columns [cells]
-  (let [number-of-headers (count (take-while table-header? cells))]
+(defn- number-of-columns-fn [cells]
+  (let [expanded-cells (expand-headers-on-cells cells)
+        number-of-headers (count (take-while table-header? expanded-cells))]
     (if-not (zero? number-of-headers)
       number-of-headers
-      (throw-exception ::no-table-headers "Table has no headers"))))
+      (throw-exception ::no-table-headers "Table has no headers. Check if headers start with `?``"))))
 
 (defn paddings-for-cells [cells options]
-  (let [number-of-columns (number-of-columns cells)]
+  (let [number-of-columns (number-of-columns-fn cells)]
     (->> cells
          (table-must-be-well-formed number-of-columns)
          (partition number-of-columns)
          (apply map (partial paddings-for-column options))
-         identify-leftmost-and-rightmost-cells
+         (identify-leftmost-and-rightmost-cells options)
          (apply interleave))))
 
 (def ^:private whitespace-but-not-linebreak? #(and (not (zip/linebreak? %))
@@ -91,17 +98,39 @@
       sexpr-must-be-tabular
       (zip/find (comp table-header? zip/string))))
 
+(defn- format-tabular-loop
+  [zloc* paddings* options]
+  (loop [zloc     zloc*
+         paddings paddings*]
+    (if-not (zip/right zloc)
+      (zip/root-string (align zloc (first paddings) options))
+      (recur (zip/right (align zloc (first paddings) options)) (rest paddings)))))
+
+(defn- expand-header
+  [zloc]
+  (-> zloc zip/up zip/string (string/replace (zip/string zloc) (-> zloc zip/string (string/replace #"\[|\]" ""))) move-to-first-header))
+
+(defn- deliniate-header
+  [formatted-tabular]
+  (-> formatted-tabular
+      (string/replace #"(\n\s*)(\?[a-zA-Z]+)" "$1[$2")
+      (string/replace #"\s\[\?" "[?")
+      (string/replace #"(\?[a-zA-Z]+)\n" "$1]\n")))
+
 (defn format-tabular
   ([sexpr]
    (format-tabular sexpr {}))
   ([sexpr options]
    {:pre [sexpr]}
-   (let [options (merge {:alignment      :right
+   (let [zloc* (move-to-first-header sexpr)
+         deliniated-header? (boolean (->> zloc* zip/string (re-find #"^\[\?")))
+         zloc (if deliniated-header? (expand-header zloc*) zloc*)
+         options (merge {:alignment      :right
                          :border-spacing 1
-                         :indent-size    2} options)
-         zloc    (move-to-first-header sexpr)]
-     (loop [zloc     zloc
-            paddings (paddings-for-tabular-sexpr zloc options)]
-       (if-not (zip/right zloc)
-         (zip/root-string (align zloc (first paddings) options))
-         (recur (zip/right (align zloc (first paddings) options)) (rest paddings)))))))
+                         :indent-size    2
+                         :deliniated-header? deliniated-header?} options)
+
+         formatted-tabular (format-tabular-loop zloc (paddings-for-tabular-sexpr zloc options) options)]
+     (if deliniated-header?
+       (deliniate-header formatted-tabular)
+       formatted-tabular))))
