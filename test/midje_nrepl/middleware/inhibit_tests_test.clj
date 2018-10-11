@@ -5,7 +5,8 @@
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.middleware.inhibit-tests :as inhibit-tests]
             [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]]
-            [midje.sweet :refer :all]))
+            [midje.sweet :refer :all]
+            [clojure.java.io :as io]))
 
 (def eval-message {:op      "eval"
                    :code    "(+ 1 2)"
@@ -45,7 +46,8 @@
 
 (defn fake-load-ns-handler [{:keys [transport] :as message}]
   (assoc message
-         :test-report (with-in-memory-reporter 'octocat.arithmetic-test
+         :test-report (with-in-memory-reporter {:ns 'octocat.arithmetic-test
+                                                :file (io/file "/home/johndoe/dev/octocat/test/octocat/arithmetic_test.clj")}
                         (require 'octocat.arithmetic-test :reload)
                         (transport/send transport (response-for message :status :done)))))
 
