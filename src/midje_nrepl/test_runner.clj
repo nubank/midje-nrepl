@@ -2,7 +2,8 @@
   (:require [clojure.java.io :as io]
             [clojure.main :as clojure.main]
             [midje-nrepl.project-info :as project-info]
-            [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]])
+            [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]]
+            [clojure.string :as string])
   (:import [clojure.lang LineNumberingPushbackReader Symbol]
            java.io.StringReader))
 
@@ -38,9 +39,12 @@
        :prompt (fn [])
        :print (fn [_])))))
 
-(defn run-test [namespace line source]
-  (caching-test-results
-   (evaluate-facts {:ns namespace :source source :line line})))
+(defn run-test
+  ([namespace source]
+   (run-test namespace 1 source))
+  ([namespace line source]
+   (caching-test-results
+    (evaluate-facts {:ns namespace :source source :line line}))))
 
 (defn run-tests-in-ns
   "Runs Midje tests in the given namespace.
@@ -55,23 +59,28 @@
              :summary (merge-with + (:summary a) (:summary b))})
           reporter/no-tests reports))
 
-(defn- non-passing-tests [results]
-  (->> results
-       (filter #(#{:error :fail} (:type %)))))
+(defn run-all-tests []
+  (let [test-paths (project-info/get-test-paths)]
+    (caching-test-results
+     (->> test-paths
+          project-info/get-test-namespaces-in
+          (map #(evaluate-facts {:ns %}))
+          merge-test-reports))))
+
+(defn- non-passing-tests [[namespace results]]
+  (let [non-passing-items (filter #(#{:error :fail} (:type %)) results)]
+    (when (seq non-passing-items)
+      (->> (map :source non-passing-items)
+           (string/join (System/lineSeparator))
+           (format "(do %s)")
+           (list namespace)))))
 
 (defn re-run-failed-tests
   "Re-runs tests that have failed in the last execution.
   Returns the test report."
   []
-  (->> @test-results
-       non-passing-tests
-       (map evaluate-facts)
-       #_        merge-test-reports))
-
-(defn run-all-tests []
-  (let [test-paths (project-info/get-test-paths)]
-    (caching-test-results (->> test-paths
-                               project-info/get-test-namespaces-in
-                               (map #(evaluate-facts {:ns %}))
-                               merge-test-reports))))
-(re-run-failed-tests)
+  (caching-test-results
+   (->> @test-results
+        (keep non-passing-tests)
+        (map #(evaluate-facts {:ns (first %) :source (second %)}))
+        merge-test-reports)))
