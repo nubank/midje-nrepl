@@ -78,17 +78,17 @@
                                      :position ["arithmetic_test.clj" 15]
                                      :type     :some-prerequisites-were-called-the-wrong-number-of-times})
 
-(def arithmetic-test (io/file "/home/john-doe/dev/octocat/test/octocat/arithmetic_test.clj"))
+(def arithmetic-test-file (io/file "/home/john-doe/dev/octocat/test/octocat/arithmetic_test.clj"))
 
-(def expected-file? #(= % arithmetic-test))
+(def expected-file? #(= % arithmetic-test-file))
 
 (facts "about the midje-nrepl's reporter"
        (against-background
         (before :contents (silently (require 'octocat.arithmetic-test))))
 
        (fact "resets the report atom"
-             (reporter/reset-report! {:ns   'octocat.arithmetic-test
-                                      :file arithmetic-test})
+             (reporter/reset-report! {:ns   (the-ns 'octocat.arithmetic-test)
+                                      :file arithmetic-test-file})
              @reporter/report => (match (m/equals {:testing-ns 'octocat.arithmetic-test
                                                    :file       expected-file?
                                                    :results    {}
@@ -251,7 +251,7 @@ it is interpreted as an error in the test report"
                 failure-with-prerequisit-error  {:message '("These calls were not made the right number of times:" "    (an-impure-function {:first-name \"John\", :last-name \"Doe\"}) [expected at least once, actually never called]")})
 
        (fact "the macro below evaluates the forms with the reporter in context"
-             (reporter/with-in-memory-reporter {:ns 'midje-nrepl.reporter-test :file arithmetic-test}
+             (reporter/with-in-memory-reporter {:ns *ns* :file (io/file *file*)}
                (fact "I'm pretty sure about that"
                      1 => 1))
 
@@ -259,6 +259,6 @@ it is interpreted as an error in the test report"
                                          {'midje-nrepl.reporter-test [{:context ["I'm pretty sure about that"]
                                                                        :index   0
                                                                        :ns      'midje-nrepl.reporter-test
-                                                                       :file    expected-file?
+                                                                       :file    #(= (str %) *file*)
                                                                        :line    number?}]}
                                          :summary {:error 0 :fail 0 :ns 1 :pass 1 :test 1 :skip 0}})))

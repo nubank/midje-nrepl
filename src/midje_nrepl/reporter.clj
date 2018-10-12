@@ -13,8 +13,9 @@
                :summary {:error 0 :fact 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})
 
 (defn reset-report! [{:keys [ns file]}]
+  {:pre [(instance? clojure.lang.Namespace ns) (instance? java.io.File file)]}
   (reset! report
-          (assoc no-tests                :testing-ns ns
+          (assoc no-tests                :testing-ns (symbol (str ns))
                  :file file)))
 
 (defn summarize-test-results! []
@@ -129,7 +130,7 @@
 
 (defmacro with-in-memory-reporter
   [{:keys [ns file] :as context} & forms]
-  `(binding [*ns*                           (the-ns ~ns)
+  `(binding [*ns*                           ~ns
              *file*                         (str ~file)
              midje.config/*config*          (merge midje.config/*config* {:print-level :print-facts})
              midje.state/emission-functions emission-map]
