@@ -9,8 +9,8 @@
          (.exists candidate)))
 
 (def individual-test-report {:results
-                             {'midje-nrepl.test-runner-test
-                              [{:ns      'midje-nrepl.test-runner-test
+                             {'octocat.arithmetic-test
+                              [{:ns      'octocat.arithmetic-test
                                 :file    existing-file?
                                 :context ["(fact 1 => 1)"]
                                 :index   0
@@ -160,39 +160,14 @@
                               (partial format "(with-isolated-output-counters %s)")))
                 vec))))
 
-(facts "about running individual tests"
-
-       (fact "runs the test source passed as a string"
-             (test-runner/run-test 'midje-nrepl.test-runner-test "(with-isolated-output-counters (fact 1 => 1))")
-             => (match individual-test-report))
-
-       (fact "line numbers are resolved correctly for individual facts, taking the supplied starting line in consideration"
-             (test-runner/run-test 'midje-nrepl.test-runner-test 10 "(with-isolated-output-counters
-(fact \"this is wrong\"
-1 => 2))")
-             => (match {:results {'midje-nrepl.test-runner-test
-                                  [{:type :fail
-                                    :line 12}]}}))
-
-       (fact "returns a report with no tests when there are no tests to be run"
-             (test-runner/run-test 'midje-nrepl.test-runner-test "(fact)")
-             => (match {:results {}
-                        :summary {:ns 0 :test 0}}))
-
-       (fact "results of the last execution are kept in the current session"
-             (test-runner/run-test 'midje-nrepl.test-runner-test "(with-isolated-output-counters (fact 1 => 1))")
-             => (match individual-test-report)
-             @test-runner/test-results
-             => (match (:results individual-test-report))))
-
 (facts "about running tests in a given namespace"
 
        (tabular (fact "runs all tests in the given namespace"
                       (test-runner/run-tests-in-ns ?namespace) => (match ?report))
-                ?namespace ?report
+                ?namespace                ?report
                 'octocat.arithmetic-test arithmetic-test-report
-                'octocat.colls-test colls-test-report
-                'octocat.mocks-test mocks-test-report)
+                'octocat.colls-test      colls-test-report
+                'octocat.mocks-test      mocks-test-report)
 
        (fact "returns a report with no tests when there are no tests to be run"
              (test-runner/run-tests-in-ns 'octocat.no-tests)
@@ -203,6 +178,31 @@
              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
              @test-runner/test-results
              => (match (:results arithmetic-test-report))))
+
+(facts "about running individual tests"
+
+       (fact "runs the test source passed as a string"
+             (test-runner/run-test 'octocat.arithmetic-test "(with-isolated-output-counters (fact 1 => 1))")
+             => (match individual-test-report))
+
+       (fact "line numbers are resolved correctly for individual facts, taking the supplied starting line in consideration"
+             (test-runner/run-test 'octocat.arithmetic-test 10 "(with-isolated-output-counters
+(fact \"this is wrong\"
+1 => 2))")
+             => (match {:results {'octocat.arithmetic-test
+                                  [{:type :fail
+                                    :line 12}]}}))
+
+       (fact "returns a report with no tests when there are no tests to be run"
+             (test-runner/run-test 'octocat.arithmetic-test "(fact)")
+             => (match {:results {}
+                        :summary {:ns 0 :test 0}}))
+
+       (fact "results of the last execution are kept in the current session"
+             (test-runner/run-test 'octocat.arithmetic-test "(with-isolated-output-counters (fact 1 => 1))")
+             => (match individual-test-report)
+             @test-runner/test-results
+             => (match (:results individual-test-report))))
 
 (facts "about running all tests in the project"
        (against-background
@@ -233,7 +233,7 @@
              (test-runner/re-run-failed-tests) => (match re-run-arithmetic-test-report))
 
        (fact "returns a report with no tests when there are no failing or erring tests to be run"
-             (test-runner/run-test 'midje-nrepl.test-runner-test "(with-isolated-output-counters (fact (+ 1 2) => 3))")
+             (test-runner/run-test 'octocat.arithmetic-test "(with-isolated-output-counters (fact (+ 1 2) => 3))")
              => (match {:summary {:error 0 :fail 0 :ns 1 :pass 1 :test 1}})
              (test-runner/re-run-failed-tests)
              => (match {:results {}

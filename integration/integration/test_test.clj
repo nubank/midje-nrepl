@@ -17,9 +17,9 @@
 
 (facts "about running tests"
 
-       (fact "the REPL is up and running")
-       (send-message {:op "eval" :code "(+ 2 1)"})
-       => (match (list {:value "3"} {:status ["done"]}))
+       (fact "the REPL is up and running"
+             (send-message {:op "eval" :code "(+ 2 1)"})
+             => (match (list {:value "3"} {:status ["done"]})))
 
        (fact "runs all tests in the specified namespace"
              (send-message {:op "midje-test-ns" :ns "octocat.arithmetic-test"})
@@ -56,9 +56,9 @@ it's possible to jump to the correct position of the test in question"
                              {:status ["done"]})))
 
        (fact "runs the specified test"
-             (send-message {:op         "midje-test"
-                            :ns         "octocat.arithmetic-test"
-                            :test-forms "(fact \"this is a crazy arithmetic\"
+             (send-message {:op     "midje-test"
+                            :ns     "octocat.arithmetic-test"
+                            :source "(fact \"this is a crazy arithmetic\"
              (+ 2 3) => 6)"})
              => (match (list {:results
                               {:octocat.arithmetic-test
@@ -72,10 +72,23 @@ it's possible to jump to the correct position of the test in question"
                               :summary {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}}
                              {:status ["done"]})))
 
-       (fact "when the parameters ns and/or test-forms are missing in the message,
+       (fact "when a line is provided, it will be used to determine the correct position of the failure in question"
+             (send-message {:op     "midje-test"
+                            :ns     "octocat.arithmetic-test"
+                            :source "(fact \"this is a crazy arithmetic\"
+             (+ 2 3) => 6)"
+                            :line   9})
+             => (match (list {:results
+                              {:octocat.arithmetic-test
+                               [{:type "fail"
+                                 :line 10}]}
+                              :summary {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}}
+                             {:status ["done"]})))
+
+       (fact "when the parameters ns and/or source are missing in the message,
 the middleware returns an error"
              (first (send-message {:op "midje-test"}))
-             => (match {:status (m/in-any-order ["done" "error" "no-ns" "no-test-forms"])}))
+             => (match {:status (m/in-any-order ["done" "error" "no-ns" "no-source"])}))
 
        (fact "runs all tests in the project"
              (send-message {:op "midje-test-all"})

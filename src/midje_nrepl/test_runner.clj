@@ -1,10 +1,10 @@
 (ns midje-nrepl.test-runner
   (:require [clojure.java.io :as io]
             [clojure.main :as clojure.main]
+            [clojure.string :as string]
             [midje-nrepl.project-info :as project-info]
-            [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]]
-            [clojure.string :as string])
-  (:import [clojure.lang LineNumberingPushbackReader Symbol]
+            [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]])
+  (:import clojure.lang.LineNumberingPushbackReader
            java.io.StringReader))
 
 (def test-results (atom {}))
@@ -13,14 +13,10 @@
   {:pre [(symbol? ns) (or (zero? index) (pos-int? index))]}
   (get-in @test-results [ns index :error]))
 
-(defmacro caching-test-results [& forms]
-  `(let [report# ~@forms]
-     (reset! test-results (report# :results))
-     report#))
-
 (defn- source-pushback-reader [source line]
+  {:pre [(string? source) (or (nil? line) (pos-int? line))]}
   (let [reader (LineNumberingPushbackReader. (StringReader. source))]
-    (.setLineNumber reader line)
+    (.setLineNumber reader (or line 1))
     reader))
 
 (defn- make-pushback-reader [file source line]
@@ -28,16 +24,28 @@
     (source-pushback-reader source line)
     (LineNumberingPushbackReader. (io/reader file))))
 
-(defn- evaluate-facts [{:keys [ns source line] :or {line 1}}]
-  {:pre [(symbol? ns) (or (nil? source) (string? source)) (pos-int? line)]}
-  (let [file   (project-info/file-for ns)
+(defn- ensure-ns [namespace]
+  (or (find-ns namespace)
+      (binding [*ns* (the-ns 'user)]
+        (eval `(ns ~namespace))
+        (the-ns namespace))))
+
+(defn- evaluate-facts [{:keys [ns source line]}]
+  {:pre [(symbol? ns)]}
+  (let [the-ns (ensure-ns ns)
+        file   (project-info/file-for ns)
         reader (make-pushback-reader file source line)]
-    (with-in-memory-reporter {:ns ns :file file}
+    (with-in-memory-reporter {:ns the-ns :file file}
       (clojure.main/repl
        :read                         #(read reader false %2)
        :need-prompt (constantly false)
        :prompt (fn [])
-       :print (fn [_])))))
+       :print  (fn [_])))))
+
+(defmacro caching-test-results [& forms]
+  `(let [report# ~@forms]
+     (reset! test-results (report# :results))
+     report#))
 
 (defn run-test
   ([namespace source]
