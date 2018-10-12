@@ -45,11 +45,11 @@
        (fact "runs the given test and sends the report to the client"
              (test/handle-test {:op        "midje-test"
                                 :ns        "octocat.arithmetic-test"
-                                :line 10
+                                :line      10
                                 :source    "(fact (+ 2 3) => 6)"
                                 :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/run-test 'octocat.arithmetic-test 10 "(fact (+ 2 3) => 6)") => test-report
+              (test-runner/run-test 'octocat.arithmetic-test "(fact (+ 2 3) => 6)" 10) => test-report
               (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
@@ -57,7 +57,7 @@
              (test/handle-test {:op        "midje-retest"
                                 :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/re-run-failed-tests) => test-report
+              (test-runner/re-run-non-passing-tests) => test-report
               (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 

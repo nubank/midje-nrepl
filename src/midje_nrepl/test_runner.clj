@@ -33,7 +33,7 @@
 (defn- evaluate-facts [{:keys [ns source line]}]
   {:pre [(symbol? ns)]}
   (let [the-ns (ensure-ns ns)
-        file   (project-info/file-for ns)
+        file   (project-info/file-for-ns ns)
         reader (make-pushback-reader file source line)]
     (with-in-memory-reporter {:ns the-ns :file file}
       (clojure.main/repl
@@ -49,8 +49,8 @@
 
 (defn run-test
   ([namespace source]
-   (run-test namespace 1 source))
-  ([namespace line source]
+   (run-test namespace source 1))
+  ([namespace source line]
    (caching-test-results
     (evaluate-facts {:ns namespace :source source :line line}))))
 
@@ -83,8 +83,8 @@
            (format "(do %s)")
            (list namespace)))))
 
-(defn re-run-failed-tests
-  "Re-runs tests that have failed in the last execution.
+(defn re-run-non-passing-tests
+  "Re-runs tests that didn't pass in the last execution.
   Returns the test report."
   []
   (caching-test-results

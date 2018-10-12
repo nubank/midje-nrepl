@@ -16,7 +16,7 @@
          (some (partial re-find pattern))
          boolean)))
 
-(defn file-for [namespace]
+(defn file-for-ns [namespace]
   (some-> (name namespace)
           namespace/ns-path
           io/file))

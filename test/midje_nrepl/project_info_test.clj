@@ -24,7 +24,7 @@
                 "bouncycastle"   false)
 
        (fact "returns a java.io.File representing the file where the namespace in question is declared"
-             (.getPath (project-info/file-for 'octocat.arithmetic-test))
+             (.getPath (project-info/file-for-ns 'octocat.arithmetic-test))
              => #"test/octocat/arithmetic_test.clj$")
 
        (fact "reads the project.clj file of the current project and returns its contents as a list"

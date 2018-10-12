@@ -186,9 +186,9 @@
              => (match individual-test-report))
 
        (fact "line numbers are resolved correctly for individual facts, taking the supplied starting line in consideration"
-             (test-runner/run-test 'octocat.arithmetic-test 10 "(with-isolated-output-counters
+             (test-runner/run-test 'octocat.arithmetic-test "(with-isolated-output-counters
 (fact \"this is wrong\"
-1 => 2))")
+1 => 2))" 10)
              => (match {:results {'octocat.arithmetic-test
                                   [{:type :fail
                                     :line 12}]}}))
@@ -230,28 +230,28 @@
        (fact "re-runs tests that didn't pass in the last execution"
              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
              (isolate-test-forms! 'octocat.arithmetic-test)
-             (test-runner/re-run-failed-tests) => (match re-run-arithmetic-test-report))
+             (test-runner/re-run-non-passing-tests) => (match re-run-arithmetic-test-report))
 
        (fact "returns a report with no tests when there are no failing or erring tests to be run"
              (test-runner/run-test 'octocat.arithmetic-test "(with-isolated-output-counters (fact (+ 1 2) => 3))")
              => (match {:summary {:error 0 :fail 0 :ns 1 :pass 1 :test 1}})
-             (test-runner/re-run-failed-tests)
+             (test-runner/re-run-non-passing-tests)
              => (match {:results {}
                         :summary {:ns 0 :test 0}}))
 
        (fact "results of the last execution are kept in the current session as well"
              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
              (isolate-test-forms! 'octocat.arithmetic-test)
-             (test-runner/re-run-failed-tests) => (match re-run-arithmetic-test-report)
+             (test-runner/re-run-non-passing-tests) => (match re-run-arithmetic-test-report)
              @test-runner/test-results
              => (match (:results re-run-arithmetic-test-report)))
 
        (fact "by re-running the same tests twice, the same results are obtained"
              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
              (isolate-test-forms! 'octocat.arithmetic-test)
-             (test-runner/re-run-failed-tests) => (match re-run-arithmetic-test-report)
+             (test-runner/re-run-non-passing-tests) => (match re-run-arithmetic-test-report)
              (isolate-test-forms! 'octocat.arithmetic-test)
-             (test-runner/re-run-failed-tests) => (match re-run-arithmetic-test-report)))
+             (test-runner/re-run-non-passing-tests) => (match re-run-arithmetic-test-report)))
 
 (facts "about getting test stacktraces"
 
