@@ -92,8 +92,9 @@ the middleware returns an error"
 
 (boom!)"})
              => (match (list {:results
-                              {:octocat.arithmetic-test [{:line 4
-                                                          :type "error"}]}
+                              {:octocat.arithmetic-test [{:error #"Unable to resolve symbol: boom! in this context"
+                                                          :line  4
+                                                          :type  "error"}]}
                               :summary {:error 1 :ns 1}}
                              {:status ["done"]})))
 

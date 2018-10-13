@@ -268,6 +268,7 @@ it is interpreted as an error in the test report"
              => (match {:results
                         {'midje-nrepl.reporter-test
                          [{:context ["midje-nrepl.reporter-test could not be loaded"]
+                           :error   #(instance? RuntimeException %)
                            :index   0
                            :ns      'midje-nrepl.reporter-test
                            :file    #(= (str %) *file*)

@@ -137,6 +137,7 @@
     (-> no-tests
         (assoc-in [:results ns]
                   [{:context [(str ns " could not be loaded")]
+                    :error   exception
                     :index   0
                     :ns      ns
                     :file    file
