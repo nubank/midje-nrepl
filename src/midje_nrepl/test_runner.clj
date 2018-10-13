@@ -40,7 +40,8 @@
        :read                         #(read reader false %2)
        :need-prompt (constantly false)
        :prompt (fn [])
-       :print  (fn [_])))))
+       :print  (fn [_])
+       :caught #(throw %)))))
 
 (defmacro caching-test-results [& forms]
   `(let [report# ~@forms]

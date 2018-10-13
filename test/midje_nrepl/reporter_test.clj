@@ -261,4 +261,17 @@ it is interpreted as an error in the test report"
                                                                        :ns      'midje-nrepl.reporter-test
                                                                        :file    #(= (str %) *file*)
                                                                        :line    number?}]}
-                                         :summary {:error 0 :fail 0 :ns 1 :pass 1 :test 1 :skip 0}})))
+                                         :summary {:error 0 :fail 0 :ns 1 :pass 1 :test 1 :skip 0}}))
+
+       (fact "catches any compilation error raised inside the macro body and returns it as an error in the report map"
+             (reporter/with-in-memory-reporter {:ns *ns* :file (io/file *file*)}
+               (eval '(boom!)))
+             => (match {:results
+                        {'midje-nrepl.reporter-test
+                         [{:context ["midje-nrepl.reporter-test could not be loaded"]
+                           :index   0
+                           :ns      'midje-nrepl.reporter-test
+                           :file    #(= (str %) *file*)
+                           :line    number?
+                           :type    :error}]}
+                        :summary {:error 1 :fail 0 :ns 1 :pass 0 :test 0 :skip 0}})))

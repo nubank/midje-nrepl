@@ -128,14 +128,37 @@
           :finishing-top-level-fact         finishing-top-level-fact
           :future-fact                      future-fact}))
 
+(defn- line-number-of-root-problem [exception]
+  (let [line-number-re #"compiling:\(.*:(\d+):\d+\)"]
+    (some->> (.getMessage exception)
+             (re-find line-number-re)
+             last
+             Integer/parseInt)))
+
+(defn report-for-broken-ns [ns file exception]
+  (let [ns (symbol (str ns))]
+    (-> no-tests
+        (assoc-in [:results ns]
+                  [{:context [(str ns " could not be loaded")]
+                    :index   0
+                    :ns      ns
+                    :file    file
+                    :line    (line-number-of-root-problem exception)
+                    :type    :error}])
+        (update :summary merge {:error 1 :ns 1}))))
+
 (defmacro with-in-memory-reporter
   [{:keys [ns file] :as context} & forms]
   `(binding [*ns*                           ~ns
              *file*                         (str ~file)
              midje.config/*config*          (merge midje.config/*config* {:print-level :print-facts})
              midje.state/emission-functions emission-map]
-     (reset-report! ~context)
-     ~@forms
-     (summarize-test-results!)
-     (drop-irrelevant-keys!)
-     @report))
+     (try
+       (reset-report! ~context)
+       ~@forms
+       (summarize-test-results!)
+       @report
+       (catch Exception err#
+         (report-for-broken-ns ~ns ~file err#))
+       (finally
+         (drop-irrelevant-keys!)))))
