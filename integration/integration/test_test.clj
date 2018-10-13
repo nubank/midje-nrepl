@@ -49,15 +49,6 @@ it's possible to jump to the correct position of the test in question"
                (read-line-from file line)
                => #"\(\+ 2 3\) => 6"))
 
-       (fact "returns an error result when the test namespace is broken"
-             (send-message {:op "midje-test-ns"
-                            :ns "octocat.broken-namespace-test"})
-             => (match (list {:results
-                              {:octocat.broken-namespace-test [{:line 5
-                                                                :type "error"}]}
-                              :summary {:error 1 :ns 1}}
-                             {:status ["done"]})))
-
        (fact "runs the specified test"
              (send-message {:op     "midje-test"
                             :ns     "octocat.arithmetic-test"
@@ -93,12 +84,24 @@ the middleware returns an error"
              (first (send-message {:op "midje-test"}))
              => (match {:status (m/in-any-order ["done" "error" "no-ns" "no-source"])}))
 
+       (fact "returns an error result when the test namespace is broken"
+             (send-message {:op     "midje-test"
+                            :ns     "octocat.arithmetic-test"
+                            :source "(ns octocat.arithmetic-test
+(:require [midje.sweet :refer :all]))
+
+(boom!)"})
+             => (match (list {:results
+                              {:octocat.arithmetic-test [{:line 4
+                                                          :type "error"}]}
+                              :summary {:error 1 :ns 1}}
+                             {:status ["done"]})))
+
        (fact "runs all tests in the project"
              (send-message {:op "midje-test-all"})
-             => (match (list {:results {:octocat.arithmetic-test       (complement empty?)
-                                        :octocat.side-effects-test     (complement empty?)
-                                        :octocat.broken-namespace-test (complement empty?)}
-                              :summary {:error 2 :fact 5 :fail 2 :ns 3 :pass 3 :skip 0 :test 6}}
+             => (match (list {:results {:octocat.arithmetic-test   (complement empty?)
+                                        :octocat.side-effects-test (complement empty?)}
+                              :summary {:error 1 :fact 5 :fail 2 :ns 2 :pass 3 :skip 0 :test 6}}
                              {:status ["done"]})))
 
        (fact "re-runs tests that didn't pass in the previous execution"
