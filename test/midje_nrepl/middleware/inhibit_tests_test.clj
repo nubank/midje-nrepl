@@ -72,7 +72,7 @@
                                                            :load-tests? "true"
                                                            :transport   ..transport..} fake-load-ns-handler)
                       => (match {:op          ?op
-                                 :test-report {:summary {:test #(> % 0)}}})
+                                 :test-report {:summary {:check #(> % 0)}}})
                       (provided
                        (transport/send ..transport.. anything) => irrelevant))
                 ?op

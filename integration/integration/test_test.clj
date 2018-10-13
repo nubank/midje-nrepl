@@ -24,7 +24,7 @@
        (fact "runs all tests in the specified namespace"
              (send-message {:op "midje-test-ns" :ns "octocat.arithmetic-test"})
              => (match (list {:results (complement empty?)
-                              :summary {:error 1 :fact 4 :fail 2 :ns 1 :pass 2 :skip 0 :test 5}}
+                              :summary {:check 5 :error 1 :fact 4 :fail 2 :ns 1 :pass 2 :to-do 0}}
                              {:status ["done"]})))
 
        (fact "when the ns is missing in the message, the middleware returns an error"
@@ -63,7 +63,7 @@ it's possible to jump to the correct position of the test in question"
                                  :expected "6\n"
                                  :actual   "5\n"
                                  :message  []}]}
-                              :summary {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}}
+                              :summary {:check 1 :error 0 :fact 1 :fail 1 :ns 1 :pass 0 :to-do 0}}
                              {:status ["done"]})))
 
        (fact "when a line is provided, it will be used to determine the correct position of the failure in question"
@@ -76,7 +76,7 @@ it's possible to jump to the correct position of the test in question"
                               {:octocat.arithmetic-test
                                [{:type "fail"
                                  :line 10}]}
-                              :summary {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}}
+                              :summary {:check 1 :error 0 :fact 1 :fail 1 :ns 1 :pass 0 :to-do 0}}
                              {:status ["done"]})))
 
        (fact "when the parameters ns and/or source are missing in the message,
@@ -101,7 +101,7 @@ the middleware returns an error"
              (send-message {:op "midje-test-all"})
              => (match (list {:results {:octocat.arithmetic-test   (complement empty?)
                                         :octocat.side-effects-test (complement empty?)}
-                              :summary {:error 1 :fact 5 :fail 2 :ns 2 :pass 3 :skip 0 :test 6}}
+                              :summary {:check 6 :error 1 :fact 5 :fail 2 :ns 2 :pass 3 :to-do 0}}
                              {:status ["done"]})))
 
        (fact "re-runs tests that didn't pass in the previous execution"
@@ -109,7 +109,7 @@ the middleware returns an error"
              => irrelevant
              (send-message {:op "midje-retest"})
              => (match (list {:results (complement empty?)
-                              :summary {:error 1 :fact 3 :fail 2 :ns 1 :pass 1 :skip 0 :test 4}}
+                              :summary {:check 4 :error 1 :fact 3 :fail 2 :ns 1 :pass 1 :to-do 0}}
                              {:status ["done"]})))
 
        (fact "gets the stacktrace of the given erring test"

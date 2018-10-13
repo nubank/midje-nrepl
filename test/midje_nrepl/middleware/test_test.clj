@@ -17,7 +17,7 @@
                      :actual   5
                      :message  '()
                      :type     :fail}]}
-                  :summary {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}})
+                  :summary {:check 1 :error 0 :fact 1 :fail 1 :ns 1 :pass 0 :to-do 0}})
 
 (def transformed-report (misc/transform-value test-report))
 

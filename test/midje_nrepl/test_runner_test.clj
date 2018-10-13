@@ -16,7 +16,7 @@
                                 :index   0
                                 :source  "(fact 1 => 1)"
                                 :type    :pass}]}
-                             :summary {:ns 1 :fact 1 :fail 0 :error 0 :pass 1 :test 1 :skip 0}})
+                             :summary {:check 1 :ns 1 :fact 1 :fail 0 :error 0 :pass 1 :to-do 0}})
 
 (def arithmetic-test-report {:results
                              {'octocat.arithmetic-test
@@ -55,7 +55,7 @@
                                 :expected "0\n"
                                 :error    #(instance? ArithmeticException %)
                                 :type     :error}]}
-                             :summary {:error 1 :fact 4 :fail 2 :ns 1 :pass 2 :skip 0 :test 5}})
+                             :summary {:check 5 :error 1 :fact 4 :fail 2 :ns 1 :pass 2 :to-do 0}})
 
 (def re-run-arithmetic-test-report {:results
                                     {'octocat.arithmetic-test
@@ -89,7 +89,7 @@
                                        :expected "0\n"
                                        :error    #(instance? ArithmeticException %)
                                        :type     :error}]}
-                                    :summary {:error 1 :fact 3 :fail 2 :ns 1 :pass 1 :skip 0 :test 4}})
+                                    :summary {:check 4 :error 1 :fact 3 :fail 2 :ns 1 :pass 1 :to-do 0}})
 
 (def colls-test-report {:results
                         {'octocat.colls-test
@@ -121,7 +121,7 @@
                            :expected "(match (m/in-any-order [3 2 4]))\n"
                            :actual   "[1 2 3]\n"
                            :type     :fail}]}
-                        :summary {:error 0 :fact 3 :fail 4 :ns 1 :pass 0 :skip 0 :test 4}})
+                        :summary {:check 4 :error 0 :fact 3 :fail 4 :ns 1 :pass 0 :to-do 0}})
 
 (def mocks-test-report {:results
                         {'octocat.mocks-test
@@ -143,12 +143,12 @@
                            :actual   "\"`an-impure-function` returned this string because it was called with an unexpected argument\"\n"
                            :message  '()
                            :type     :fail}]}
-                        :summary {:error 0 :fact 1 :fail 3 :ns 1 :pass 0 :skip 0 :test 3}})
+                        :summary {:check 3 :error 0 :fact 1 :fail 3 :ns 1 :pass 0 :to-do 0}})
 
 (def all-tests-report {:results (merge (:results arithmetic-test-report)
                                        (:results colls-test-report)
                                        (:results mocks-test-report))
-                       :summary {:error 1 :fact 8 :fail 9 :ns 3 :pass 2 :skip 0 :test 12}})
+                       :summary {:check 12 :error 1 :fact 8 :fail 9 :ns 3 :pass 2 :to-do 0}})
 
 (defn isolate-test-forms!
   "Workaround to test the re-run feature without modifying Midje counters."
@@ -172,7 +172,7 @@
        (fact "returns a report with no tests when there are no tests to be run"
              (test-runner/run-tests-in-ns 'octocat.no-tests)
              => (match {:results {}
-                        :summary {:ns 0 :test 0}}))
+                        :summary {:check 0 :ns 0}}))
 
        (fact "results of the last execution are kept in the current session"
              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
@@ -196,7 +196,7 @@
        (fact "returns a report with no tests when there are no tests to be run"
              (test-runner/run-test 'octocat.arithmetic-test "(fact)")
              => (match {:results {}
-                        :summary {:ns 0 :test 0}}))
+                        :summary {:check 0 :ns 0}}))
 
        (fact "results of the last execution are kept in the current session"
              (test-runner/run-test 'octocat.arithmetic-test "(with-isolated-output-counters (fact 1 => 1))")
@@ -215,7 +215,7 @@
        (fact "returns a report with no tests when there are no tests to be run"
              (test-runner/run-all-tests)
              => (match {:results {}
-                        :summary {:ns 0 :test 0}})
+                        :summary {:check 0 :ns 0}})
              (provided
               (project-info/get-test-namespaces-in ["test/octocat"]) => ['octocat.no-tests]))
 
@@ -234,10 +234,10 @@
 
        (fact "returns a report with no tests when there are no failing or erring tests to be run"
              (test-runner/run-test 'octocat.arithmetic-test "(with-isolated-output-counters (fact (+ 1 2) => 3))")
-             => (match {:summary {:error 0 :fail 0 :ns 1 :pass 1 :test 1}})
+             => (match {:summary {:error 0 :fail 0 :ns 1 :pass 1 :check 1}})
              (test-runner/re-run-non-passing-tests)
              => (match {:results {}
-                        :summary {:ns 0 :test 0}}))
+                        :summary {:check 0 :ns 0}}))
 
        (fact "results of the last execution are kept in the current session as well"
              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
