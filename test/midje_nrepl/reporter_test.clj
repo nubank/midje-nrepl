@@ -87,12 +87,11 @@
         (before :contents (silently (require 'octocat.arithmetic-test))))
 
        (fact "resets the report atom"
-             (reporter/reset-report! {:ns   (the-ns 'octocat.arithmetic-test)
-                                      :file arithmetic-test-file})
+             (reporter/reset-report! (the-ns 'octocat.arithmetic-test) arithmetic-test-file)
              @reporter/report => (match (m/equals {:testing-ns 'octocat.arithmetic-test
                                                    :file       expected-file?
                                                    :results    {}
-                                                   :summary    {:error 0 :fact 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})))
+                                                   :summary    {:check 0 :error 0 :fact 0 :fail 0 :ns 0 :pass 0 :to-do 0}})))
 
        (fact "when Midje starts checking a top level fact,
 it stores its description in the report atom"
@@ -185,7 +184,7 @@ it is interpreted as an error in the test report"
                                                      :type     :error}]}})
              (reporter/finishing-top-level-fact impossible-fact-function))
 
-       (fact "future facts are interpreted as skipped tests in the report"
+       (fact "future facts are interpreted as work to do in the report"
              (reporter/future-fact ["TODO"] ["arithmetic_test.clj" 25])
              @reporter/report => (match {:results {'octocat.arithmetic-test
                                                    [{:context ["this is inquestionable"]
@@ -217,17 +216,17 @@ it is interpreted as an error in the test report"
                                                     {:context ["TODO"]
                                                      :index   3
                                                      :line    25
-                                                     :type    :skip}]}}))
+                                                     :type    :to-do}]}}))
 
        (fact "summarizes test results, by computing the counters for each category"
              (reporter/summarize-test-results!)
-             @reporter/report => (match {:summary {:error 1
+             @reporter/report => (match {:summary {:check 4
+                                                   :error 1
                                                    :fact  3
                                                    :fail  1
                                                    :ns    1
                                                    :pass  1
-                                                   :skip  1
-                                                   :test  4}}))
+                                                   :to-do 1}}))
 
        (fact "drops irrelevant keys from the report map"
              (keys @reporter/report) => (match (m/in-any-order [:results :summary :testing-ns :file]))
@@ -261,7 +260,7 @@ it is interpreted as an error in the test report"
                                                                        :ns      'midje-nrepl.reporter-test
                                                                        :file    #(= (str %) *file*)
                                                                        :line    number?}]}
-                                         :summary {:error 0 :fail 0 :ns 1 :pass 1 :test 1 :skip 0}}))
+                                         :summary {:check 1 :error 0 :fail 0 :ns 1 :pass 1 :to-do 0}}))
 
        (fact "catches any compilation error raised inside the macro body and returns it as an error in the report map"
              (reporter/with-in-memory-reporter {:ns *ns* :file (io/file *file*)}
@@ -274,4 +273,4 @@ it is interpreted as an error in the test report"
                            :file    #(= (str %) *file*)
                            :line    number?
                            :type    :error}]}
-                        :summary {:error 1 :fail 0 :ns 1 :pass 0 :test 0 :skip 0}})))
+                        :summary {:check 0 :error 1 :fail 0 :ns 1 :pass 0 :to-do 0}})))

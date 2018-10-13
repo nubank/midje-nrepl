@@ -10,9 +10,9 @@
 (def report (atom nil))
 
 (def no-tests {:results {}
-               :summary {:error 0 :fact 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})
+               :summary {:check 0 :error 0 :fact 0 :fail 0 :ns 0 :pass 0 :to-do 0}})
 
-(defn reset-report! [{:keys [ns file]}]
+(defn reset-report! [ns file]
   {:pre [(instance? clojure.lang.Namespace ns) (instance? java.io.File file)]}
   (reset! report
           (assoc no-tests                :testing-ns (symbol (str ns))
@@ -21,15 +21,12 @@
 (defn summarize-test-results! []
   (let [namespace  (@report :testing-ns)
         results    (get-in @report [:results namespace])
-        counters   (->> results
-                        (group-by :type)
-                        (map (fn [[type values]] {type (count values)}))
-                        (into {}))
+        counters   (->> results (map :type) frequencies)
         namespaces (-> @report :results keys count)
         facts      (->> results (keep :id) distinct count)
-        tests      (->> counters vals (apply +))]
+        checks     (->> counters vals (apply +))]
     (swap! report update :summary
-           merge (assoc counters :fact facts :ns namespaces :test tests))))
+           merge (assoc counters  :check checks :fact facts :ns namespaces))))
 
 (defn drop-irrelevant-keys! []
   (swap! report dissoc :testing-ns :file))
@@ -117,7 +114,7 @@
 (defn future-fact [description-vec position]
   (conj-test-result! {:context description-vec
                       :line    (last position)
-                      :type    :skip}))
+                      :type    :to-do}))
 
 (def emission-map
   (merge silence/emission-map
@@ -148,17 +145,16 @@
         (update :summary merge {:error 1 :ns 1}))))
 
 (defmacro with-in-memory-reporter
-  [{:keys [ns file] :as context} & forms]
+  [{:keys [ns file]} & forms]
   `(binding [*ns*                           ~ns
              *file*                         (str ~file)
              midje.config/*config*          (merge midje.config/*config* {:print-level :print-facts})
              midje.state/emission-functions emission-map]
      (try
-       (reset-report! ~context)
+       (reset-report! ~ns ~file)
        ~@forms
        (summarize-test-results!)
+       (drop-irrelevant-keys!)
        @report
        (catch Exception err#
-         (report-for-broken-ns ~ns ~file err#))
-       (finally
-         (drop-irrelevant-keys!)))))
+         (report-for-broken-ns ~ns ~file err#)))))
