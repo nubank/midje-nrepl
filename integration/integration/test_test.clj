@@ -49,13 +49,10 @@ it's possible to jump to the correct position of the test in question"
                (read-line-from file line)
                => #"\(\+ 2 3\) => 6"))
 
-       (fact "returns an error result when the test namespace is broken"
-             (send-message {:op "midje-test-ns"
-                            :ns "octocat.broken-namespace-test"})
-             => (match (list {:results
-                              {:octocat.broken-namespace-test [{:line 5
-                                                                :type "error"}]}
-                              :summary {:error 1 :ns 1}}
+       (fact "re-runs tests that didn't pass in the previous execution"
+             (send-message {:op "midje-retest"})
+             => (match (list {:results (complement empty?)
+                              :summary {:error 1 :fact 3 :fail 2 :ns 1 :pass 1 :skip 0 :test 4}}
                              {:status ["done"]})))
 
        (fact "runs the specified test"
@@ -95,18 +92,9 @@ the middleware returns an error"
 
        (fact "runs all tests in the project"
              (send-message {:op "midje-test-all"})
-             => (match (list {:results {:octocat.arithmetic-test       (complement empty?)
-                                        :octocat.side-effects-test     (complement empty?)
-                                        :octocat.broken-namespace-test (complement empty?)}
-                              :summary {:error 2 :fact 5 :fail 2 :ns 3 :pass 3 :skip 0 :test 6}}
-                             {:status ["done"]})))
-
-       (fact "re-runs tests that didn't pass in the previous execution"
-             (send-message {:op "midje-test-ns" :ns "octocat.arithmetic-test"})
-             => irrelevant
-             (send-message {:op "midje-retest"})
-             => (match (list {:results (complement empty?)
-                              :summary {:error 1 :fact 3 :fail 2 :ns 1 :pass 1 :skip 0 :test 4}}
+             => (match (list {:results {:octocat.arithmetic-test   (complement empty?)
+                                        :octocat.side-effects-test (complement empty?)}
+                              :summary {:error 1 :fact 5 :fail 2 :ns 2 :pass 3 :skip 0 :test 6}}
                              {:status ["done"]})))
 
        (fact "gets the stacktrace of the given erring test"
