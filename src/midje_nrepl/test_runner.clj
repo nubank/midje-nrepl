@@ -30,7 +30,7 @@
         (eval `(ns ~namespace))
         (the-ns namespace))))
 
-(defn- evaluate-facts [{:keys [ns source line]}]
+(defn- evaluate-facts [& {:keys [ns source line]}]
   {:pre [(symbol? ns)]}
   (let [the-ns (ensure-ns ns)
         file   (project-info/file-for-ns ns)
@@ -53,14 +53,14 @@
    (run-test namespace source 1))
   ([namespace source line]
    (caching-test-results
-    (evaluate-facts {:ns namespace :source source :line line}))))
+    (evaluate-facts :ns namespace :source source :line line))))
 
 (defn run-tests-in-ns
   "Runs Midje tests in the given namespace.
    Returns the test report."
   [namespace]
   (caching-test-results
-   (evaluate-facts {:ns namespace})))
+   (evaluate-facts :ns namespace)))
 
 (defn- merge-test-reports [reports]
   (reduce (fn [a b]
@@ -73,7 +73,7 @@
     (caching-test-results
      (->> test-paths
           project-info/get-test-namespaces-in
-          (map #(evaluate-facts {:ns %}))
+          (map #(evaluate-facts :ns %))
           merge-test-reports))))
 
 (defn- non-passing-tests [[namespace results]]
@@ -91,5 +91,5 @@
   (caching-test-results
    (->> @test-results
         (keep non-passing-tests)
-        (map #(evaluate-facts {:ns (first %) :source (second %)}))
+        (map #(evaluate-facts :ns (first %) :source (second %)))
         merge-test-reports)))
