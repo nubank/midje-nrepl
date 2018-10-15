@@ -22,28 +22,28 @@
              (inhibit-tests/handle-inhibit-tests eval-message fake-interruptible-eval-handler)
              => (match {:value "3"}))
 
-       (fact "assoc's the var `*load-test*` with a false value into the session atom"
+       (fact "assoc's the var `midje.config/*config*` with a false value into the session atom"
              (-> (inhibit-tests/handle-inhibit-tests eval-message fake-interruptible-eval-handler)
                  :session
                  deref)
-             => {#'*ns*         "octocat.arithmetic-test"
-                 #'*load-tests* false})
+             => (match {#'*ns*                  "octocat.arithmetic-test"
+                        #'midje.config/*config* {:check-after-creation false}}))
 
        (fact "clients can override the above behavior by sending the parameter `load-tests?` in the message"
              (-> (assoc eval-message :load-tests? "true")
                  (inhibit-tests/handle-inhibit-tests fake-interruptible-eval-handler)
                  :session
                  deref)
-             => {#'*ns*         "octocat.arithmetic-test"
-                 #'*load-tests* true})
+             => (match {#'*ns*                  "octocat.arithmetic-test"
+                        #'midje.config/*config* {:check-after-creation true}}))
 
        (fact "clients can set the parameter `load-tests?` to false too"
              (-> (assoc eval-message :load-tests? "false")
                  (inhibit-tests/handle-inhibit-tests fake-interruptible-eval-handler)
                  :session
                  deref)
-             => {#'*ns*         "octocat.arithmetic-test"
-                 #'*load-tests* false}))
+             => (match {#'*ns*                  "octocat.arithmetic-test"
+                        #'midje.config/*config* {:check-after-creation false}})))
 
 (defn fake-load-ns-handler [{:keys [transport] :as message}]
   (assoc message
