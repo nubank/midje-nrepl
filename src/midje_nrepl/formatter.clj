@@ -53,11 +53,11 @@
   (boolean (re-find #"^\?|^\[\?" value)))
 
 (defn- number-of-columns-fn [cells]
-  (let [expanded-cells (expand-headers-on-cells cells)
+  (let [expanded-cells cells #_(expand-headers-on-cells cells)
         number-of-headers (count (take-while table-header? expanded-cells))]
     (if-not (zero? number-of-headers)
       number-of-headers
-      (throw-exception ::no-table-headers "Table has no headers. Check if headers start with `?``"))))
+      (throw-exception ::no-table-headers "Table has no headers. Check if headers start with `?`"))))
 
 (defn paddings-for-cells [cells options]
   (let [number-of-columns (number-of-columns-fn cells)]
