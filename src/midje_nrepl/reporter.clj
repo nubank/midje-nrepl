@@ -136,7 +136,7 @@
   (let [ns (symbol (str ns))]
     (-> no-tests
         (assoc-in [:results ns]
-                  [{:context [(str ns " could not be loaded")]
+                  [{:context [(str ns ": namespace couldn't be loaded")]
                     :error   exception
                     :index   0
                     :ns      ns
