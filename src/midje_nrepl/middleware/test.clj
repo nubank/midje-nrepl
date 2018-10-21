@@ -17,13 +17,13 @@
         report    (test-runner/run-tests-in-ns namespace)]
     (send-report message report)))
 
-(defn- test-reply [{:keys [ns test-forms] :as message}]
+(defn- test-reply [{:keys [ns line source] :or {line 1} :as message}]
   (let [namespace (symbol ns)
-        report    (test-runner/run-test namespace test-forms)]
+        report    (test-runner/run-test namespace source line)]
     (send-report message report)))
 
 (defn- retest-reply [message]
-  (->> (test-runner/re-run-failed-tests)
+  (->> (test-runner/re-run-non-passing-tests)
        (send-report message)))
 
 (defn- test-stacktrace-reply [{:keys [index ns print-fn transport] :as message}]

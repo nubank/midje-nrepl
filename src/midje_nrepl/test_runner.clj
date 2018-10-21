@@ -1,43 +1,66 @@
 (ns midje-nrepl.test-runner
-  (:require [midje-nrepl.project-info :as project-info]
+  (:require [clojure.java.io :as io]
+            [clojure.main :as clojure.main]
+            [clojure.string :as string]
+            [midje-nrepl.project-info :as project-info]
             [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]])
-  (:import clojure.lang.Symbol))
+  (:import clojure.lang.LineNumberingPushbackReader
+           java.io.StringReader))
 
 (def test-results (atom {}))
 
-(defn get-exception-at [^Symbol ns ^Integer index]
+(defn get-exception-at [ns index]
   {:pre [(symbol? ns) (or (zero? index) (pos-int? index))]}
   (get-in @test-results [ns index :error]))
+
+(defn- source-pushback-reader [source line]
+  {:pre [(string? source) (or (nil? line) (pos-int? line))]}
+  (let [reader (LineNumberingPushbackReader. (StringReader. source))]
+    (.setLineNumber reader (or line 1))
+    reader))
+
+(defn- make-pushback-reader [file source line]
+  (if source
+    (source-pushback-reader source line)
+    (LineNumberingPushbackReader. (io/reader file))))
+
+(defn- ensure-ns [namespace]
+  (or (find-ns namespace)
+      (binding [*ns* (the-ns 'user)]
+        (eval `(ns ~namespace))
+        (the-ns namespace))))
+
+(defn- check-facts [& {:keys [ns source line]}]
+  {:pre [(symbol? ns)]}
+  (let [the-ns (ensure-ns ns)
+        file   (project-info/file-for-ns ns)
+        reader (make-pushback-reader file source line)]
+    (with-in-memory-reporter {:ns the-ns :file file}
+      (clojure.main/repl
+       :read                         #(read reader false %2)
+       :need-prompt (constantly false)
+       :prompt (fn [])
+       :print  (fn [_])
+       :caught #(throw %)))))
 
 (defmacro caching-test-results [& forms]
   `(let [report# ~@forms]
      (reset! test-results (report# :results))
      report#))
 
-(defn test-forms [^Symbol namespace & forms]
-  (with-in-memory-reporter namespace
-    (binding [*ns* (the-ns namespace)]
-      (->> forms
-           (apply list)
-           (cons 'do)
-           eval))))
-
-(defn run-test [^Symbol namespace ^String forms]
-  {:pre [(symbol? namespace) (string? forms)]}
-  (caching-test-results
-   (test-forms namespace (read-string forms))))
-
-(defn- run-tests-in-ns* [^Symbol namespace]
-  (with-in-memory-reporter namespace
-    (require namespace :reload)))
+(defn run-test
+  ([namespace source]
+   (run-test namespace source 1))
+  ([namespace source line]
+   (caching-test-results
+    (check-facts :ns namespace :source source :line line))))
 
 (defn run-tests-in-ns
   "Runs Midje tests in the given namespace.
    Returns the test report."
-  [^Symbol namespace]
-  {:pre [(symbol? namespace)]}
+  [namespace]
   (caching-test-results
-   (run-tests-in-ns* namespace)))
+   (check-facts :ns namespace)))
 
 (defn- merge-test-reports [reports]
   (reduce (fn [a b]
@@ -45,26 +68,28 @@
              :summary (merge-with + (:summary a) (:summary b))})
           reporter/no-tests reports))
 
-(defn- failed-test-forms [results]
-  (->> results
-       (filter #(#{:error :fail} (:type %)))
-       distinct
-       (map (comp read-string :test-forms))))
+(defn run-all-tests []
+  (let [test-paths (project-info/get-test-paths)]
+    (caching-test-results
+     (->> test-paths
+          project-info/get-test-namespaces-in
+          (map #(check-facts :ns %))
+          merge-test-reports))))
 
-(defn re-run-failed-tests
-  "Re-runs tests that have failed in the last execution.
+(defn- non-passing-tests [[namespace results]]
+  (let [non-passing-items (filter #(#{:error :fail} (:type %)) results)]
+    (when (seq non-passing-items)
+      (->> (map :source non-passing-items)
+           (string/join (System/lineSeparator))
+           (format "(do %s)")
+           (list namespace)))))
+
+(defn re-run-non-passing-tests
+  "Re-runs tests that didn't pass in the last execution.
   Returns the test report."
   []
   (caching-test-results
    (->> @test-results
-        (map #(->> (second %) failed-test-forms (cons (first %))))
-        (remove #(= 1 (count %)))
-        (map (partial apply test-forms))
+        (keep non-passing-tests)
+        (map #(check-facts :ns (first %) :source (second %)))
         merge-test-reports)))
-
-(defn run-all-tests []
-  (let [test-paths (project-info/get-test-paths)]
-    (caching-test-results (->> test-paths
-                               project-info/get-test-namespaces-in
-                               (map run-tests-in-ns*)
-                               merge-test-reports))))

@@ -1,5 +1,6 @@
 (ns midje-nrepl.reporter-test
-  (:require [matcher-combinators.matchers :as m]
+  (:require [clojure.java.io :as io]
+            [matcher-combinators.matchers :as m]
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.reporter :as reporter]
             [midje.emission.api :refer [silently]]
@@ -77,20 +78,20 @@
                                      :position ["arithmetic_test.clj" 15]
                                      :type     :some-prerequisites-were-called-the-wrong-number-of-times})
 
-(defn existing-file? [candidate]
-  (and (instance? java.io.File candidate)
-       (.exists candidate)))
+(def arithmetic-test-file (io/file "/home/john-doe/dev/octocat/test/octocat/arithmetic_test.clj"))
+
+(def expected-file? #(= % arithmetic-test-file))
 
 (facts "about the midje-nrepl's reporter"
        (against-background
         (before :contents (silently (require 'octocat.arithmetic-test))))
 
        (fact "resets the report atom"
-             (reporter/reset-report! 'octocat.arithmetic-test)
+             (reporter/reset-report! (the-ns 'octocat.arithmetic-test) arithmetic-test-file)
              @reporter/report => (match (m/equals {:testing-ns 'octocat.arithmetic-test
-                                                   :file       existing-file?
+                                                   :file       expected-file?
                                                    :results    {}
-                                                   :summary    {:error 0 :fact 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})))
+                                                   :summary    {:check 0 :error 0 :fact 0 :fail 0 :ns 0 :pass 0 :to-do 0}})))
 
        (fact "when Midje starts checking a top level fact,
 it stores its description in the report atom"
@@ -101,23 +102,23 @@ it stores its description in the report atom"
 it stores the information about this fact in the report map"
              (reporter/starting-to-check-fact correct-fact-function)
              @reporter/report => (match {:current-test
-                                         {:context    ["this is inquestionable"]
-                                          :ns         'octocat.arithmetic-test
-                                          :file       existing-file?
-                                          :line       10
-                                          :test-forms "(fact \"this is inquestionable\" 1 => 1)"}}))
+                                         {:context ["this is inquestionable"]
+                                          :ns      'octocat.arithmetic-test
+                                          :file    expected-file?
+                                          :line    10
+                                          :source  "(fact \"this is inquestionable\" 1 => 1)"}}))
 
        (fact "when the test passes,
 it stores the corresponding test result in the report atom"
              (reporter/pass)
              @reporter/report => (match {:results {'octocat.arithmetic-test
-                                                   [{:context    ["this is inquestionable"]
-                                                     :index      0
-                                                     :ns         'octocat.arithmetic-test
-                                                     :file       existing-file?
-                                                     :line       10
-                                                     :test-forms "(fact \"this is inquestionable\" 1 => 1)"
-                                                     :type       :pass}]}}))
+                                                   [{:context ["this is inquestionable"]
+                                                     :index   0
+                                                     :ns      'octocat.arithmetic-test
+                                                     :file    expected-file?
+                                                     :line    10
+                                                     :source  "(fact \"this is inquestionable\" 1 => 1)"
+                                                     :type    :pass}]}}))
 
        (fact "when Midje finishes a top-level fact,
 it dissoc's some keys from the report atom"
@@ -130,23 +131,23 @@ it stores the corresponding test result in the report atom"
              (reporter/starting-to-check-fact wrong-fact-function)
              (reporter/fail failure-with-simple-mismatch)
              @reporter/report => (match {:results {'octocat.arithmetic-test
-                                                   [{:context    ["this is inquestionable"]
-                                                     :index      0
-                                                     :ns         'octocat.arithmetic-test
-                                                     :file       existing-file?
-                                                     :line       10
-                                                     :test-forms "(fact \"this is inquestionable\" 1 => 1)"
-                                                     :type       :pass}
-                                                    {:context    ["this is wrong"]
-                                                     :index      1
-                                                     :ns         'octocat.arithmetic-test
-                                                     :file       existing-file?
-                                                     :line       15
-                                                     :test-forms "(fact \"this is wrong\" 1 => 2)"
-                                                     :expected   "2\n"
-                                                     :actual     "1\n"
-                                                     :message    '()
-                                                     :type       :fail}]}})
+                                                   [{:context ["this is inquestionable"]
+                                                     :index   0
+                                                     :ns      'octocat.arithmetic-test
+                                                     :file    expected-file?
+                                                     :line    10
+                                                     :source  "(fact \"this is inquestionable\" 1 => 1)"
+                                                     :type    :pass}
+                                                    {:context  ["this is wrong"]
+                                                     :index    1
+                                                     :ns       'octocat.arithmetic-test
+                                                     :file     expected-file?
+                                                     :line     15
+                                                     :source   "(fact \"this is wrong\" 1 => 2)"
+                                                     :expected "2\n"
+                                                     :actual   "1\n"
+                                                     :message  '()
+                                                     :type     :fail}]}})
              (reporter/finishing-top-level-fact wrong-fact-function))
 
        (fact "when the test throws an unexpected exception,
@@ -155,77 +156,77 @@ it is interpreted as an error in the test report"
              (reporter/starting-to-check-fact impossible-fact-function)
              (reporter/fail failure-with-unexpected-exception)
              @reporter/report => (match {:results {'octocat.arithmetic-test
-                                                   [{:context    ["this is inquestionable"]
-                                                     :index      0
-                                                     :ns         'octocat.arithmetic-test
-                                                     :file       existing-file?
-                                                     :line       10
-                                                     :test-forms "(fact \"this is inquestionable\" 1 => 1)"
-                                                     :type       :pass}
-                                                    {:context    ["this is wrong"]
-                                                     :index      1
-                                                     :ns         'octocat.arithmetic-test
-                                                     :file       existing-file?
-                                                     :line       15
-                                                     :test-forms "(fact \"this is wrong\" 1 => 2)"
-                                                     :expected   "2\n"
-                                                     :actual     "1\n"
-                                                     :message    '()
-                                                     :type       :fail}
-                                                    {:context    ["this is impossible"]
-                                                     :index      2
-                                                     :ns         'octocat.arithmetic-test
-                                                     :file       existing-file?
-                                                     :line       20
-                                                     :test-forms "(fact \"this is impossible\" (/ 10 0) => 0)"
-                                                     :expected   "0\n"
-                                                     :error      #(= arithmetic-exception %)
-                                                     :type       :error}]}})
+                                                   [{:context ["this is inquestionable"]
+                                                     :index   0
+                                                     :ns      'octocat.arithmetic-test
+                                                     :file    expected-file?
+                                                     :line    10
+                                                     :source  "(fact \"this is inquestionable\" 1 => 1)"
+                                                     :type    :pass}
+                                                    {:context  ["this is wrong"]
+                                                     :index    1
+                                                     :ns       'octocat.arithmetic-test
+                                                     :file     expected-file?
+                                                     :line     15
+                                                     :source   "(fact \"this is wrong\" 1 => 2)"
+                                                     :expected "2\n"
+                                                     :actual   "1\n"
+                                                     :message  '()
+                                                     :type     :fail}
+                                                    {:context  ["this is impossible"]
+                                                     :index    2
+                                                     :ns       'octocat.arithmetic-test
+                                                     :file     expected-file?
+                                                     :line     20
+                                                     :source   "(fact \"this is impossible\" (/ 10 0) => 0)"
+                                                     :expected "0\n"
+                                                     :error    #(= arithmetic-exception %)
+                                                     :type     :error}]}})
              (reporter/finishing-top-level-fact impossible-fact-function))
 
-       (fact "future facts are interpreted as skipped tests in the report"
+       (fact "future facts are interpreted as work to do in the report"
              (reporter/future-fact ["TODO"] ["arithmetic_test.clj" 25])
              @reporter/report => (match {:results {'octocat.arithmetic-test
-                                                   [{:context    ["this is inquestionable"]
-                                                     :index      0
-                                                     :ns         'octocat.arithmetic-test
-                                                     :file       existing-file?
-                                                     :line       10
-                                                     :test-forms "(fact \"this is inquestionable\" 1 => 1)"
-                                                     :type       :pass}
-                                                    {:context    ["this is wrong"]
-                                                     :index      1
-                                                     :ns         'octocat.arithmetic-test
-                                                     :file       existing-file?
-                                                     :line       15
-                                                     :test-forms "(fact \"this is wrong\" 1 => 2)"
-                                                     :expected   "2\n"
-                                                     :actual     "1\n"
-                                                     :message    '()
-                                                     :type       :fail}
-                                                    {:context    ["this is impossible"]
-                                                     :index      2
-                                                     :ns         'octocat.arithmetic-test
-                                                     :file       existing-file?
-                                                     :line       20
-                                                     :test-forms "(fact \"this is impossible\" (/ 10 0) => 0)"
-                                                     :expected   "0\n"
-                                                     :error      #(= arithmetic-exception %)
-                                                     :type       :error}
+                                                   [{:context ["this is inquestionable"]
+                                                     :index   0
+                                                     :ns      'octocat.arithmetic-test
+                                                     :file    expected-file?
+                                                     :line    10
+                                                     :source  "(fact \"this is inquestionable\" 1 => 1)"
+                                                     :type    :pass}
+                                                    {:context  ["this is wrong"]
+                                                     :index    1
+                                                     :ns       'octocat.arithmetic-test
+                                                     :file     expected-file?
+                                                     :line     15
+                                                     :source   "(fact \"this is wrong\" 1 => 2)"
+                                                     :expected "2\n"
+                                                     :actual   "1\n"
+                                                     :message  '()
+                                                     :type     :fail}
+                                                    {:context  ["this is impossible"]
+                                                     :index    2
+                                                     :ns       'octocat.arithmetic-test
+                                                     :file     expected-file?
+                                                     :line     20
+                                                     :source   "(fact \"this is impossible\" (/ 10 0) => 0)"
+                                                     :expected "0\n"
+                                                     :error    #(= arithmetic-exception %)
+                                                     :type     :error}
                                                     {:context ["TODO"]
                                                      :index   3
                                                      :line    25
-                                                     :type    :skip}]}}))
+                                                     :type    :to-do}]}}))
 
        (fact "summarizes test results, by computing the counters for each category"
              (reporter/summarize-test-results!)
-             @reporter/report => (match {:summary {:error 1
+             @reporter/report => (match {:summary {:check 4
+                                                   :error 1
                                                    :fact  3
                                                    :fail  1
                                                    :ns    1
                                                    :pass  1
-                                                   :skip  1
-                                                   :test  4}}))
+                                                   :to-do 1}}))
 
        (fact "drops irrelevant keys from the report map"
              (keys @reporter/report) => (match (m/in-any-order [:results :summary :testing-ns :file]))
@@ -249,7 +250,7 @@ it is interpreted as an error in the test report"
                 failure-with-prerequisit-error  {:message '("These calls were not made the right number of times:" "    (an-impure-function {:first-name \"John\", :last-name \"Doe\"}) [expected at least once, actually never called]")})
 
        (fact "the macro below evaluates the forms with the reporter in context"
-             (reporter/with-in-memory-reporter 'midje-nrepl.reporter-test
+             (reporter/with-in-memory-reporter {:ns *ns* :file (io/file *file*)}
                (fact "I'm pretty sure about that"
                      1 => 1))
 
@@ -257,6 +258,20 @@ it is interpreted as an error in the test report"
                                          {'midje-nrepl.reporter-test [{:context ["I'm pretty sure about that"]
                                                                        :index   0
                                                                        :ns      'midje-nrepl.reporter-test
-                                                                       :file    existing-file?
+                                                                       :file    #(= (str %) *file*)
                                                                        :line    number?}]}
-                                         :summary {:error 0 :fail 0 :ns 1 :pass 1 :test 1 :skip 0}})))
+                                         :summary {:check 1 :error 0 :fail 0 :ns 1 :pass 1 :to-do 0}}))
+
+       (fact "catches any compilation error raised inside the macro body and returns it as an error in the report map"
+             (reporter/with-in-memory-reporter {:ns *ns* :file (io/file *file*)}
+               (eval '(boom!)))
+             => (match {:results
+                        {'midje-nrepl.reporter-test
+                         [{:context ["midje-nrepl.reporter-test: namespace couldn't be loaded"]
+                           :error   #(instance? RuntimeException %)
+                           :index   0
+                           :ns      'midje-nrepl.reporter-test
+                           :file    #(= (str %) *file*)
+                           :line    number?
+                           :type    :error}]}
+                        :summary {:check 0 :error 1 :fail 0 :ns 1 :pass 0 :to-do 0}})))

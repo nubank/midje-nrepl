@@ -1,10 +1,12 @@
 (ns midje-nrepl.middleware.inhibit-tests-test
-  (:require [clojure.test :refer [*load-tests*]]
+  (:require [clojure.java.io :as io]
+            [clojure.test :refer [*load-tests*]]
             [clojure.tools.nrepl.misc :refer [response-for]]
             [clojure.tools.nrepl.transport :as transport]
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.middleware.inhibit-tests :as inhibit-tests]
             [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]]
+            [midje.emission.api :refer [silently]]
             [midje.sweet :refer :all]))
 
 (def eval-message {:op      "eval"
@@ -45,11 +47,14 @@
 
 (defn fake-load-ns-handler [{:keys [transport] :as message}]
   (assoc message
-         :test-report (with-in-memory-reporter 'octocat.arithmetic-test
+         :test-report (with-in-memory-reporter {:ns   (the-ns 'octocat.arithmetic-test)
+                                                :file (io/file "/home/johndoe/dev/octocat/test/octocat/arithmetic_test.clj")}
                         (require 'octocat.arithmetic-test :reload)
                         (transport/send transport (response-for message :status :done)))))
 
 (facts "about loading namespaces without running tests"
+       (against-background
+        (before :contents (silently (require 'octocat.arithmetic-test))))
 
        (tabular (fact "delegates to the base handler without running tests"
                       (inhibit-tests/handle-inhibit-tests {:op ?op :transport ..transport..} fake-load-ns-handler)
@@ -67,7 +72,7 @@
                                                            :load-tests? "true"
                                                            :transport   ..transport..} fake-load-ns-handler)
                       => (match {:op          ?op
-                                 :test-report {:summary {:test #(> % 0)}}})
+                                 :test-report {:summary {:check #(> % 0)}}})
                       (provided
                        (transport/send ..transport.. anything) => irrelevant))
                 ?op

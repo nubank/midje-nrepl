@@ -1,42 +1,32 @@
 (ns midje-nrepl.reporter
-  (:require [clojure.java.io :as io]
-            [clojure.pprint :as pprint]
+  (:require [clojure.pprint :as pprint]
             [midje.config :as midje.config]
             [midje.data.fact :as fact]
             [midje.emission.plugins.default-failure-lines :as failure-lines]
             [midje.emission.plugins.silence :as silence]
             [midje.emission.state :as midje.state]
-            [midje.util.exceptions :as midje.exceptions]
-            [orchard.namespace :as namespace])
-  (:import clojure.lang.Symbol))
+            [midje.util.exceptions :as midje.exceptions]))
 
 (def report (atom nil))
 
 (def no-tests {:results {}
-               :summary {:error 0 :fact 0 :fail 0 :ns 0 :pass 0 :skip 0 :test 0}})
+               :summary {:check 0 :error 0 :fact 0 :fail 0 :ns 0 :pass 0 :to-do 0}})
 
-(defn- file-for [namespace]
-  (some-> (name namespace)
-          namespace/ns-path
-          io/file))
-
-(defn reset-report! [namespace]
+(defn reset-report! [ns file]
+  {:pre [(instance? clojure.lang.Namespace ns) (instance? java.io.File file)]}
   (reset! report
-          (assoc no-tests                :testing-ns namespace
-                 :file (file-for namespace))))
+          (assoc no-tests                :testing-ns (symbol (str ns))
+                 :file file)))
 
 (defn summarize-test-results! []
   (let [namespace  (@report :testing-ns)
         results    (get-in @report [:results namespace])
-        counters   (->> results
-                        (group-by :type)
-                        (map (fn [[type values]] {type (count values)}))
-                        (into {}))
+        counters   (->> results (map :type) frequencies)
         namespaces (-> @report :results keys count)
         facts      (->> results (keep :id) distinct count)
-        tests      (->> counters vals (apply +))]
+        checks     (->> counters vals (apply +))]
     (swap! report update :summary
-           merge (assoc counters :fact facts :ns namespaces :test tests))))
+           merge (assoc counters  :check checks :fact facts :ns namespaces))))
 
 (defn drop-irrelevant-keys! []
   (swap! report dissoc :testing-ns :file))
@@ -56,12 +46,12 @@
 
 (defn starting-to-check-fact [fact]
   (let [{:keys [testing-ns file]} @report]
-    (swap! report assoc :current-test {:id         (fact/guid fact)
-                                       :context    (description-for fact)
-                                       :ns         testing-ns
-                                       :file       file
-                                       :line       (fact/line fact)
-                                       :test-forms (pr-str (fact/source fact))})))
+    (swap! report assoc :current-test {:id      (fact/guid fact)
+                                       :context (description-for fact)
+                                       :ns      testing-ns
+                                       :file    file
+                                       :line    (fact/line fact)
+                                       :source  (pr-str (fact/source fact))})))
 
 (defn prettify-expected-and-actual-values [{:keys [expected actual] :as result-map}]
   (let [pretty-str #(with-out-str (pprint/pprint %))]
@@ -124,7 +114,7 @@
 (defn future-fact [description-vec position]
   (conj-test-result! {:context description-vec
                       :line    (last position)
-                      :type    :skip}))
+                      :type    :to-do}))
 
 (def emission-map
   (merge silence/emission-map
@@ -135,12 +125,37 @@
           :finishing-top-level-fact         finishing-top-level-fact
           :future-fact                      future-fact}))
 
+(defn- line-number-of-root-problem [exception]
+  (let [line-number-re #"compiling:\(.*:(\d+):\d+\)"]
+    (some->> (.getMessage exception)
+             (re-find line-number-re)
+             last
+             Integer/parseInt)))
+
+(defn report-for-broken-ns [ns file exception]
+  (let [ns (symbol (str ns))]
+    (-> no-tests
+        (assoc-in [:results ns]
+                  [{:context [(str ns ": namespace couldn't be loaded")]
+                    :error   exception
+                    :index   0
+                    :ns      ns
+                    :file    file
+                    :line    (line-number-of-root-problem exception)
+                    :type    :error}])
+        (update :summary merge {:error 1 :ns 1}))))
+
 (defmacro with-in-memory-reporter
-  [^Symbol namespace & forms]
-  `(binding [midje.config/*config*          (merge midje.config/*config* {:print-level :print-facts})
+  [{:keys [ns file]} & forms]
+  `(binding [*ns*                           ~ns
+             *file*                         (str ~file)
+             midje.config/*config*          (merge midje.config/*config* {:print-level :print-facts})
              midje.state/emission-functions emission-map]
-     (reset-report! ~namespace)
-     ~@forms
-     (summarize-test-results!)
-     (drop-irrelevant-keys!)
-     @report))
+     (try
+       (reset-report! ~ns ~file)
+       ~@forms
+       (summarize-test-results!)
+       (drop-irrelevant-keys!)
+       @report
+       (catch Exception err#
+         (report-for-broken-ns ~ns ~file err#)))))

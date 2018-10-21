@@ -17,7 +17,7 @@
                      :actual   5
                      :message  '()
                      :type     :fail}]}
-                  :summary {:error 0 :fact 1 :fail 1 :ns 1 :pass 0 :skip 0 :test 1}})
+                  :summary {:check 1 :error 0 :fact 1 :fail 1 :ns 1 :pass 0 :to-do 0}})
 
 (def transformed-report (misc/transform-value test-report))
 
@@ -43,12 +43,13 @@
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
        (fact "runs the given test and sends the report to the client"
-             (test/handle-test {:op         "midje-test"
-                                :ns         "octocat.arithmetic-test"
-                                :test-forms "(fact (+ 2 3) => 6)"
-                                :transport  ..transport..}) => irrelevant
+             (test/handle-test {:op        "midje-test"
+                                :ns        "octocat.arithmetic-test"
+                                :line      10
+                                :source    "(fact (+ 2 3) => 6)"
+                                :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/run-test 'octocat.arithmetic-test "(fact (+ 2 3) => 6)") => test-report
+              (test-runner/run-test 'octocat.arithmetic-test "(fact (+ 2 3) => 6)" 10) => test-report
               (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
@@ -56,7 +57,7 @@
              (test/handle-test {:op        "midje-retest"
                                 :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/re-run-failed-tests) => test-report
+              (test-runner/re-run-non-passing-tests) => test-report
               (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 

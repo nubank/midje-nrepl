@@ -23,16 +23,20 @@
                 "amazonica"   false
                 "bouncycastle"   false)
 
+       (fact "returns a java.io.File representing the file where the namespace in question is declared"
+             (.getPath (project-info/file-for-ns 'octocat.arithmetic-test))
+             => #"test/octocat/arithmetic_test.clj$")
+
        (fact "reads the project.clj file of the current project and returns its contents as a list"
              (project-info/read-leiningen-project)
              => (match (m/prefix (list 'defproject 'midje-nrepl string?))))
 
        (fact "reads the project.clj file of the current project and returns it as a map"
              (project-info/read-project-map)
-             => (match {:name 'octocat
-                        :version "1.0.0"
-                        :dependencies         [['org.clojure/clojure "1.9.0"]]
-                        :test-paths           ["test" "src/test/clojure"]})
+             => (match {:name         'octocat
+                        :version      "1.0.0"
+                        :dependencies [['org.clojure/clojure "1.9.0"]]
+                        :test-paths   ["test" "src/test/clojure"]})
              (provided
               (project-info/read-leiningen-project) => lein-project-with-test-paths))
 
