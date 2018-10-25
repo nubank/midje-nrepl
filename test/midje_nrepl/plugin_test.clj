@@ -21,6 +21,9 @@
                     :test-paths
                     '("/home/john-doe/projects/octocat/test")})
 
+(def project-with-conflicting-version-of-clojure-tools-namespace
+  (assoc basic-project :dependencies [['org.clojure/tools.namespace "0.2.11"]]))
+
 (def project-with-repl-options (assoc basic-project
                                       :repl-options {:host    "0.0.0.0"
                                                      :port    4001
@@ -64,5 +67,6 @@
                       => (match (m/equals ?augmented-project)))
                 ?project                                       ?augmented-project
                 basic-project                                  augmented-basic-project
+                project-with-conflicting-version-of-clojure-tools-namespace                                  augmented-basic-project
                 project-with-repl-options                      augmented-project-with-repl-options
                 project-with-repl-options-and-nrepl-middleware augmented-project-with-repl-options-and-nrepl-middleware))
