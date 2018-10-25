@@ -5,10 +5,10 @@
             [clojure.tools.nrepl.transport :as transport]
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.middleware.fake :as fake]
+            [midje-nrepl.misc :as misc]
             [midje-nrepl.nrepl
              :refer
              [defmiddleware middleware-vars-expected-by-wrap-inhibit-tests]]
-            [midje-nrepl.project-info :as project-info]
             [midje.sweet :refer :all]
             [refactor-nrepl.middleware :as refactor-nrepl]))
 
@@ -83,4 +83,4 @@ it replies to the message"
              (middleware-vars-expected-by-wrap-inhibit-tests)
              => #{#'eval/interruptible-eval #'cider/wrap-refresh}
              (provided
-              (project-info/dependency-in-classpath? "refactor-nrepl") => false)))
+              (misc/dependency-in-classpath? "refactor-nrepl") => false)))
