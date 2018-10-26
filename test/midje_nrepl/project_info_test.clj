@@ -13,16 +13,6 @@
 
 (facts "about getting information of the current project"
 
-       (tabular (fact "returns true if the dependency is in the current project's classpath or false otherwise"
-                      (project-info/dependency-in-classpath? ?dependency) => ?result)
-                ?dependency ?result
-                "clojure"    true
-                "cider-nrepl"    true
-                "refactor-nrepl"    true
-                "midje"    true
-                "amazonica"   false
-                "bouncycastle"   false)
-
        (fact "returns a java.io.File representing the file where the namespace in question is declared"
              (.getPath (project-info/file-for-ns 'octocat.arithmetic-test))
              => #"test/octocat/arithmetic_test.clj$")
