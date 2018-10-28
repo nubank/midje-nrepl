@@ -1,6 +1,6 @@
 (defproject nubank/midje-nrepl "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+  :description "nREPL middleware layer to interact with Midje"
+  :url "https://github.com/nubank/midje-nrepl"
   :license {:name "Apache License, Version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :dependencies [[org.clojure/clojure "1.9.0"]
