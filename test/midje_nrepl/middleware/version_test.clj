@@ -12,7 +12,7 @@
 
 (facts "about the version middleware"
        (against-background
-        (io/resource "META-INF/leiningen/midje-nrepl/midje-nrepl/project.clj")
+        (io/resource "META-INF/leiningen/nubank/midje-nrepl/project.clj")
         => (io/input-stream (.getBytes project-clj)))
 
        (fact "returns the current version of this project"
