@@ -12,7 +12,7 @@
 (defn middleware [project]
   (-> project
       (update :dependencies (fnil concat [])
-              [['midje-nrepl (version/get-current-version)]])
+              [['nubank/midje-nrepl (version/get-current-version)]])
       (update :dependencies remove-conflicting-dependencies)
       (update :dependencies concat [clojure-tools-namespace])
       (update-in [:repl-options :nrepl-middleware]                 (fnil concat [])

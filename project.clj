@@ -1,4 +1,4 @@
-(defproject midje-nrepl "0.1.0-SNAPSHOT"
+(defproject nubank/midje-nrepl "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Apache License, Version 2.0"
