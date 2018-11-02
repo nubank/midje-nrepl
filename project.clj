@@ -16,7 +16,4 @@
                                        [refactor-nrepl "2.4.0"]
                                        [leiningen-core "2.8.1"]]}}
 
-  :test-paths ["integration" "test"]
-
-  :aliases {"unit-tests" ["midje" "midje-nrepl.*"]
-            "integration" ["midje" "integration.*"]})
+  :test-paths ["integration" "test"])
