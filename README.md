@@ -52,7 +52,7 @@ Type `make test` to run unit tests (those under the `test` directory). Type
 directory). They are useful for exercising a real communication with a nREPL
 server running within a fake project. If you are working interactively on a REPL
 and want to run integration tests, type `make setup-integration` to set-up the
-needed stuff.
+needed stuff. Type `make test-all` to run both kinds of tests.
 
 ## License
 Copyright © 2018 Nubank
