@@ -116,13 +116,13 @@
   (throws clojure.lang.ExceptionInfo #(matcher-combinators/match? (matcher-combinators/match matcher (ex-data %)))))
 
 (tabular (fact "formats the tabular fact according to default options"
-           (formatter/format-tabular ?tabular)
-           => ?result)
-  ?tabular ?result
-  basic-tabular right-aligned-basic-tabular
-  basic-tabular-w-deliniated-header right-aligned-basic-tabular-w-deliniated-header
-  just-a-fact (throws-match {:type ::formatter/no-tabular})
-  just-a-vector (throws-match {:type ::formatter/no-tabular})
-  tabular-with-no-headers (throws-match {:type ::formatter/no-table-headers})
-  malformed-tabular (throws-match {:type ::formatter/malformed-table})
-  )
+               (formatter/format-tabular ?tabular)
+               => ?result)
+         ?tabular ?result
+         basic-tabular right-aligned-basic-tabular
+         basic-tabular-w-deliniated-header right-aligned-basic-tabular-w-deliniated-header
+         just-a-fact (throws-match {:type ::formatter/no-tabular})
+         just-a-vector (throws-match {:type ::formatter/no-tabular})
+                                        ;         tabular-with-no-headers (throws-match {:type ::formatter/no-table-headers})
+         malformed-tabular (throws-match {:type ::formatter/malformed-table})
+         )
