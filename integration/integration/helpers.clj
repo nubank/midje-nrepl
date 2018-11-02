@@ -6,7 +6,7 @@
 (def ^:private octocat-dir "dev-resources/octocat")
 
 (defn- get-nrepl-port []
-  (with-retry {:retry-on        java.io.FileNotFoundException
+  (with-retry {:retry-on        [java.io.FileNotFoundException java.lang.NumberFormatException]
                :max-duration-ms 10000}
     (-> (io/file octocat-dir ".nrepl-port")
         slurp

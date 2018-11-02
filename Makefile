@@ -10,6 +10,7 @@ test:
 	@lein midje midje-nrepl.*
 
 setup-integration:
+	@echo "Setting up needed stuff to run integration tests..."
 	lein install
 	cd $(octocat) && \
 	lein update-in :plugins conj "[cider/cider-nrepl \"$(cider_nrepl_version)\"]" -- \
@@ -19,10 +20,12 @@ update-in :plugins conj "[nubank/midje-nrepl \"$(midje_nrepl_version)\"]" -- \
 		echo $$! > $(octocat)/.nrepl-pid
 
 teardown-integration:
+	@echo "Cleaning up integration tests..."
 	@cd $(octocat); \
 	pid=$$(cat .nrepl-pid); \
 	pkill --parent $$pid && \
 	rm .nrepl-pid .nrepl-port
+	@echo "Done"
 
 test-integration: setup-integration
 	@echo "Running integration tests..."
