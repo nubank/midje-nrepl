@@ -1,6 +1,6 @@
 [![cider]](https://github.com/clojure-emacs/cider)
-[![emidje]](https://github.com/nubank/emidje)
-[! [midje]](https://github.com/marick/Midje)
+[![emidje]](https://github.com/nubank/emidje) [!
+[midje]](https://github.com/marick/Midje)
 [![nrepl]](https://github.com/nrepl/nrepl)
 [![refactor-nrepl]](https://github.com/clojure-emacs/refactor-nrepl)
 
