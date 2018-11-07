@@ -9,13 +9,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-### Changed
+- Initial version with a set of features for running Midje tests, getting report
+  information and formatting tabular facts within a NREPL session.
 
-### Fixed
-
-### Removed
-
-## [0.1.1] - 2018-03-18
-
-[Unreleased]: https://github.com/nubank/midje-nrepl/compare/0.1.1...HEAD
-[0.1.1]: https://github.com/nubank/midje-nrepl/compare/0.1.0...0.1.1
+[Unreleased]: https://github.com/nubank/midje-nrepl/compare/1.0.0...HEAD
