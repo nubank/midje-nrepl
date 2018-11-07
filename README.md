@@ -27,7 +27,7 @@ or in the `:user` profile found at `~/.lein/profiles.clj`:
 
 ```clojure
 :plugins [[cider/cider-nrepl "0.18.0"]
-[nubank/midje-nrepl "0.1.0-BETA"]]
+[nubank/midje-nrepl "1.0.0"]]
 ```
 
 Notice that currently only `Leiningen` is supported.
@@ -44,6 +44,10 @@ Notice that currently only `Leiningen` is supported.
   a set of facts in a given namespace, all facts defined in the project, allow
   re-running non-passing tests, etc.
 * Support auto-formatting tabular facts.
+
+## Changelog
+
+An extensive changelog is available [here](CHANGELOG.md).
 
 ## Testing
 
