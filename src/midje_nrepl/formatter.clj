@@ -112,9 +112,9 @@
 (defn- deliniate-header
   [formatted-tabular]
   (-> formatted-tabular
-      (string/replace #"(\n\s*)(\?[a-zA-Z]+)" "$1[$2")
+      (string/replace #"(\n\s*)(\?[a-zA-Z-_]+)" "$1[$2")
       (string/replace #"\s\[\?" "[?")
-      (string/replace #"(\?[a-z-_A-Z]+)\s*\n" "$1]\n")))
+      (string/replace #"(\?[a-zA-Z-_]+)\s*\n" "$1]\n")))
 
 (defn format-tabular
   ([sexpr]
