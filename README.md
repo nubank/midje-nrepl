@@ -5,7 +5,7 @@ nREPL middleware to interact with Midje.
 The goal of midje-nrepl is to provide a better support for interacting with
 [Midje][midje] from Clojure tools such as [Cider][cider]. It offers a set of
 features for running Midje tests, getting report information and formatting
-facilities to be used within a `REPL` session.
+facilities to be used within a [nREPL][nrepl] session.
 
 ## Usage
 
@@ -58,7 +58,7 @@ Copyright © 2018 Nubank
 Distributed under the Apache License, Version 2.0
 
 [cider]: https://github.com/clojure-emacs/cider
-[emidje]: https://github.com/nubank/emidje [!
+[emidje]: https://github.com/nubank/emidje
 [midje]: https://github.com/marick/Midje
 [nrepl]: https://github.com/nrepl/nrepl
 [refactor-nrepl]: https://github.com/clojure-emacs/refactor-nrepl
