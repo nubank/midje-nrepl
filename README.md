@@ -1,15 +1,9 @@
-[![cider]](https://github.com/clojure-emacs/cider)
-[![emidje]](https://github.com/nubank/emidje) [!
-[midje]](https://github.com/marick/Midje)
-[![nrepl]](https://github.com/nrepl/nrepl)
-[![refactor-nrepl]](https://github.com/clojure-emacs/refactor-nrepl)
-
 # midje-nrepl
 
 nREPL middleware to interact with Midje.
 
 The goal of midje-nrepl is to provide a better support for interacting with
-[Midje](midje) from Clojure tools such as [Cider](cider). It offers a set of
+[Midje][midje] from Clojure tools such as [Cider][cider]. It offers a set of
 features for running Midje tests, getting report information and formatting
 facilities to be used within a `REPL` session.
 
@@ -17,7 +11,7 @@ facilities to be used within a `REPL` session.
 
 ### With Cider and Emidje
 
-If you are using [Cider](cider) and [Emidje](emidje) within Emacs, just call
+If you are using [Cider][cider] and [Emidje][emidje] within Emacs, just call
 `cider-jack-in` and the appropriate `midje-nrepl`'s version will be injected in
 the `REPL` automatically.
 
@@ -36,7 +30,7 @@ Notice that currently only `Leiningen` is supported.
 
 * Inhibit Midje facts from being run on certain nREPL operations such as `eval`,
   `load-file`, `refresh`, `refresh-all` and `warm-ast-cache` (when
-  [refactor-nrepl](refactor-nrepl)) is available on the project's
+  [refactor-nrepl][refactor-nrepl]) is available on the project's
   classpath. This is useful specially on large projects with slow and heavy
   tests, where those run inadvertently as a side effect of the aforementioned
   operations.
@@ -62,3 +56,9 @@ needed stuff. Type `make test-all` to run both kinds of tests.
 Copyright © 2018 Nubank
 
 Distributed under the Apache License, Version 2.0
+
+[cider]: https://github.com/clojure-emacs/cider
+[emidje]: https://github.com/nubank/emidje [!
+[midje]: https://github.com/marick/Midje
+[nrepl]: https://github.com/nrepl/nrepl
+[refactor-nrepl]: https://github.com/clojure-emacs/refactor-nrepl
