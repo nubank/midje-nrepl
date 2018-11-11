@@ -19,6 +19,8 @@
                    :plugins [[lein-midje "3.2.1"]]}
              :provided {:dependencies [[cider/cider-nrepl "0.17.0"]
                                        [refactor-nrepl "2.4.0"]
-                                       [leiningen-core "2.8.1"]]}}
+                                       [leiningen-core "2.8.1"]]}
+             :release {  :repositories  [["clojars"  {:url "https://clojars.org/repo/"
+                                                      :creds :gpg}]]}}
 
   :test-paths ["integration" "test"])
