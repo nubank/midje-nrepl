@@ -4,8 +4,9 @@
   :license {:name "Apache License, Version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :repositories  [["central"  {:url "https://repo1.maven.org/maven2/" :snapshots false}]
-                  ["clojars"  {:url "https://clojars.org/repo/" :creds :gpg}]]
-  :deploy-repositories [["releases" :clojars]]
+                  ["clojars"  {:url "https://clojars.org/repo/"}]]
+  :deploy-repositories [["releases" :clojars]
+                        ["snapshots" :clojars]]
 
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/tools.nrepl "0.2.13"]
