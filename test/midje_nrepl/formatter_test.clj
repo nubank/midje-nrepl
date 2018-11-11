@@ -60,8 +60,8 @@
 
 (def basic-tabular-w-deliniated-header
   "(tabular (fact \"about basic arithmetic operations\"
-  (?operation ?a ?b) => ?result)
-  [?operation ?a ?b ?result]
+  (?my_operation ?a ?b) => ?my-result)
+  [?my_operation ?a ?b ?my-result]
   + 2 5 10
   + 10 4 14
   - 100 25 75
@@ -82,14 +82,14 @@
 
 (def right-aligned-basic-tabular-w-deliniated-header
   "(tabular (fact \"about basic arithmetic operations\"
-  (?operation ?a ?b) => ?result)
-  [?operation   ?a  ?b ?result]
-            +    2   5      10
-            +   10   4      14
-            -  100  25      75
-            *  123  69    8487
-            /   15   8    15/8
-            / 4284 126      34)")
+  (?my_operation ?a ?b) => ?my-result)
+  [?my_operation   ?a  ?b ?my-result]
+               +    2   5         10
+               +   10   4         14
+               -  100  25         75
+               *  123  69       8487
+               /   15   8       15/8
+               / 4284 126         34)")
 
 (def just-a-fact
   "(fact \"this isn't a tabular\"
