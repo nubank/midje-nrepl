@@ -53,8 +53,7 @@
   (boolean (re-find #"^\?|^\[\?" value)))
 
 (defn- number-of-columns-fn [cells]
-  (let [expanded-cells cells #_(expand-headers-on-cells cells)
-        number-of-headers (count (take-while table-header? expanded-cells))]
+  (let [number-of-headers (count (take-while table-header? cells))]
     (if-not (zero? number-of-headers)
       number-of-headers
       (throw-exception ::no-table-headers "Table has no headers. Check if headers start with `?`"))))
@@ -113,9 +112,9 @@
 (defn- deliniate-header
   [formatted-tabular]
   (-> formatted-tabular
-      (string/replace #"(\n\s*)(\?[a-zA-Z]+)" "$1[$2")
+      (string/replace #"(\n\s*)(\?[a-zA-Z-_]+)" "$1[$2")
       (string/replace #"\s\[\?" "[?")
-      (string/replace #"(\?[a-zA-Z]+)\n" "$1]\n")))
+      (string/replace #"(\?[a-zA-Z-_]+)\s*\n" "$1]\n")))
 
 (defn format-tabular
   ([sexpr]
@@ -123,13 +122,12 @@
   ([sexpr options]
    {:pre [sexpr]}
    (let [zloc* (move-to-first-header sexpr)
-         deliniated-header? (boolean (->> zloc* zip/string (re-find #"^\[\?")))
+         deliniated-header? (boolean (some->> zloc* zip/string (re-find #"^\[\?")))
          zloc (if deliniated-header? (expand-header zloc*) zloc*)
          options (merge {:alignment      :right
                          :border-spacing 1
                          :indent-size    2
                          :deliniated-header? deliniated-header?} options)
-
          formatted-tabular (format-tabular-loop zloc (paddings-for-tabular-sexpr zloc options) options)]
      (if deliniated-header?
        (deliniate-header formatted-tabular)
