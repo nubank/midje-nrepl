@@ -19,7 +19,7 @@
 
        (fact "reads the project.clj file of the current project and returns its contents as a list"
              (project-info/read-leiningen-project)
-             => (match (m/prefix (list 'defproject 'midje-nrepl string?))))
+             => (match (m/prefix (list 'defproject 'nubank/midje-nrepl string?))))
 
        (fact "reads the project.clj file of the current project and returns it as a map"
              (project-info/read-project-map)

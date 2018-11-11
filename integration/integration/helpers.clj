@@ -1,13 +1,16 @@
 (ns integration.helpers
-  (:require [clojure.tools.nrepl :as nrepl]
-            [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io]
+            [clojure.tools.nrepl :as nrepl]
+            [diehard.core :refer [with-retry]]))
 
 (def ^:private octocat-dir "dev-resources/octocat")
 
 (defn- get-nrepl-port []
-  (-> (io/file octocat-dir ".nrepl-port")
-      slurp
-      Integer/parseInt))
+  (with-retry {:retry-on        [java.io.FileNotFoundException java.lang.NumberFormatException]
+               :max-duration-ms 10000}
+    (-> (io/file octocat-dir ".nrepl-port")
+        slurp
+        Integer/parseInt)))
 
 (defn send-message [message]
   (with-open [conn (nrepl/connect :port (get-nrepl-port))]

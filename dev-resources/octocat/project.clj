@@ -7,4 +7,4 @@
   :dependencies [[org.clojure/clojure "1.9.0"]]
   :profiles {:dev {:dependencies [[midje "1.9.2-alpha3"]]}}
 
-  :repl-options {:timeout 3000})
+  :repl-options {:timeout 7000})

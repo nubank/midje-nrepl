@@ -4,7 +4,7 @@
             [midje-nrepl.middleware.version :as version]
             [midje.sweet :refer :all]))
 
-(def project_clj "(defproject midje-nrepl \"1.0.0\"
+(def project-clj "(defproject nubank/midje-nrepl \"1.0.0\"
   :description \"FIXME\"
   :url \"http://example.com/FIXME\"
   :license {:name \"Eclipse Public License\"}
@@ -12,8 +12,8 @@
 
 (facts "about the version middleware"
        (against-background
-        (io/resource "META-INF/leiningen/midje-nrepl/midje-nrepl/project.clj")
-        => (io/input-stream (.getBytes project_clj)))
+        (io/resource "META-INF/leiningen/nubank/midje-nrepl/project.clj")
+        => (io/input-stream (.getBytes project-clj)))
 
        (fact "returns the current version of this project"
              (version/get-current-version)
