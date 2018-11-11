@@ -123,6 +123,6 @@
          basic-tabular-w-deliniated-header right-aligned-basic-tabular-w-deliniated-header
          just-a-fact (throws-match {:type ::formatter/no-tabular})
          just-a-vector (throws-match {:type ::formatter/no-tabular})
-                                        ;         tabular-with-no-headers (throws-match {:type ::formatter/no-table-headers})
+         tabular-with-no-headers (throws-match {:type ::formatter/no-table-headers})
          malformed-tabular (throws-match {:type ::formatter/malformed-table})
          )
