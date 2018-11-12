@@ -4,7 +4,8 @@
   :license {:name "Apache License, Version 2.0"
             :url  "http://www.apache.org/licenses/LICENSE-2.0"}
   :repositories  [["central"  {:url "https://repo1.maven.org/maven2/" :snapshots false}]
-                  ["clojars"  {:url "https://repo.clojars.org"}]]
+                  ["clojars" {:url   "https://clojars.org/repo/"
+                              :creds :gpg}]]
   :deploy-repositories [["releases" :clojars]
                         ["snapshots" :clojars]]
 
@@ -19,8 +20,6 @@
                         :plugins      [[lein-midje "3.2.1"]]}
              :provided {:dependencies [[cider/cider-nrepl "0.17.0"]
                                        [refactor-nrepl "2.4.0"]
-                                       [leiningen-core "2.8.1"]]}
-             :release  {  :repositories [["clojars"  {:url   "https://repo.clojars.org"
-                                                      :creds :gpg}]]}}
+                                       [leiningen-core "2.8.1"]]}}
 
   :test-paths ["integration" "test"])
