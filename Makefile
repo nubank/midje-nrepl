@@ -36,7 +36,7 @@ test-all: test test-integration
 
 release: test-all
 	@echo "Releasing nubank/midje-nrepl..."
-	lein with-profile +release release
+	lein release :patch
 	@echo "Done"
 
 clean:
