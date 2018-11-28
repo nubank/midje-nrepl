@@ -34,9 +34,14 @@ test-integration: setup-integration
 
 test-all: test test-integration
 
+publish-snapshot:
+	@echo "Publishing snapshot version..."
+	@lein deploy
+
 release: test-all
 	@echo "Releasing nubank/midje-nrepl..."
 	lein release :patch
+	@make publish-snapshot
 	@echo "Done"
 
 clean:
