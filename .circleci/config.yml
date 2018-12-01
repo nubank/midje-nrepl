@@ -1,0 +1,20 @@
+version: 2
+jobs:
+  unit-tests:
+    docker:
+      - image: circleci/clojure:lein-2.8.1
+    steps:
+      - checkout
+      - run: make test
+  integration-tests:
+    docker:
+      - image: circleci/clojure:lein-2.8.1
+    steps:
+      - checkout
+      - run: make test-integration
+workflows:
+  version: 2
+  test:
+    jobs:
+      - unit-tests
+      - integration-tests
