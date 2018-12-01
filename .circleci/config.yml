@@ -9,17 +9,17 @@ jobs:
     steps:
       - checkout
       - run:
-        command: |
-          sudo apt-get install make
-          make test
+          command: |
+            sudo apt-get install make
+            make test
   integration-tests:
     <<: *defaults
     steps:
       - checkout
       - run:
-        command: |
-          sudo apt-get install make
-          make test-integration
+          command: |
+            sudo apt-get install make
+            make test-integration
 workflows:
   version: 2
   test:
