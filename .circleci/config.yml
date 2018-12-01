@@ -1,17 +1,25 @@
 version: 2
+job_defaults: &defaults
+  docker:
+    - image: circleci/clojure:lein-2.8.1
+
 jobs:
   unit-tests:
-    docker:
-      - image: circleci/clojure:lein-2.8.1
+    <<: *defaults
     steps:
       - checkout
-      - run: make test
+      - run:
+        command: |
+          sudo apt-get install make
+          make test
   integration-tests:
-    docker:
-      - image: circleci/clojure:lein-2.8.1
+    <<: *defaults
     steps:
       - checkout
-      - run: make test-integration
+      - run:
+        command: |
+          sudo apt-get install make
+          make test-integration
 workflows:
   version: 2
   test:
