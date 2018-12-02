@@ -1,17 +1,43 @@
 version: 2
+job_defaults: &defaults
+  docker:
+    - image: circleci/clojure:lein-2.8.1
+
 jobs:
   unit-tests:
-    docker:
-      - image: circleci/clojure:lein-2.8.1
+    <<: *defaults
     steps:
       - checkout
-      - run: make test
+      - restore_cache:
+          keys:
+            - maven-repo-v1-{{ .Branch }}-{{ checksum "project.clj" }}
+            - maven-repo-v1-{{ .Branch }}-
+            - maven-repo-v1-
+      - run:
+          command: |
+            sudo apt-get install make
+            make test
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-repo-v1-{{ .Branch }}-{{ checksum "project.clj" }}
   integration-tests:
-    docker:
-      - image: circleci/clojure:lein-2.8.1
+    <<: *defaults
     steps:
       - checkout
-      - run: make test-integration
+      - restore_cache:
+          keys:
+            - maven-repo-v1-{{ .Branch }}-{{ checksum "project.clj" }}
+            - maven-repo-v1-{{ .Branch }}-
+            - maven-repo-v1-
+      - run:
+          command: |
+            sudo apt-get install make
+            make test-integration
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-repo-v1-{{ .Branch }}-{{ checksum "project.clj" }}
 workflows:
   version: 2
   test:
