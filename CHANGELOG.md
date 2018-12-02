@@ -7,7 +7,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## 1.0.0 - 2018-11-12
+### Added
+- Support for running tests on [CircleCI](https://circleci.com/).
+
+## [1.0.0] - 2018-11-12
 
 ### Added
 
