@@ -8,18 +8,36 @@ jobs:
     <<: *defaults
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - maven-repo-v1-{{ .Branch }}-{{ checksum "project.clj" }}
+            - maven-repo-v1-{{ .Branch }}-
+            - maven-repo-v1-
       - run:
           command: |
             sudo apt-get install make
             make test
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-repo-v1-{{ .Branch }}-{{ checksum "project.clj" }}
   integration-tests:
     <<: *defaults
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - maven-repo-v1-{{ .Branch }}-{{ checksum "project.clj" }}
+            - maven-repo-v1-{{ .Branch }}-
+            - maven-repo-v1-
       - run:
           command: |
             sudo apt-get install make
             make test-integration
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-repo-v1-{{ .Branch }}-{{ checksum "project.clj" }}
 workflows:
   version: 2
   test:
