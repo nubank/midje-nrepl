@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-version=$(git tag --sort=committerdate)
+version=$(git tag --sort=committerdate | tail -n 1)
 
 changelog=CHANGELOG.md
 
