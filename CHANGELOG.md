@@ -7,6 +7,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.1] - 2018-12-05
+
 ### Added
 - Support for running tests on [CircleCI](https://circleci.com/).
 
@@ -20,4 +22,5 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - Initial version with a set of features for running Midje tests, getting report
   information and formatting tabular facts within a NREPL session.
 
-[Unreleased]: https://github.com/nubank/midje-nrepl/compare/1.0.0...HEAD
+[Unreleased]: https://github.com/nubank/midje-nrepl/compare/1.0.1...HEAD
+[1.0.1]: https://github.com/nubank/midje-nrepl/compare/1.0.0...1.0.1
