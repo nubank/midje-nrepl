@@ -84,16 +84,16 @@
                                      :position ["arithmetic_test.clj" 15]
                                      :type     :some-prerequisites-were-called-the-wrong-number-of-times})
 
-(def failure-of-tabular-fact {:description          ["some crazy additions" nil]
-                              :arrow                '=>
-                              :call-form            (+ 5 6)
-                              :expected-result-form 12
-                              :check-expectation    :expect-match
-                              :midje/table-bindings {'?x 5 '?y 6 '?result 12}
-                              :type                 :actual-result-did-not-match-expected-value
-                              :expected-result      12
-                              :actual               11
-                              :position             ["octocat.arithmetic-test" 51]})
+(def failure-with-table-bindings {:description          ["some crazy additions" nil]
+                                  :arrow                '=>
+                                  :call-form            (+ 5 6)
+                                  :expected-result-form 12
+                                  :check-expectation    :expect-match
+                                  :midje/table-bindings {'?x 5 '?y 6 '?result 12}
+                                  :type                 :actual-result-did-not-match-expected-value
+                                  :expected-result      12
+                                  :actual               11
+                                  :position             ["octocat.arithmetic-test" 51]})
 
 (def arithmetic-test-file (io/file "/home/john-doe/dev/octocat/test/octocat/arithmetic_test.clj"))
 
@@ -238,7 +238,7 @@ it is interpreted as an error in the test report"
        (fact "treats failing tabular facts properly"
              (reporter/starting-to-check-top-level-fact failing-tabular-fact-function)
              (reporter/starting-to-check-fact failing-tabular-fact-function)
-             (reporter/fail failure-of-tabular-fact)
+             (reporter/fail failure-with-table-bindings)
              @reporter/report => (match {:results {'octocat.arithmetic-test
                                                    [{:context ["this is inquestionable"]
                                                      :index   0
