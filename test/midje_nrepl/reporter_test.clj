@@ -34,6 +34,12 @@
                                          :name            "this is impossible"
                                          :top-level-fact? true}))
 
+(def failing-tabular-fact-function (with-meta (constantly false)
+                                     #:midje{:guid            "bc65e9bd20065ba5449ba7f0254e9907c5e9ffe5"
+                                             :source          '(fact (+ 5 6) => 12)
+                                             :namespace       'octocat.arithmetic-test
+                                             :top-level-fact? false}))
+
 (def failure-with-simple-mismatch {:actual               1
                                    :arrow                '=>
                                    :call-form            1
@@ -77,6 +83,17 @@
                                                   :position             ["arithmetic_test.clj" 15]})
                                      :position ["arithmetic_test.clj" 15]
                                      :type     :some-prerequisites-were-called-the-wrong-number-of-times})
+
+(def failure-with-table-bindings {:description          ["some crazy additions" nil]
+                                  :arrow                '=>
+                                  :call-form            (+ 5 6)
+                                  :expected-result-form 12
+                                  :check-expectation    :expect-match
+                                  :midje/table-bindings {'?x 5 '?y 6 '?result 12}
+                                  :type                 :actual-result-did-not-match-expected-value
+                                  :expected-result      12
+                                  :actual               11
+                                  :position             ["octocat.arithmetic-test" 51]})
 
 (def arithmetic-test-file (io/file "/home/john-doe/dev/octocat/test/octocat/arithmetic_test.clj"))
 
@@ -218,12 +235,63 @@ it is interpreted as an error in the test report"
                                                      :line    25
                                                      :type    :to-do}]}}))
 
+       (fact "treats failing tabular facts properly"
+             (reporter/starting-to-check-top-level-fact failing-tabular-fact-function)
+             (reporter/starting-to-check-fact failing-tabular-fact-function)
+             (reporter/fail failure-with-table-bindings)
+             @reporter/report => (match {:results {'octocat.arithmetic-test
+                                                   [{:context ["this is inquestionable"]
+                                                     :index   0
+                                                     :ns      'octocat.arithmetic-test
+                                                     :file    expected-file?
+                                                     :line    10
+                                                     :source  "(fact \"this is inquestionable\" 1 => 1)"
+                                                     :type    :pass}
+                                                    {:context  ["this is wrong"]
+                                                     :index    1
+                                                     :ns       'octocat.arithmetic-test
+                                                     :file     expected-file?
+                                                     :line     15
+                                                     :source   "(fact \"this is wrong\" 1 => 2)"
+                                                     :expected "2\n"
+                                                     :actual   "1\n"
+                                                     :message  '()
+                                                     :type     :fail}
+                                                    {:context  ["this is impossible"]
+                                                     :index    2
+                                                     :ns       'octocat.arithmetic-test
+                                                     :file     expected-file?
+                                                     :line     20
+                                                     :source   "(fact \"this is impossible\" (/ 10 0) => 0)"
+                                                     :expected "0\n"
+                                                     :error    #(= arithmetic-exception %)
+                                                     :type     :error}
+                                                    {:context ["TODO"]
+                                                     :index   3
+                                                     :line    25
+                                                     :type    :to-do}
+                                                    {:actual   "11\n"
+                                                     :context  ["some crazy additions"
+                                                                "With table substitutions:"
+                                                                "?x 5"
+                                                                "?y 6"
+                                                                "?result 12"]
+                                                     :expected "12\n"
+                                                     :file     expected-file?
+                                                     :line     51
+                                                     :index    4
+                                                     :message  ()
+                                                     :ns       'octocat.arithmetic-test
+                                                     :source   "(fact (+ 5 6) => 12)"
+                                                     :type     :fail}]}})
+             (reporter/finishing-top-level-fact failing-tabular-fact-function))
+
        (fact "summarizes test results, by computing the counters for each category"
              (reporter/summarize-test-results!)
-             @reporter/report => (match {:summary {:check 4
+             @reporter/report => (match {:summary {:check 5
                                                    :error 1
-                                                   :fact  3
-                                                   :fail  1
+                                                   :fact  4
+                                                   :fail  2
                                                    :ns    1
                                                    :pass  1
                                                    :to-do 1}}))

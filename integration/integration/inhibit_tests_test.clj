@@ -15,10 +15,6 @@
 (defn read-file-content [file-path]
   (slurp (io/file octocat file-path)))
 
-(defn map-without-key [key]
-  (fn [map]
-    (not (set/subset? #{key} (set (keys map))))))
-
 (facts "about evaluating code without running tests"
 
        (fact "the nREPL continues to evaluate sexprs normally even with the wrap-eval middleware in the stack"
@@ -30,24 +26,28 @@
              (send-message {:op        "load-file"
                             :file      (read-file-content core)
                             :file-path core})
-             => (match (list {:value "56"}
-                             {:status ["done"]})))
+             => (match [{:value "56"}
+                        {:status ["done"]}]))
 
-       (fact "facts are evaluated but not run"
+       (fact "facts are evaluated but aren't run"
+             (send-message {:op   "eval"
+                            :code "(ns octocat.arithmetic-test
+(:require [midje.sweet :refer :all]))"})
+             =>             (match (m/embeds [{:status ["done"]}]))
              (send-message {:op   "eval"
                             :code "(fact 1 => 2)"
                             :ns   "octocat.arithmetic-test"})
-             => (match (list (map-without-key :out)
-                             {:status ["done"]})))
+             => (match (m/embeds [{:value #"(nil)|(#'octocat.arithmetic-test.*)"}
+                                  {:status ["done"]}])))
 
        (fact "files are evaluated but their facts aren't executed"
              (send-message {:op        "load-file"
                             :file      (read-file-content arithmetic-test)
                             :file-path arithmetic-test})
-             => (match (list (map-without-key :out)
-                             {:status ["done"]})))
+             => (match [{:value #"(nil)|(#'octocat.arithmetic-test.*)"}
+                        {:status ["done"]}]))
 
-       (fact "facts are run when the client sends the parameter `load-tests?` set as true"
+       (fact "facts are run when the client sends the parameter `load-tests?` set to true"
              (send-message {:op          "eval"
                             :load-tests? "true"
                             :code        "(fact 1 => 2)"
@@ -79,7 +79,7 @@
              (.exists hello-world-file)
              => false)
 
-       (facts "the Cider's wrap-refresh middleware continue working as expected"
+       (facts "the Cider's wrap-refresh middleware continues working as expected"
               (send-message {:op "refresh"})
               => (match (m/embeds [{:status ["ok"]}
                                    {:status ["done"]}])))

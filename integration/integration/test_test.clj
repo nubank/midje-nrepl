@@ -79,6 +79,38 @@ it's possible to jump to the correct position of the test in question"
                               :summary {:check 1 :error 0 :fact 1 :fail 1 :ns 1 :pass 0 :to-do 0}}
                              {:status ["done"]})))
 
+       (fact "returns proper descriptions for failing tabular facts"
+             (send-message {:op     "midje-test"
+                            :ns     "octocat.arithmetic-test"
+                            :source "(tabular (fact \"some crazy additions\"
+               (+ ?x ?y) => ?result)
+  ?x ?y ?result
+   5  6      12)"})
+             => (match [{:results
+                         {:octocat.arithmetic-test [{:context ["some crazy additions"
+                                                               "With table substitutions:"
+                                                               "?x 5"
+                                                               "?y 6"
+                                                               "?result 12"]}]}}
+                        {:status (m/in-any-order ["done"])}]))
+
+       (fact "returns the top level description for a failing tabular fact when it is inside a `facts` form"
+             (send-message {:op     "midje-test"
+                            :ns     "octocat.arithmetic-test"
+                            :source "(facts \"about crazy operations\"
+(tabular (fact \"some crazy additions\"
+               (+ ?x ?y) => ?result)
+  ?x ?y ?result
+   5  6      12))"})
+             => (match [{:results
+                         {:octocat.arithmetic-test [{:context ["about crazy operations"
+                                                               "some crazy additions"
+                                                               "With table substitutions:"
+                                                               "?x 5"
+                                                               "?y 6"
+                                                               "?result 12"]}]}}
+                        {:status (m/in-any-order ["done"])}]))
+
        (fact "when the parameters ns and/or source are missing in the message,
 the middleware returns an error"
              (first (send-message {:op "midje-test"}))
