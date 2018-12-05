@@ -41,6 +41,7 @@ publish-snapshot:
 release: test-all
 	@echo "Releasing nubank/midje-nrepl..."
 	lein release :patch
+	@./bin/post-release.sh
 	@make publish-snapshot
 	@echo "Done"
 
