@@ -35,12 +35,9 @@
                                          :top-level-fact? true}))
 
 (def failing-tabular-fact-function (with-meta (constantly false)
-                                     #:midje{:description     ["some crazy additions" nil]
-                                             :table-bindings  {'?x 5 '?y 6 '?result 12}
-                                             :guid            "bc65e9bd20065ba5449ba7f0254e9907c5e9ffe5"
+                                     #:midje{:guid            "bc65e9bd20065ba5449ba7f0254e9907c5e9ffe5"
                                              :source          '(fact (+ 5 6) => 12)
                                              :namespace       'octocat.arithmetic-test
-                                             :line            41
                                              :top-level-fact? false}))
 
 (def failure-with-simple-mismatch {:actual               1
@@ -96,7 +93,7 @@
                               :type                 :actual-result-did-not-match-expected-value
                               :expected-result      12
                               :actual               11
-                              :line                 41})
+                              :position             ["octocat.arithmetic-test" 51]})
 
 (def arithmetic-test-file (io/file "/home/john-doe/dev/octocat/test/octocat/arithmetic_test.clj"))
 
@@ -281,6 +278,7 @@ it is interpreted as an error in the test report"
                                                                 "?result 12"]
                                                      :expected "12\n"
                                                      :file     expected-file?
+                                                     :line     51
                                                      :index    4
                                                      :message  ()
                                                      :ns       'octocat.arithmetic-test

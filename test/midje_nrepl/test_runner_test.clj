@@ -162,12 +162,10 @@
 
 (facts "about running tests in a given namespace"
 
-       (tabular (fact "runs all tests in the given namespace"
-                      (test-runner/run-tests-in-ns ?namespace) => (match ?report))
-                ?namespace                ?report
-                'octocat.arithmetic-test arithmetic-test-report
-                'octocat.colls-test      colls-test-report
-                'octocat.mocks-test      mocks-test-report)
+       (fact "runs all tests in the given namespace"
+             (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
+             (test-runner/run-tests-in-ns 'octocat.colls-test) => (match colls-test-report)
+             (test-runner/run-tests-in-ns 'octocat.mocks-test) => (match mocks-test-report))
 
        (fact "returns a report with no tests when there are no tests to be run"
              (test-runner/run-tests-in-ns 'octocat.no-tests)

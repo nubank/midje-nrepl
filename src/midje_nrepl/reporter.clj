@@ -7,7 +7,7 @@
             [midje.emission.state :as midje.state]
             [midje.util.exceptions :as midje.exceptions]))
 
-(def report (atom nil))
+(def report (atom {}))
 
 (def no-tests {:results {}
                :summary {:check 0 :error 0 :fact 0 :fail 0 :ns 0 :pass 0 :to-do 0}})
@@ -41,7 +41,7 @@
   (let [description (or (fact/best-description fact)
                         (pr-str (fact/source fact)))]
     (if-let [description-vec (@report :top-level-description)]
-      (->> (conj description-vec description) distinct (keep identity) vec)
+      (->> (conj description-vec description) distinct (remove nil?) vec)
       [description])))
 
 (defn starting-to-check-fact [fact]
@@ -60,13 +60,13 @@
       actual   (assoc :actual (pretty-str actual)))))
 
 (defn- conj-test-result! [additional-data]
-  (let [{:keys [context] :as current-test} (@report :current-test)
-        ns                                 (@report :testing-ns)
-        index                              (count (get-in @report [:results ns]))
-        test                               (-> current-test
-                                               (assoc :index index)
-                                               (merge additional-data)
-                                               prettify-expected-and-actual-values)]
+  (let [current-test (@report :current-test)
+        ns           (@report :testing-ns)
+        index        (count (get-in @report [:results ns]))
+        test         (-> current-test
+                         (assoc :index index)
+                         (merge additional-data)
+                         prettify-expected-and-actual-values)]
     (swap! report update-in [:results ns]
            (comp vec (partial conj)) test)))
 
@@ -98,6 +98,26 @@
   [failure-map]
   {:message (message-list-for failure-map)})
 
+(defn- description-for-failing-tabular-fact [{:keys [description :midje/table-bindings] :or {description []}}]
+  (let [top-level-description (@report :top-level-description)
+        table-substitutions   (map (fn [[heading value]]
+                                     (format "%s %s" (pr-str heading) (pr-str value))) table-bindings)]
+    (as-> (into top-level-description description) description-vec
+      (vec (distinct description-vec))
+      (conj description-vec "With table substitutions:")
+      (into description-vec table-substitutions)
+      (remove nil? description-vec))))
+
+(defn- failing-tabular-fact? [failure-map]
+  (:midje/table-bindings failure-map))
+
+(defn- conj-failure! [failure-map]
+  (conj-test-result! (merge (when (failing-tabular-fact? failure-map)
+                              {:context (description-for-failing-tabular-fact failure-map)})
+                            (explain-failure failure-map)
+                            {:line (-> failure-map :position last)
+                             :type :fail})))
+
 (defn- conj-error! [{:keys [expected-result-form actual position]}]
   (conj-test-result! {:line     (last position)
                       :expected expected-result-form
@@ -107,9 +127,7 @@
 (defn fail [failure-map]
   (if (midje.exceptions/captured-throwable? (:actual failure-map))
     (conj-error! failure-map)
-    (conj-test-result! (merge (explain-failure failure-map)
-                              {:line (-> failure-map :position last)
-                               :type :fail}))))
+    (conj-failure! failure-map)))
 
 (defn future-fact [description-vec position]
   (conj-test-result! {:context description-vec
