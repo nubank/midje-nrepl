@@ -103,6 +103,15 @@
                           "print-fn" "Fully qualified name of a print function that will be used to print stacktraces."}}}}
   'midje-nrepl.middleware.test/handle-test)
 
+(defmiddleware wrap-test-info
+  {:handles {"test-paths"
+             {:doc "Returns a list of known test paths for the current project."}
+             "test-namespaces"
+             {:doc      "Returns a list of test namespaces declared within specified test paths."
+              :optional {"test-paths" "A list of test paths to find namespaces
+  in. If omitted find namespaces in all known test paths."}}}}
+  'midje-nrepl.middleware.test-info)
+
 (defmiddleware wrap-version
   {:expects  #{}
    :requires #{}
@@ -113,4 +122,5 @@
 (def middleware `[wrap-format
                   wrap-inhibit-tests
                   wrap-test
+                  wrap-test-info
                   wrap-version])
