@@ -5,7 +5,8 @@
             [orchard.misc :as misc]))
 
 (defn- test-namespaces-reply [{:keys [transport test-paths] :as message}]
-  (let [test-namespaces (project-info/get-test-namespaces-in test-paths)]
+  (let [test-paths      (or test-paths (project-info/get-test-paths))
+        test-namespaces (project-info/get-test-namespaces-in test-paths)]
     (transport/send transport
                     (response-for message :test-namespaces (misc/transform-value test-namespaces)))))
 
