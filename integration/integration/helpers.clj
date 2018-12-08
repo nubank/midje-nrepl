@@ -7,7 +7,7 @@
 
 (defn- get-nrepl-port []
   (with-retry {:retry-on        [java.io.FileNotFoundException java.lang.NumberFormatException]
-               :max-duration-ms 40000}
+               :max-duration-ms 60000}
     (-> (io/file octocat-dir ".nrepl-port")
         slurp
         Integer/parseInt)))
