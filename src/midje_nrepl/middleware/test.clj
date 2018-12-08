@@ -2,14 +2,16 @@
   (:require [cider.nrepl.middleware.stacktrace :as stacktrace]
             [clojure.tools.nrepl.misc :refer [response-for]]
             [clojure.tools.nrepl.transport :as transport]
+            [midje-nrepl.project-info :as project-info]
             [midje-nrepl.test-runner :as test-runner]
             [orchard.misc :as misc]))
 
 (defn- send-report [{:keys [transport] :as message} report]
   (transport/send transport (response-for message (misc/transform-value report))))
 
-(defn- test-all-reply [message]
-  (let [report (test-runner/run-all-tests)]
+(defn- test-all-reply [{:keys [test-paths] :as message}]
+  (let [test-paths (or test-paths (project-info/get-test-paths))
+        report     (test-runner/run-all-tests-in test-paths)]
     (send-report message report)))
 
 (defn- test-ns-reply [{:keys [ns] :as message}]

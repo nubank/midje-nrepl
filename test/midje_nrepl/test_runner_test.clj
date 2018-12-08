@@ -203,22 +203,20 @@
              => (match (:results individual-test-report))))
 
 (facts "about running all tests in the project"
-       (against-background
-        (project-info/get-test-paths) => ["test/octocat"])
 
        (fact "runs all tests in the project"
-             (test-runner/run-all-tests)
+             (test-runner/run-all-tests-in ["test/octocat"])
              => (match all-tests-report))
 
        (fact "returns a report with no tests when there are no tests to be run"
-             (test-runner/run-all-tests)
+             (test-runner/run-all-tests-in ["test/octocat"])
              => (match {:results {}
                         :summary {:check 0 :ns 0}})
              (provided
               (project-info/get-test-namespaces-in ["test/octocat"]) => ['octocat.no-tests]))
 
        (fact "results of the last execution are kept in the current session"
-             (test-runner/run-all-tests)
+             (test-runner/run-all-tests-in ["test/octocat"])
              => (match all-tests-report)
              @test-runner/test-results
              => (match (:results all-tests-report))))

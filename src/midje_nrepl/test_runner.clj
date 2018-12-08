@@ -68,13 +68,12 @@
              :summary (merge-with + (:summary a) (:summary b))})
           reporter/no-tests reports))
 
-(defn run-all-tests []
-  (let [test-paths (project-info/get-test-paths)]
-    (caching-test-results
-     (->> test-paths
-          project-info/get-test-namespaces-in
-          (map #(check-facts :ns %))
-          merge-test-reports))))
+(defn run-all-tests-in [test-paths]
+  (caching-test-results
+   (->> test-paths
+        project-info/get-test-namespaces-in
+        (map #(check-facts :ns %))
+        merge-test-reports)))
 
 (defn- non-passing-tests [[namespace results]]
   (let [non-passing-items (filter #(#{:error :fail} (:type %)) results)]
