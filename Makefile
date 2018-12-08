@@ -24,7 +24,7 @@ teardown-integration:
 	@cd $(octocat); \
 	pid=$$(cat .nrepl-pid); \
 	pkill --parent $$pid && \
-	rm .nrepl-pid .nrepl-port
+	rm -f .nrepl-pid .nrepl-port
 	@echo "Done"
 
 test-integration: setup-integration
