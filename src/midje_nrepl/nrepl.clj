@@ -110,7 +110,7 @@
              {:doc      "Returns a list of test namespaces declared within specified test paths."
               :optional {"test-paths" "A list of test paths to find namespaces
   in. If omitted find namespaces in all known test paths."}}}}
-  'midje-nrepl.middleware.test-info)
+  'midje-nrepl.middleware.test-info/handle-test-info)
 
 (defmiddleware wrap-version
   {:expects  #{}
