@@ -133,8 +133,9 @@ the middleware returns an error"
        (fact "runs all tests in the project"
              (send-message {:op "midje-test-all"})
              => (match (list {:results {:octocat.arithmetic-test   (complement empty?)
-                                        :octocat.side-effects-test (complement empty?)}
-                              :summary {:check 6 :error 1 :fact 5 :fail 2 :ns 2 :pass 3 :to-do 0}}
+                                        :octocat.side-effects-test (complement empty?)
+                                        :integration.database-test (complement empty?)}
+                              :summary {:check 7 :error 1 :fact 6 :fail 2 :ns 3 :pass 4 :to-do 0}}
                              {:status ["done"]})))
 
        (fact "re-runs tests that didn't pass in the previous execution"

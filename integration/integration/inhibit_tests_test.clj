@@ -72,7 +72,7 @@
        (fact "the warm-ast-cache middleware continues working as expected"
              (safe-delete-hello-world-file)
              (send-message {:op "warm-ast-cache"})
-             => (match [{:ast-statuses "(octocat.arithmetic-test \"OK\" octocat.side-effects-test \"OK\")"
+             => (match [{:ast-statuses "(integration.database-test \"OK\" octocat.arithmetic-test \"OK\" octocat.side-effects-test \"OK\")"
                          :status       ["done"]}]))
 
        (fact "Midje facts weren't run by the warm-ast-cache middleware, so the file hello-world.txt wasn't created again"
