@@ -3,6 +3,7 @@
             [clojure.tools.nrepl.transport :as transport]
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.middleware.test :as test]
+            [midje-nrepl.project-info :as project-info]
             [midje-nrepl.test-runner :as test-runner]
             [midje.sweet :refer :all]
             [orchard.misc :as misc]))
@@ -29,7 +30,18 @@
              (test/handle-test {:op        "midje-test-all"
                                 :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/run-all-tests) => test-report
+              (project-info/get-test-paths) => ["test"]
+              (test-runner/run-all-tests-in ["test"]) => test-report
+              (transport/send ..transport.. transformed-report) => irrelevant
+              (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
+
+       (fact "clients can pass a `test-paths` parameter, in order to restrict the test execution to desired paths"
+             (test/handle-test {:op         "midje-test-all"
+                                :test-paths ["src/clojure/test"]
+                                :transport  ..transport..}) => irrelevant
+             (provided
+              (project-info/get-test-paths) => irrelevant :times 0
+              (test-runner/run-all-tests-in ["src/clojure/test"]) => test-report
               (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
