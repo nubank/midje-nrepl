@@ -7,6 +7,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- Allow for nREPL clients to run all tests in a subset of the known test paths
+  of the project, by sending the parameter `test-paths` in the message.
+
 ## [1.0.1] - 2018-12-05
 
 ### Added
