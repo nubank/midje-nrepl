@@ -1,8 +1,10 @@
 # midje-nrepl
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Clojars Project](https://img.shields.io/clojars/v/nubank/midje-nrepl.svg)](https://clojars.org/nubank/midje-nrepl)
-[![Build status](https://circleci.com/gh/nubank/midje-nrepl.svg?style=svg)](https://circleci.com/gh/nubank/midje-nrepl)
+[![Clojars
+Project](https://img.shields.io/clojars/v/nubank/midje-nrepl.svg)](https://clojars.org/nubank/midje-nrepl)
+[![Build
+status](https://circleci.com/gh/nubank/midje-nrepl.svg?style=svg)](https://circleci.com/gh/nubank/midje-nrepl)
 
 nREPL middleware to interact with Midje
 
@@ -33,14 +35,15 @@ Notice that currently only `Leiningen` is supported.
 ## Available features
 
 * Inhibit Midje facts from being run on certain nREPL operations such as `eval`,
-  `load-file`, `refresh`, `refresh-all` and `warm-ast-cache` (when
-  [refactor-nrepl][refactor-nrepl]) is available on the project's
-  classpath. This is useful specially on large projects with slow and heavy
-  tests, where those run inadvertently as a side effect of the aforementioned
-  operations.
+`load-file`, `refresh`, `refresh-all` and `warm-ast-cache` (when
+[refactor-nrepl][refactor-nrepl]) is available on the project's classpath. This
+is useful specially on large projects with slow and heavy tests, where those run
+inadvertently as a side effect of the aforementioned operations.
 * Provide a set of operations for dealing with Midje tests: to run a given fact,
-  a set of facts in a given namespace, all facts defined in the project, allow
-  re-running non-passing tests, etc.
+a set of facts in a given namespace, all facts defined in the project, allow
+re-running non-passing tests, etc.
+* Provide information about project's test paths and test namespaces declared
+  within those paths.
 * Support auto-formatting tabular facts.
 
 ## Changelog
