@@ -10,6 +10,9 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 - Allow for nREPL clients to run all tests in a subset of the known test paths
   of the project, by sending the parameter `test-paths` in the message.
+- Allow for nREPL clients to retrieve the list of project's test paths and
+  namespaces declared within those paths. Those operations are handled by the
+  new `wrap-test-info` middleware.
 
 ## [1.0.1] - 2018-12-05
 
