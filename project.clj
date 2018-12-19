@@ -1,4 +1,4 @@
-(defproject nubank/midje-nrepl "1.1.0"
+(defproject nubank/midje-nrepl "1.1.1-SNAPSHOT"
   :description "nREPL middleware to interact with Midje"
   :url "https://github.com/nubank/midje-nrepl"
   :license {:name "Apache License, Version 2.0"
