@@ -1,5 +1,6 @@
 (ns midje-nrepl.reporter
   (:require [clojure.pprint :as pprint]
+            [midje-nrepl.misc :as misc]
             [midje.config :as midje.config]
             [midje.data.fact :as fact]
             [midje.emission.plugins.default-failure-lines :as failure-lines]
@@ -46,12 +47,13 @@
 
 (defn starting-to-check-fact [fact]
   (let [{:keys [testing-ns file]} @report]
-    (swap! report assoc :current-test {:id      (fact/guid fact)
-                                       :context (description-for fact)
-                                       :ns      testing-ns
-                                       :file    file
-                                       :line    (fact/line fact)
-                                       :source  (pr-str (fact/source fact))})))
+    (swap! report assoc :current-test {:id         (fact/guid fact)
+                                       :context    (description-for fact)
+                                       :ns         testing-ns
+                                       :file       file
+                                       :line       (fact/line fact)
+                                       :source     (pr-str (fact/source fact))
+                                       :started-at (misc/now)})))
 
 (defn prettify-expected-and-actual-values [{:keys [expected actual] :as result-map}]
   (let [pretty-str #(with-out-str (pprint/pprint %))]
@@ -59,12 +61,13 @@
       expected (assoc :expected (pretty-str expected))
       actual   (assoc :actual (pretty-str actual)))))
 
-(defn- conj-test-result! [additional-data]
+(defn- conj-test-result! [{:keys [type] :as additional-data}]
   (let [current-test (@report :current-test)
         ns           (@report :testing-ns)
         index        (count (get-in @report [:results ns]))
         test         (-> current-test
                          (assoc :index index)
+                         (cond-> (not= type :to-do) (assoc :finished-at (misc/now)))
                          (merge additional-data)
                          prettify-expected-and-actual-values)]
     (swap! report update-in [:results ns]

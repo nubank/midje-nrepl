@@ -5,7 +5,8 @@
             [midje-nrepl.reporter :as reporter]
             [midje.emission.api :refer [silently]]
             [midje.sweet :refer :all]
-            [midje.util.exceptions :as midje.exceptions]))
+            [midje.util.exceptions :as midje.exceptions])
+  (:import java.time.LocalDateTime))
 
 (def correct-fact-function (with-meta (constantly true)
                              #:midje {:guid            "d2cd94c3346922886e796da80ab99ab764ba30f9"
@@ -285,6 +286,27 @@ it is interpreted as an error in the test report"
                                                      :source   "(fact (+ 5 6) => 12)"
                                                      :type     :fail}]}})
              (reporter/finishing-top-level-fact failing-tabular-fact-function))
+
+       (fact "every test result, except when it represents a future fact, stores information about when the test started and finished"
+             (->> @reporter/report
+                  :results
+                  vals
+                  first
+                  (remove #(= (:type %) :to-do))
+                  (every? (fn [{:keys [started-at finished-at]}]
+                            (and (instance? LocalDateTime started-at)
+                                 (instance? LocalDateTime finished-at)))))
+             => true)
+
+       (fact "future facts don't contain the neither the `:started-at` nor the `finished-at` keys"
+             (->> @reporter/report
+                  :results
+                  vals
+                  first
+                  (filter #(= (:type %) :to-do))
+                  first
+                  keys)
+             => (match (m/in-any-order [:index :context :line :type])))
 
        (fact "summarizes test results, by computing the counters for each category"
              (reporter/summarize-test-results!)
