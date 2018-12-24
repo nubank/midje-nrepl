@@ -1,5 +1,6 @@
 (ns midje-nrepl.profiler-test
   (:require [clojure.java.io :as io]
+            [matcher-combinators.midje :refer [match]]
             [midje-nrepl.misc :as misc]
             [midje-nrepl.profiler :as profiler]
             [midje.sweet :refer :all])
@@ -64,4 +65,11 @@
              => [{:ns       'octocat.arithmetic-test
                   :duration (misc/duration-between start-point three-seconds-later)}
                  {:ns       'octocat.heavy-test
-                  :duration (misc/duration-between three-seconds-later thirteen-seconds-later)}]))
+                  :duration (misc/duration-between three-seconds-later thirteen-seconds-later)}])
+
+       (fact "returns information about the slowest test in the report map"
+             (profiler/top-slowest-tests 1 report-map)
+             => [{:context  ["First heavy test"]
+                  :file     heavy-test-file
+                  :line     5
+                  :duration (misc/duration-between three-seconds-later ten-seconds-later)}]))
