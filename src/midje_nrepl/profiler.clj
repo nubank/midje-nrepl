@@ -6,9 +6,13 @@
         {:keys [finished-at]} (last test-results)]
     (misc/duration-between started-at finished-at)))
 
-(defn- keep-only-tests-with-a-known-duration [test-results]
-  (filter #(and (:started-at %)
-                (:finished-at %)) test-results))
+(defn- keep-distinct-tests-with-known-durations [test-results]
+  (->> test-results
+       (filter #(and (:started-at %)
+                     (:finished-at %)))
+       (group-by :id)
+       vals
+       (map last)))
 
 (defn duration-per-namespace [report-map]
   (->> report-map
@@ -25,13 +29,13 @@
        (.compareTo (test-duration x) (test-duration y)))))
 
 (defn top-slowest-tests
-  "Return the top n slowest tests in the report map."
+  "Returns the top n slowest tests in the report map."
   [n report-map]
   (->> report-map
        :results
        vals
        flatten
-       keep-only-tests-with-a-known-duration
+       keep-distinct-tests-with-known-durations
        (sort slowest-test-comparator)
        (take n)
        (map (fn [{:keys [started-at finished-at] :as result}]
