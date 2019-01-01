@@ -1,10 +1,9 @@
 (ns midje-nrepl.profiler-test
   (:require [clojure.java.io :as io]
-            [matcher-combinators.midje :refer [match]]
             [midje-nrepl.misc :as misc]
             [midje-nrepl.profiler :as profiler]
             [midje.sweet :refer :all])
-  (:import (java.time Duration LocalDateTime)))
+  (:import [java.time Duration LocalDateTime]))
 
 (defn local-date-time [seconds]
   (LocalDateTime/of 2019 01 01 12 0 seconds))
@@ -19,6 +18,8 @@
 (def two-seconds-later (plus-seconds start-point 2))
 
 (def three-seconds-later (plus-seconds start-point 3))
+
+(def three-seconds+one-millisecond-later (.plusNanos three-seconds-later 1000000))
 
 (def nine-and-half-seconds-later (plus-seconds start-point 9.5))
 
@@ -49,7 +50,13 @@
                                              :file        arithmetic-test-file
                                              :line        10
                                              :started-at  two-seconds-later
-                                             :finished-at three-seconds-later}]
+                                             :finished-at three-seconds-later}
+                                            {:context     ["fourth arithmetic test"]
+                                             :id          "a3d7e905-8f3f-40b2-bf80-a80566a90a64"
+                                             :file        arithmetic-test-file
+                                             :line        13
+                                             :started-at  three-seconds-later
+                                             :finished-at three-seconds+one-millisecond-later}]
                   'octocat.heavy-test      [{:context     ["First heavy test"]
                                              :id          "8a8e79c5-84aa-4846-b233-5969ec26a853"
                                              :file        heavy-test-file
@@ -75,12 +82,27 @@
 
 (facts "about the profiler"
 
+       (tabular (fact "returns a friendly string representing the duration in question"
+                      (profiler/duration->string ?duration) => ?result)
+                ?duration            ?result
+                (Duration/ofMillis 256) "256 milliseconds"
+                (Duration/ofMillis 6537)     "6.54 seconds"
+                (Duration/ofMinutes 4)     "4.00 minutes")
+
        (fact "computes the duration of tests for each namespace"
+
              (profiler/duration-per-namespace report-map)
              => [{:ns       'octocat.arithmetic-test
-                  :duration (misc/duration-between start-point three-seconds-later)}
+                  :duration (misc/duration-between start-point three-seconds+one-millisecond-later)}
                  {:ns       'octocat.heavy-test
                   :duration (misc/duration-between three-seconds-later thirteen-seconds-later)}])
+
+       (fact "returns information about the fastest test in the report map"
+             (profiler/top-fastest-tests 1 report-map)
+             => [{:context  ["fourth arithmetic test"]
+                  :file     arithmetic-test-file
+                  :line     13
+                  :duration (misc/duration-between three-seconds-later three-seconds+one-millisecond-later)}])
 
        (fact "returns information about the slowest test in the report map"
              (profiler/top-slowest-tests 1 report-map)
@@ -98,11 +120,11 @@
                  {:context  ["second heavy test"]
                   :file     heavy-test-file
                   :line     12
-                  :duration (misc/duration-between ten-seconds-later thirteen-seconds-later)}])
+                  :duration (misc/duration-between ten-seconds-later
 
-       (tabular (fact "returns a friendly string representing the duration in question"
-                             (profiler/duration->string ?duration) => ?result)
-                        ?duration            ?result
-          (Duration/ofMillis 256) "256 milliseconds"
-         (Duration/ofMillis 6537)     "6.54 seconds"
-           (Duration/ofMinutes 4)     "4.00 minutes"))
+                                                   thirteen-seconds-later)}])
+
+       (fact "calculates the average of the duration of tests according to the supplied information"
+             (profiler/average (misc/duration-between start-point ten-seconds-later) 10)
+             => {:duration (misc/duration-between start-point one-second-later)
+                 :tests 10}))
