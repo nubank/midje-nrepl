@@ -41,3 +41,13 @@
        (map (fn [{:keys [started-at finished-at] :as result}]
               (assoc (select-keys result [:context :file :line])
                      :duration (misc/duration-between started-at finished-at))))))
+
+(defn duration->string
+  "Returns a friendly representation of the duration object in question."
+  [duration]
+  (let [milliseconds (.toMillis duration)]
+    (cond
+      (<= milliseconds 1000)  (str milliseconds " milliseconds")
+      (<= milliseconds 60000) (format "%.2f seconds" (/ milliseconds 1000.0))
+      :else                   (format "%.2f minutes" (/ milliseconds
+                                                        60000.0)))))

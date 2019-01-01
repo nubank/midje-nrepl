@@ -4,7 +4,7 @@
             [midje-nrepl.misc :as misc]
             [midje-nrepl.profiler :as profiler]
             [midje.sweet :refer :all])
-  (:import java.time.LocalDateTime))
+  (:import (java.time Duration LocalDateTime)))
 
 (defn local-date-time [seconds]
   (LocalDateTime/of 2019 01 01 12 0 seconds))
@@ -98,4 +98,11 @@
                  {:context  ["second heavy test"]
                   :file     heavy-test-file
                   :line     12
-                  :duration (misc/duration-between ten-seconds-later thirteen-seconds-later)}]))
+                  :duration (misc/duration-between ten-seconds-later thirteen-seconds-later)}])
+
+       (tabular (fact "returns a friendly string representing the duration in question"
+                             (profiler/duration->string ?duration) => ?result)
+                        ?duration            ?result
+          (Duration/ofMillis 256) "256 milliseconds"
+         (Duration/ofMillis 6537)     "6.54 seconds"
+           (Duration/ofMinutes 4)     "4.00 minutes"))
