@@ -12,6 +12,7 @@
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/tools.nrepl "0.2.13"]
                  [cider/orchard "0.3.0"]
+                 [cloverage "1.0.13"]
                  [rewrite-clj "0.6.0"]]
 
   :profiles {:dev      {:dependencies [[diehard "0.7.2"]
