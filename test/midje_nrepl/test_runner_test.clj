@@ -213,7 +213,7 @@
              => (match {:results {}
                         :summary {:check 0 :ns 0}})
              (provided
-              (project-info/get-test-namespaces-in ["test/octocat"]) => ['octocat.no-tests]))
+              (project-info/find-namespaces-in ["test/octocat"]) => ['octocat.no-tests]))
 
        (fact "results of the last execution are kept in the current session"
              (test-runner/run-all-tests-in ["test/octocat"])

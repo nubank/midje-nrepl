@@ -71,7 +71,7 @@
 (defn run-all-tests-in [test-paths]
   (caching-test-results
    (->> test-paths
-        project-info/get-test-namespaces-in
+        project-info/find-namespaces-in
         (map #(check-facts :ns %))
         merge-test-reports)))
 

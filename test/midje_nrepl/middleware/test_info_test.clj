@@ -22,7 +22,7 @@
                                           :test-paths ["test"]})
              => irrelevant
              (provided
-              (project-info/get-test-namespaces-in ["test"]) => ['octocat.arithmetic-test 'octocat.colls-test]
+              (project-info/find-namespaces-in ["test"]) => ['octocat.arithmetic-test 'octocat.colls-test]
               (transport/send ..transport.. (match {:test-namespaces ["octocat.arithmetic-test" "octocat.colls-test"]})) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
@@ -33,6 +33,6 @@ returns a list of all known test namespaces"
              => irrelevant
              (provided
               (project-info/get-test-paths) => ["src/clojure/test" "test"]
-              (project-info/get-test-namespaces-in ["src/clojure/test" "test"]) => ['octocat.arithmetic-test 'octocat.colls-test 'octocat.mocks-test]
+              (project-info/find-namespaces-in ["src/clojure/test" "test"]) => ['octocat.arithmetic-test 'octocat.colls-test 'octocat.mocks-test]
               (transport/send ..transport.. (match {:test-namespaces ["octocat.arithmetic-test" "octocat.colls-test" "octocat.mocks-test"]})) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant)))
