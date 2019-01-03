@@ -10,7 +10,12 @@
          (some (partial re-find pattern))
          boolean)))
 
-(defn parse-options [options parsers-map]
+(defn parse-options
+  "Takes a map of options (key -> value) and a map of parsers (key ->
+  parser function). Applies each parser function to the corresponding
+  value in the options map, returning a new map of key -> parsed
+  values."
+  [options parsers-map]
   (reduce (fn [result [key parse-fn]]
             (if-let [value (get options key)]
               (assoc result key (parse-fn value))
