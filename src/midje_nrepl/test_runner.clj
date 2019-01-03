@@ -43,8 +43,11 @@
        :print  (fn [_])
        :caught #(throw %)))))
 
-(defmacro caching-test-results [& forms]
-  `(let [report# ~@forms]
+(defmacro saving-test-results!
+  "Evaluates body (a set of forms that return a report map) and saves
+  the test results in the current session."
+  [& body]
+  `(let [report# ~@body]
      (reset! test-results (report# :results))
      report#))
 
@@ -52,14 +55,14 @@
   ([namespace source]
    (run-test namespace source 1))
   ([namespace source line]
-   (caching-test-results
+   (saving-test-results!
     (check-facts :ns namespace :source source :line line))))
 
 (defn run-tests-in-ns
   "Runs Midje tests in the given namespace.
    Returns the test report."
   [namespace]
-  (caching-test-results
+  (saving-test-results!
    (check-facts :ns namespace)))
 
 (defn- merge-test-reports [reports]
@@ -68,12 +71,18 @@
              :summary (merge-with + (:summary a) (:summary b))})
           reporter/no-tests reports))
 
-(defn run-all-tests-in [test-paths]
-  (caching-test-results
-   (->> test-paths
-        project-info/find-namespaces-in
-        (map #(check-facts :ns %))
-        merge-test-reports)))
+(defn run-all-tests
+  [options]
+  (let [{:keys [exclusions inclusions test-paths]
+         :or   {test-paths (project-info/get-test-paths)}} options
+        namespaces                                       (-> (project-info/find-namespaces-in test-paths)
+                                                             (cond->>
+                                                                 inclusions (filter #(re-find inclusions (name %)))
+                                                                 exclusions (remove #(re-find exclusions (name %)))))]
+    (saving-test-results!
+     (->> namespaces
+          (map #(check-facts :ns %))
+          merge-test-reports))))
 
 (defn- non-passing-tests [[namespace results]]
   (let [non-passing-items (filter #(#{:error :fail} (:type %)) results)]
@@ -87,7 +96,7 @@
   "Re-runs tests that didn't pass in the last execution.
   Returns the test report."
   []
-  (caching-test-results
+  (saving-test-results!
    (->> @test-results
         (keep non-passing-tests)
         (map #(check-facts :ns (first %) :source (second %)))

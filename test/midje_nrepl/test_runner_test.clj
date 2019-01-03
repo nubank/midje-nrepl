@@ -2,7 +2,8 @@
   (:require [matcher-combinators.midje :refer [match]]
             [midje-nrepl.project-info :as project-info]
             [midje-nrepl.test-runner :as test-runner]
-            [midje.sweet :refer :all]))
+            [midje.sweet :refer :all]
+            [matcher-combinators.matchers :as m]))
 
 (defn existing-file? [candidate]
   (and   (instance? java.io.File candidate)
@@ -204,19 +205,44 @@
 
 (facts "about running all tests in the project"
 
-       (fact "runs all tests in the project"
-             (test-runner/run-all-tests-in ["test/octocat"])
+       (fact "runs all tests in the project according to supplied options"
+             (test-runner/run-all-tests {:test-paths ["test/octocat"]})
              => (match all-tests-report))
 
+       (fact "when `test-paths` isn't set, uses the test paths declared in the project"
+             (test-runner/run-all-tests {})
+             => (match all-tests-report)
+             (provided
+              (project-info/get-test-paths) => ["test/octocat"]))
+
+       (tabular (fact "one can use exclusions and inclusions to run only a subset of tests"
+                      (-> (test-runner/run-all-tests {:test-paths ["test/octocat"]
+                                                      :exclusions ?exclusions
+                                                      :inclusions ?inclusions})
+                          :results
+                          keys)
+                      => ?results)
+                ?exclusions   ?inclusions                                                                                    ?results
+                #"mocks"           nil                     (match (m/in-any-order ['octocat.arithmetic-test 'octocat.colls-test]))
+                nil #"arithmetic"                                                                  ['octocat.arithmetic-test]
+                #"^octocat"           nil                                                                                         nil
+                nil   #"^octocat" (match (m/in-any-order ['octocat.arithmetic-test 'octocat.colls-test 'octocat.mocks-test])))
+
+       (fact "when both exclusions and inclusions are present, the former takes precedence over the later"
+             (test-runner/run-all-tests {:test-paths ["test/octocat"]
+                                         :exclusions #"arithmetic"
+                                         :inclusions #"arithmetic"})
+             => (match {:results empty?}))
+
        (fact "returns a report with no tests when there are no tests to be run"
-             (test-runner/run-all-tests-in ["test/octocat"])
+             (test-runner/run-all-tests {:test-paths ["test/octocat"]})
              => (match {:results {}
                         :summary {:check 0 :ns 0}})
              (provided
               (project-info/find-namespaces-in ["test/octocat"]) => ['octocat.no-tests]))
 
        (fact "results of the last execution are kept in the current session"
-             (test-runner/run-all-tests-in ["test/octocat"])
+             (test-runner/run-all-tests {:test-paths ["test/octocat"]})
              => (match all-tests-report)
              @test-runner/test-results
              => (match (:results all-tests-report))))
