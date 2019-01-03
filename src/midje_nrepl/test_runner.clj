@@ -72,13 +72,23 @@
           reporter/no-tests reports))
 
 (defn run-all-tests
+  "Runs all tests in the project or a subset of them, depending upon the supplied options.
+
+  options is a PersistentMap with the valid keys:
+  :inclusions - a regex to match namespaces against.
+  :exclusions - a regex to match namespaces against. When both
+  exclusions and inclusions are present, the former takes precedence
+  over the later.
+  :test-paths - a vector of test paths (strings) to restrict the test
+  execution. Defaults to all known test paths declared in the
+  project."
   [options]
   (let [{:keys [exclusions inclusions test-paths]
          :or   {test-paths (project-info/get-test-paths)}} options
-        namespaces                                       (-> (project-info/find-namespaces-in test-paths)
-                                                             (cond->>
-                                                                 inclusions (filter #(re-find inclusions (name %)))
-                                                                 exclusions (remove #(re-find exclusions (name %)))))]
+        namespaces                                         (-> (project-info/find-namespaces-in test-paths)
+                                                               (cond->>
+                                                                   inclusions (filter #(re-find inclusions (name %)))
+                                                                   exclusions (remove #(re-find exclusions (name %)))))]
     (saving-test-results!
      (->> namespaces
           (map #(check-facts :ns %))
