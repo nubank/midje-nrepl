@@ -44,26 +44,25 @@
        :print  (fn [_])
        :caught #(throw %)))))
 
-(defmacro saving-test-results!
-  "Evaluates body (a set of forms that return a report map) and saves
-  the test results in the current session."
-  [& body]
-  `(let [report# ~@body]
-     (reset! test-results (report# :results))
-     report#))
+(defn- save-test-results!
+  "Saves test results in the current session and returns the same report
+  map."
+  [report-map]
+  (reset! test-results (:results report-map))
+  report-map)
 
 (defn run-test
   ([namespace source]
    (run-test namespace source 1))
   ([namespace source line]
-   (saving-test-results!
+   (save-test-results!
     (check-facts :ns namespace :source source :line line))))
 
 (defn run-tests-in-ns
   "Runs Midje tests in the given namespace.
    Returns the test report."
   [namespace]
-  (saving-test-results!
+  (save-test-results!
    (check-facts :ns namespace)))
 
 (defn- merge-test-reports [reports]
@@ -72,7 +71,7 @@
              :summary (merge-with + (:summary a) (:summary b))})
           reporter/no-tests reports))
 
-(defn- ns-filters
+(defn- ns-filter
   "Takes a seq of regexes and returns a predicate function that matches
   a supplied namespace symbol against each regex, in a logical or."
   [regexes]
@@ -96,12 +95,12 @@
          :or   {test-paths (project-info/get-test-paths)}} options
         namespaces                                         (-> (project-info/find-namespaces-in test-paths)
                                                                (cond->>
-                                                                   ns-inclusions (filter (ns-filters ns-inclusions))
-                                                                   ns-exclusions (remove (ns-filters ns-exclusions))))]
-    (saving-test-results!
-     (->> namespaces
-          (map #(check-facts :ns %))
-          merge-test-reports))))
+                                                                   ns-inclusions (filter (ns-filter ns-inclusions))
+                                                                   ns-exclusions (remove (ns-filter ns-exclusions))))]
+    (->> namespaces
+         (map #(check-facts :ns %))
+         merge-test-reports
+         save-test-results!)))
 
 (defn- non-passing-tests [[namespace results]]
   (let [non-passing-items (filter #(#{:error :fail} (:type %)) results)]
@@ -115,7 +114,7 @@
   "Re-runs tests that didn't pass in the last execution.
   Returns the test report."
   []
-  (saving-test-results!
+  (save-test-results!
    (->> @test-results
         (keep non-passing-tests)
         (map #(check-facts :ns (first %) :source (second %)))
