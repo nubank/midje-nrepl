@@ -146,10 +146,10 @@ the middleware returns an error"
                               :summary {:check 6 :error 1 :fact 5 :fail 2 :ns 2 :pass 3 :to-do 0}}
                              {:status ["done"]})))
 
-       (fact "uses exclusions/inclusions to test only a subset of namespaces"
-             (-> (send-message {:op         "midje-test-all"
-                                :inclusions "^octocat"
-                                :exclusions "side-effects-test"})
+       (fact "uses ns-exclusions/ns-inclusions to test only a subset of namespaces"
+             (-> (send-message {:op            "midje-test-all"
+                                :ns-inclusions ["^octocat"]
+                                :ns-exclusions ["side-effects-test"]})
                  first
                  :results
                  keys)

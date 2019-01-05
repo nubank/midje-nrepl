@@ -5,6 +5,7 @@
             [midje-nrepl.project-info :as project-info]
             [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]])
   (:import clojure.lang.LineNumberingPushbackReader
+           clojure.lang.Symbol
            java.io.StringReader))
 
 (def test-results (atom {}))
@@ -71,24 +72,32 @@
              :summary (merge-with + (:summary a) (:summary b))})
           reporter/no-tests reports))
 
+(defn- ns-filters
+  "Takes a seq of regexes and returns a predicate function that matches
+  a supplied namespace symbol against each regex, in a logical or."
+  [regexes]
+  (fn [^Symbol ns]
+    (some #(re-find % (name ns))
+          regexes)))
+
 (defn run-all-tests
   "Runs all tests in the project or a subset of them, depending upon the supplied options.
 
   options is a PersistentMap with the valid keys:
-  :inclusions - a regex to match namespaces against.
-  :exclusions - a regex to match namespaces against. When both
-  exclusions and inclusions are present, the former takes precedence
-  over the later.
+  :ns-inclusions - seq of regexes to match namespaces against in a logical or.
+  :ns-exclusions - seq of regexes to match namespaces against in a logical or. When
+  both :ns-exclusions and :ns-inclusions are present, the former takes
+  precedence over the later.
   :test-paths - a vector of test paths (strings) to restrict the test
   execution. Defaults to all known test paths declared in the
   project."
   [options]
-  (let [{:keys [exclusions inclusions test-paths]
+  (let [{:keys [ns-exclusions ns-inclusions test-paths]
          :or   {test-paths (project-info/get-test-paths)}} options
         namespaces                                         (-> (project-info/find-namespaces-in test-paths)
                                                                (cond->>
-                                                                   inclusions (filter #(re-find inclusions (name %)))
-                                                                   exclusions (remove #(re-find exclusions (name %)))))]
+                                                                   ns-inclusions (filter (ns-filters ns-inclusions))
+                                                                   ns-exclusions (remove (ns-filters ns-exclusions))))]
     (saving-test-results!
      (->> namespaces
           (map #(check-facts :ns %))

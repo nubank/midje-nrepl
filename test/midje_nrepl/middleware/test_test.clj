@@ -42,14 +42,14 @@
               (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
-       (fact "clients can pass `exclusions` and/or `inclusions` to filter out namespaces where tests will be run"
-             (test/handle-test {:op         "midje-test-all"
-                                :exclusions "^integration\\.too-heavy"
-                                :inclusions "^integration"
-                                :transport  ..transport..}) => irrelevant
+       (fact "clients can pass `ns-exclusions` and/or `ns-inclusions` to filter out namespaces where tests will be run"
+             (test/handle-test {:op            "midje-test-all"
+                                :ns-exclusions ["^integration\\.too-heavy"]
+                                :ns-inclusions ["^integration"]
+                                :transport     ..transport..}) => irrelevant
              (provided
-              (test-runner/run-all-tests (match {:exclusions #(= (str %) "^integration\\.too-heavy")
-                                                 :inclusions                                 #(= (str %) "^integration")})) => test-report
+              (test-runner/run-all-tests (match {:ns-exclusions #(= (map str %) ["^integration\\.too-heavy"])
+                                                 :ns-inclusions #(= (map str %) ["^integration"])})) => test-report
               (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 

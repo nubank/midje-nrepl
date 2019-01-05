@@ -215,23 +215,27 @@
              (provided
               (project-info/get-test-paths) => ["test/octocat"]))
 
-       (tabular (fact "one can use exclusions and inclusions to run only a subset of tests"
-                      (-> (test-runner/run-all-tests {:test-paths ["test/octocat"]
-                                                      :exclusions ?exclusions
-                                                      :inclusions ?inclusions})
+       (tabular (fact "`:ns-exclusions` and `:ns-inclusions` allow for users to
+              filter out the list of namespaces to be tested"
+                      (-> (test-runner/run-all-tests {:test-paths    ["test/octocat"]
+                                                      :ns-exclusions ?exclusions
+                                                      :ns-inclusions ?inclusions})
                           :results
                           keys)
                       => ?results)
-                ?exclusions   ?inclusions                                                                                    ?results
-                #"mocks"           nil                     (match (m/in-any-order ['octocat.arithmetic-test 'octocat.colls-test]))
-                nil #"arithmetic"                                                                  ['octocat.arithmetic-test]
-                #"^octocat"           nil                                                                                         nil
-                nil   #"^octocat" (match (m/in-any-order ['octocat.arithmetic-test 'octocat.colls-test 'octocat.mocks-test])))
+                ?exclusions             ?inclusions                                                                                    ?results
+                [#"mocks"]                     nil                     (match (m/in-any-order ['octocat.arithmetic-test 'octocat.colls-test]))
+                nil         [#"arithmetic"]                                                                  ['octocat.arithmetic-test]
+                [#"^octocat"]                     nil                                                                                         nil
+                nil           [#"^octocat"] (match (m/in-any-order ['octocat.arithmetic-test 'octocat.colls-test 'octocat.mocks-test]))
+                [#"coll" #"mock"]                     nil                                                                  ['octocat.arithmetic-test]
+                nil [#"^foo" #"arithmetic"]                                                                  ['octocat.arithmetic-test])
 
-       (fact "when both exclusions and inclusions are present, the former takes precedence over the later"
-             (test-runner/run-all-tests {:test-paths ["test/octocat"]
-                                         :exclusions #"arithmetic"
-                                         :inclusions #"arithmetic"})
+       (fact "when both `:ns-exclusions` and `:ns-inclusions` are present, the
+       former takes precedence over the later"
+             (test-runner/run-all-tests {:test-paths    ["test/octocat"]
+                                         :ns-exclusions [#"arithmetic"]
+                                         :ns-inclusions [#"arithmetic"]})
              => (match {:results empty?}))
 
        (fact "returns a report with no tests when there are no tests to be run"

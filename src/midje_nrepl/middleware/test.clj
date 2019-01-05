@@ -10,10 +10,11 @@
   (transport/send transport (response-for message (transform-value report))))
 
 (defn- test-all-reply [message]
-  (let [options (misc/parse-options message {:test-paths identity
-                                             :exclusions re-pattern
-                                             :inclusions re-pattern})
-        report  (test-runner/run-all-tests options)]
+  (let [strings->regexes #(map re-pattern %)
+        options          (misc/parse-options message {:test-paths    identity
+                                                      :ns-exclusions strings->regexes
+                                                      :ns-inclusions strings->regexes})
+        report           (test-runner/run-all-tests options)]
     (send-report message report)))
 
 (defn- test-ns-reply [{:keys [ns] :as message}]
