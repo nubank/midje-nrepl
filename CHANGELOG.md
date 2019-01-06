@@ -7,6 +7,12 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- [#12](https://github.com/nubank/midje-nrepl/pull/12): add two new options to
+  `wrap-test` middleware, `:ns-exclusions` and `:ns-inclusions`. Those options
+  allow for clients to send lists of regexes to filter namespaces to be excluded
+  or included from/to the test execution.
+
 ## [1.1.0] - 2018-12-19
 
 ### Added
