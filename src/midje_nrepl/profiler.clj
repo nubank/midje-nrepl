@@ -1,5 +1,6 @@
 (ns midje-nrepl.profiler
-  (:require [midje-nrepl.misc :as misc]))
+  (:require [midje-nrepl.misc :as misc])
+  (:import (java.time Duration)))
 
 (defn duration->string
   "Returns a friendly representation of the duration object in question."
@@ -54,7 +55,9 @@
 (defn average
   "Returns a map describing the average of the duration of tests."
   [duration number-of-tests]
-  {:duration (.dividedBy duration number-of-tests)
+  {:duration (if (zero? number-of-tests)
+               (Duration/ZERO)
+               (.dividedBy duration number-of-tests))
    :tests    number-of-tests})
 
 (defn distinct-results-with-known-durations [report-map]

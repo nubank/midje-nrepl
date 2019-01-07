@@ -144,7 +144,12 @@
              => {:duration (misc/duration-between start-point one-millisecond-later)
                  :tests 10})
 
-       (fact ""
+       (fact "returns zeroed values when the number of tests is zero"
+             (profiler/average (misc/duration-between start-point one-millisecond-later) 0)
+             => {:duration (Duration/ZERO)
+                 :tests 0})
+
+       (fact "wraps a runner by adding profiling information to the returned report data"
              ((profiler/profiling fake-runner) {})
              => (match {:profiling
                         {:average {:duration duration?
