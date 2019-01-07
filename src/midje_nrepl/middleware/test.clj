@@ -1,10 +1,14 @@
 (ns midje-nrepl.middleware.test
   (:require [cider.nrepl.middleware.stacktrace :as stacktrace]
+            [midje-nrepl.profiler :as profiler]
             [clojure.tools.nrepl.misc :refer [response-for]]
             [clojure.tools.nrepl.transport :as transport]
             [midje-nrepl.misc :as misc]
             [midje-nrepl.test-runner :as test-runner]
             [orchard.misc :refer [transform-value]]))
+
+(defmethod transform-value java.time.Duration [duration]
+  (profiler/duration->string duration))
 
 (defn- send-report [{:keys [transport] :as message} report]
   (transport/send transport (response-for message (transform-value report))))
@@ -14,7 +18,7 @@
         options          (misc/parse-options message {:test-paths    identity
                                                       :ns-exclusions strings->regexes
                                                       :ns-inclusions strings->regexes})
-        report           (test-runner/run-all-tests options)]
+        report ((profiler/profiling test-runner/run-all-tests) options)]
     (send-report message report)))
 
 (defn- test-ns-reply [{:keys [ns] :as message}]

@@ -150,7 +150,7 @@
                  :tests 0})
 
        (fact "wraps a runner by adding profiling information to the returned report data"
-             ((profiler/profiling fake-runner) {})
+             ((profiler/profiling fake-runner) {:profiling? true})
              => (match {:profiling
                         {:average {:duration duration?
                                    :tests 6}
@@ -162,5 +162,18 @@
                          :slowest-tests [{:context  ["First heavy test"]
                                           :line     7
                                           :duration duration?}]}
-                        :summary {:finished-in duration?}})
-             ))
+                        :summary {:finished-in duration?}}))
+
+       (fact "by default, the profiler/profiling only adds the total elapsed
+             time to the summary map"
+             (let [{:keys [profiling summary]} ((profiler/profiling fake-runner) {})]
+               profiling => nil
+               (:finished-in summary) => duration?))
+
+       (fact "users can customize the number of fastest and/or slowest tests returned"
+             ((profiler/profiling fake-runner) {:profiling? true
+                                                :fastest-tests 2
+                                                :slowest-tests 3})
+             => (match {:profiling
+                        {:fastest-tests #(= (count %) 2)
+                         :slowest-tests #(= (count %) 3)}})))

@@ -3,9 +3,11 @@
             [clojure.tools.nrepl.transport :as transport]
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.middleware.test :as test]
+            [midje-nrepl.misc :as misc]
             [midje-nrepl.test-runner :as test-runner]
             [midje.sweet :refer :all]
-            [orchard.misc :as misc]))
+            [orchard.misc :refer [transform-value]])
+  (:import java.time.Duration))
 
 (def test-report {:results
                   {'octocat.arithmetic-test
@@ -19,18 +21,21 @@
                      :type     :fail}]}
                   :summary {:check 1 :error 0 :fact 1 :fail 1 :ns 1 :pass 0 :to-do 0}})
 
-(def transformed-report (misc/transform-value test-report))
+(def transformed-report (transform-value test-report))
+
+(def transformed-report-with-elapsed-time (assoc-in transformed-report ["summary" "finished-in"] "0 milliseconds"))
 
 (def exception (RuntimeException. "An unexpected error was thrown" (ArithmeticException. "Divid by zero")))
 
 (facts "about handling test operations"
-
+       (against-background
+        (misc/duration-between anything anything) => (Duration/ZERO))
        (fact "run all tests in the project and sends the report to the client"
              (test/handle-test {:op        "midje-test-all"
                                 :transport ..transport..}) => irrelevant
              (provided
               (test-runner/run-all-tests {}) => test-report
-              (transport/send ..transport.. transformed-report) => irrelevant
+              (transport/send ..transport.. transformed-report-with-elapsed-time) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
        (fact "clients can pass a `test-paths` parameter, in order to restrict the test execution to desired paths"
@@ -39,7 +44,7 @@
                                 :transport  ..transport..}) => irrelevant
              (provided
               (test-runner/run-all-tests {:test-paths ["src/clojure/test"]}) => test-report
-              (transport/send ..transport.. transformed-report) => irrelevant
+              (transport/send ..transport.. transformed-report-with-elapsed-time) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
        (fact "clients can pass `ns-exclusions` and/or `ns-inclusions` to filter out namespaces where tests will be run"
@@ -50,7 +55,7 @@
              (provided
               (test-runner/run-all-tests (match {:ns-exclusions #(= (map str %) ["^integration\\.too-heavy"])
                                                  :ns-inclusions #(= (map str %) ["^integration"])})) => test-report
-              (transport/send ..transport.. transformed-report) => irrelevant
+              (transport/send ..transport.. transformed-report-with-elapsed-time) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
        (fact "runs all tests in the given namespace and sends the report to the client"

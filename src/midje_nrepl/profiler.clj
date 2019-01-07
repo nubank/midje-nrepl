@@ -83,10 +83,11 @@
                        :slowest-tests   (top-slowest-tests slowest-tests test-results)})))
 
 (defn profiling [runner]
-  (fn [options]
+  (fn [{:keys [profiling?] :as options}]
     (let [start      (misc/now)
           report-map (runner options)
           end        (misc/now)]
       (-> report-map
           (assoc-in [:summary :finished-in] (misc/duration-between start end))
-          (assoc-stats options)))))
+          (cond-> profiling?
+            (assoc-stats options))))))
