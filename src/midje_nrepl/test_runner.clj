@@ -5,6 +5,7 @@
             [midje-nrepl.project-info :as project-info]
             [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]])
   (:import clojure.lang.LineNumberingPushbackReader
+           clojure.lang.Symbol
            java.io.StringReader))
 
 (def test-results (atom {}))
@@ -43,23 +44,25 @@
        :print  (fn [_])
        :caught #(throw %)))))
 
-(defmacro caching-test-results [& forms]
-  `(let [report# ~@forms]
-     (reset! test-results (report# :results))
-     report#))
+(defn- save-test-results!
+  "Saves test results in the current session and returns the same report
+  map."
+  [report-map]
+  (reset! test-results (:results report-map))
+  report-map)
 
 (defn run-test
   ([namespace source]
    (run-test namespace source 1))
   ([namespace source line]
-   (caching-test-results
+   (save-test-results!
     (check-facts :ns namespace :source source :line line))))
 
 (defn run-tests-in-ns
   "Runs Midje tests in the given namespace.
    Returns the test report."
   [namespace]
-  (caching-test-results
+  (save-test-results!
    (check-facts :ns namespace)))
 
 (defn- merge-test-reports [reports]
@@ -68,12 +71,36 @@
              :summary (merge-with + (:summary a) (:summary b))})
           reporter/no-tests reports))
 
-(defn run-all-tests-in [test-paths]
-  (caching-test-results
-   (->> test-paths
-        project-info/get-test-namespaces-in
-        (map #(check-facts :ns %))
-        merge-test-reports)))
+(defn- ns-filter
+  "Takes a seq of regexes and returns a predicate function that matches
+  a supplied namespace symbol against each regex, in a logical or."
+  [regexes]
+  (fn [^Symbol ns]
+    (some #(re-find % (name ns))
+          regexes)))
+
+(defn run-all-tests
+  "Runs all tests in the project or a subset of them, depending upon the supplied options.
+
+  options is a PersistentMap with the valid keys:
+  :ns-inclusions - seq of regexes to match namespaces against in a logical or.
+  :ns-exclusions - seq of regexes to match namespaces against in a logical or. When
+  both :ns-exclusions and :ns-inclusions are present, the former takes
+  precedence over the later.
+  :test-paths - a vector of test paths (strings) to restrict the test
+  execution. Defaults to all known test paths declared in the
+  project."
+  [options]
+  (let [{:keys [ns-exclusions ns-inclusions test-paths]
+         :or   {test-paths (project-info/get-test-paths)}} options
+        namespaces                                         (-> (project-info/find-namespaces-in test-paths)
+                                                               (cond->>
+                                                                   ns-inclusions (filter (ns-filter ns-inclusions))
+                                                                   ns-exclusions (remove (ns-filter ns-exclusions))))]
+    (->> namespaces
+         (map #(check-facts :ns %))
+         merge-test-reports
+         save-test-results!)))
 
 (defn- non-passing-tests [[namespace results]]
   (let [non-passing-items (filter #(#{:error :fail} (:type %)) results)]
@@ -87,7 +114,7 @@
   "Re-runs tests that didn't pass in the last execution.
   Returns the test report."
   []
-  (caching-test-results
+  (save-test-results!
    (->> @test-results
         (keep non-passing-tests)
         (map #(check-facts :ns (first %) :source (second %)))

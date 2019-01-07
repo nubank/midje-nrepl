@@ -4,6 +4,13 @@
             [midje-nrepl.project-info :as project-info]
             [midje.sweet :refer :all]))
 
+(def lein-project-with-source-paths '(defproject octocat "1.0.0"
+                                       :dependencies [[org.clojure/clojure "1.9.0"]]
+                                       :source-paths ["src/main/clojure" "src"]))
+
+(def lein-project-with-no-source-paths '(defproject octocat "1.0.0"
+                                          :dependencies [[org.clojure/clojure "1.9.0"]]))
+
 (def lein-project-with-test-paths '(defproject octocat "1.0.0"
                                      :dependencies [[org.clojure/clojure "1.9.0"]]
                                      :test-paths ["test" "src/test/clojure"]))
@@ -38,6 +45,29 @@
                 "project.clj" false
                 "non-existing-dir" false)
 
+       (fact "returns the source paths of the project in question sorted alphabetically"
+             (project-info/get-source-paths)
+             => ["src" "src/main/clojure"]
+             (provided
+              (project-info/read-leiningen-project) => lein-project-with-source-paths
+              (project-info/existing-dir? "src") => true
+              (project-info/existing-dir? "src/main/clojure") => true))
+
+       (fact "when the project doesn't declare source paths, assumes `src` by default"
+             (project-info/get-source-paths)
+             => ["src"]
+             (provided
+              (project-info/read-leiningen-project) => lein-project-with-no-source-paths
+              (project-info/existing-dir? "src") => true))
+
+       (fact "if the source path is declared in the project.clj, but doesn't exist in the current project, it isn't returned"
+             (project-info/get-source-paths)
+             => ["src"]
+             (provided
+              (project-info/read-leiningen-project) => lein-project-with-source-paths
+              (project-info/existing-dir? "src") => true
+              (project-info/existing-dir? "src/main/clojure") => false))
+
        (fact "returns the test paths of the project in question, sorted alphabetically"
              (project-info/get-test-paths)
              => ["src/test/clojure" "test"]
@@ -61,8 +91,8 @@
               (project-info/existing-dir? "test") => true
               (project-info/existing-dir? "src/test/clojure") => false))
 
-       (fact "returns all namespaces declared within the provided test paths sorted alphabetically"
-             (project-info/get-test-namespaces-in ["test/octocat"])
+       (fact "returns all namespaces declared within the supplied paths sorted alphabetically"
+             (project-info/find-namespaces-in ["test/octocat"])
              => ['octocat.arithmetic-test
                  'octocat.colls-test
                  'octocat.mocks-test
