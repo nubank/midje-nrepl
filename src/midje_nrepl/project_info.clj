@@ -28,14 +28,20 @@
 (defn existing-dir? [candidate]
   (.isDirectory (io/file (project-working-dir) candidate)))
 
-(defn get-test-paths []
+(defn- get-project-paths [key default]
   (let [project-map (read-project-map)]
-    (->> (get project-map :test-paths ["test"])
+    (->> (get project-map key [default])
          (filter existing-dir?)
          sort)))
 
-(defn get-test-namespaces-in [test-paths]
-  (->> test-paths
+(def get-source-paths
+  #(get-project-paths :source-paths "src"))
+
+(def get-test-paths
+  #(get-project-paths :test-paths "test"))
+
+(defn find-namespaces-in [paths]
+  (->> paths
        (map (partial io/file (project-working-dir)))
        (mapcat namespace.find/find-namespaces-in-dir)
        sort))

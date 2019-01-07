@@ -1,4 +1,4 @@
-(ns integration.test-info
+(ns integration.test-info-test
   (:require [integration.helpers :refer [send-message]]
             [matcher-combinators.midje :refer [match]]
             [midje.sweet :refer :all]))
