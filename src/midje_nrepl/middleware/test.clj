@@ -15,10 +15,11 @@
 
 (defn- test-all-reply [message]
   (let [strings->regexes #(map re-pattern %)
-        options          (misc/parse-options message {:test-paths    identity
-                                                      :ns-exclusions strings->regexes
-                                                      :ns-inclusions strings->regexes})
-        report ((profiler/profiling test-runner/run-all-tests) options)]
+        options          (misc/parse-options message {:ns-exclusions strings->regexes
+                                                      :ns-inclusions strings->regexes
+                                                      :profile? #(Boolean/parseBoolean %)
+                                                      :test-paths    identity})
+        report ((profiler/profile test-runner/run-all-tests) options)]
     (send-report message report)))
 
 (defn- test-ns-reply [{:keys [ns] :as message}]

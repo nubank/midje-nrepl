@@ -23,13 +23,14 @@
 
 (def transformed-report (transform-value test-report))
 
-(def transformed-report-with-elapsed-time (assoc-in transformed-report ["summary" "finished-in"] "0 milliseconds"))
+(def transformed-report-with-elapsed-time (assoc-in transformed-report ["summary" "finished-in"] "1 milliseconds"))
 
 (def exception (RuntimeException. "An unexpected error was thrown" (ArithmeticException. "Divid by zero")))
 
 (facts "about handling test operations"
        (against-background
-        (misc/duration-between anything anything) => (Duration/ZERO))
+        (misc/duration-between anything anything) => (.plusMillis (Duration/ZERO) 1))
+
        (fact "run all tests in the project and sends the report to the client"
              (test/handle-test {:op        "midje-test-all"
                                 :transport ..transport..}) => irrelevant
@@ -56,6 +57,16 @@
               (test-runner/run-all-tests (match {:ns-exclusions #(= (map str %) ["^integration\\.too-heavy"])
                                                  :ns-inclusions #(= (map str %) ["^integration"])})) => test-report
               (transport/send ..transport.. transformed-report-with-elapsed-time) => irrelevant
+              (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
+
+       (fact "clients can collect profiling information by sending the parameter `profile?`"
+             (test/handle-test {:op        "midje-test-all"
+                                :profile?  "true"
+                                :transport ..transport..}) => irrelevant
+             (provided
+              (test-runner/run-all-tests {:profile? true}) => test-report
+              (transport/send ..transport.. (contains
+                                             (assoc transformed-report-with-elapsed-time "profile" anything))) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
        (fact "runs all tests in the given namespace and sends the report to the client"
