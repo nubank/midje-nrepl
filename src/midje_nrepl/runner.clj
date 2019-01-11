@@ -1,11 +1,10 @@
-(ns midje-nrepl.test-runner
+(ns midje-nrepl.runner
   (:require [clojure.java.io :as io]
             [clojure.main :as clojure.main]
             [clojure.string :as string]
             [midje-nrepl.project-info :as project-info]
             [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]])
-  (:import clojure.lang.LineNumberingPushbackReader
-           clojure.lang.Symbol
+  (:import [clojure.lang LineNumberingPushbackReader Symbol]
            java.io.StringReader))
 
 (def test-results (atom {}))
@@ -52,18 +51,15 @@
   report-map)
 
 (defn run-test
-  ([namespace source]
-   (run-test namespace source 1))
-  ([namespace source line]
-   (save-test-results!
-    (check-facts :ns namespace :source source :line line))))
+  [{:keys [ns source line] :or {line 1}}]
+  (save-test-results!
+   (check-facts :ns ns :source source :line line)))
 
 (defn run-tests-in-ns
-  "Runs Midje tests in the given namespace.
-   Returns the test report."
-  [namespace]
+  "Runs all tests in the given namespace."
+  [{:keys [ns]}]
   (save-test-results!
-   (check-facts :ns namespace)))
+   (check-facts :ns ns)))
 
 (defn- merge-test-reports [reports]
   (reduce (fn [a b]
@@ -111,11 +107,10 @@
            (list namespace)))))
 
 (defn re-run-non-passing-tests
-  "Re-runs tests that didn't pass in the last execution.
-  Returns the test report."
-  []
-  (save-test-results!
-   (->> @test-results
-        (keep non-passing-tests)
-        (map #(check-facts :ns (first %) :source (second %)))
-        merge-test-reports)))
+  "Runs only the tests which failed last time around."
+  [_]
+  (->> @test-results
+       (keep non-passing-tests)
+       (map #(check-facts :ns (first %) :source (second %)))
+       merge-test-reports
+       save-test-results!))

@@ -1,10 +1,10 @@
 (ns midje-nrepl.middleware.test
   (:require [cider.nrepl.middleware.stacktrace :as stacktrace]
-            [midje-nrepl.profiler :as profiler]
             [clojure.tools.nrepl.misc :refer [response-for]]
             [clojure.tools.nrepl.transport :as transport]
             [midje-nrepl.misc :as misc]
-            [midje-nrepl.test-runner :as test-runner]
+            [midje-nrepl.profiler :as profiler]
+            [midje-nrepl.runner :as runner]
             [orchard.misc :refer [transform-value]]))
 
 (defmethod transform-value java.time.Duration [duration]
@@ -17,28 +17,31 @@
   (let [strings->regexes #(map re-pattern %)
         options          (misc/parse-options message {:ns-exclusions strings->regexes
                                                       :ns-inclusions strings->regexes
-                                                      :profile? #(Boolean/parseBoolean %)
+                                                      :profile?      #(Boolean/parseBoolean %)
+                                                      :slowest-tests int
                                                       :test-paths    identity})
-        report ((profiler/profile test-runner/run-all-tests) options)]
+        report           ((profiler/profile runner/run-all-tests) options)]
     (send-report message report)))
 
-(defn- test-ns-reply [{:keys [ns] :as message}]
-  (let [namespace (symbol ns)
-        report    (test-runner/run-tests-in-ns namespace)]
+(defn- test-ns-reply [message]
+  (let [options (misc/parse-options message {:ns symbol})
+        report  ((profiler/profile runner/run-tests-in-ns) options)]
     (send-report message report)))
 
-(defn- test-reply [{:keys [ns line source] :or {line 1} :as message}]
-  (let [namespace (symbol ns)
-        report    (test-runner/run-test namespace source line)]
+(defn- test-reply [message]
+  (let [options (misc/parse-options message {:ns     symbol
+                                             :source identity
+                                             :line   int})
+        report  ((profiler/profile runner/run-test) options)]
     (send-report message report)))
 
 (defn- retest-reply [message]
-  (->> (test-runner/re-run-non-passing-tests)
+  (->> ((profiler/profile runner/re-run-non-passing-tests) {})
        (send-report message)))
 
 (defn- test-stacktrace-reply [{:keys [index ns print-fn transport] :as message}]
   (let [namespace (symbol ns)
-        exception (test-runner/get-exception-at namespace index)]
+        exception (runner/get-exception-at namespace index)]
     (if exception
       (doseq [cause (stacktrace/analyze-causes exception print-fn)]
         (transport/send transport (response-for message cause)))

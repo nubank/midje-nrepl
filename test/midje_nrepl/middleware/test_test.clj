@@ -4,7 +4,7 @@
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.middleware.test :as test]
             [midje-nrepl.misc :as misc]
-            [midje-nrepl.test-runner :as test-runner]
+            [midje-nrepl.runner :as runner]
             [midje.sweet :refer :all]
             [orchard.misc :refer [transform-value]])
   (:import java.time.Duration))
@@ -21,9 +21,7 @@
                      :type     :fail}]}
                   :summary {:check 1 :error 0 :fact 1 :fail 1 :ns 1 :pass 0 :to-do 0}})
 
-(def transformed-report (transform-value test-report))
-
-(def transformed-report-with-elapsed-time (assoc-in transformed-report ["summary" "finished-in"] "1 milliseconds"))
+(def transformed-report (assoc-in (transform-value test-report) ["summary" "finished-in"] "1 milliseconds"))
 
 (def exception (RuntimeException. "An unexpected error was thrown" (ArithmeticException. "Divid by zero")))
 
@@ -35,8 +33,8 @@
              (test/handle-test {:op        "midje-test-all"
                                 :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/run-all-tests {}) => test-report
-              (transport/send ..transport.. transformed-report-with-elapsed-time) => irrelevant
+              (runner/run-all-tests {}) => test-report
+              (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
        (fact "clients can pass a `test-paths` parameter, in order to restrict the test execution to desired paths"
@@ -44,8 +42,8 @@
                                 :test-paths ["src/clojure/test"]
                                 :transport  ..transport..}) => irrelevant
              (provided
-              (test-runner/run-all-tests {:test-paths ["src/clojure/test"]}) => test-report
-              (transport/send ..transport.. transformed-report-with-elapsed-time) => irrelevant
+              (runner/run-all-tests {:test-paths ["src/clojure/test"]}) => test-report
+              (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
        (fact "clients can pass `ns-exclusions` and/or `ns-inclusions` to filter out namespaces where tests will be run"
@@ -54,9 +52,9 @@
                                 :ns-inclusions ["^integration"]
                                 :transport     ..transport..}) => irrelevant
              (provided
-              (test-runner/run-all-tests (match {:ns-exclusions #(= (map str %) ["^integration\\.too-heavy"])
-                                                 :ns-inclusions #(= (map str %) ["^integration"])})) => test-report
-              (transport/send ..transport.. transformed-report-with-elapsed-time) => irrelevant
+              (runner/run-all-tests (match {:ns-exclusions #(= (map str %) ["^integration\\.too-heavy"])
+                                            :ns-inclusions #(= (map str %) ["^integration"])})) => test-report
+              (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
        (fact "clients can collect profiling information by sending the parameter `profile?`"
@@ -64,9 +62,9 @@
                                 :profile?  "true"
                                 :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/run-all-tests {:profile? true}) => test-report
+              (runner/run-all-tests {:profile? true}) => test-report
               (transport/send ..transport.. (contains
-                                             (assoc transformed-report-with-elapsed-time "profile" anything))) => irrelevant
+                                             (assoc transformed-report "profile" anything))) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
        (fact "runs all tests in the given namespace and sends the report to the client"
@@ -74,7 +72,7 @@
                                 :ns        "octocat.arithmetic-test"
                                 :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => test-report
+              (runner/run-tests-in-ns {:ns 'octocat.arithmetic-test}) => test-report
               (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
@@ -85,7 +83,7 @@
                                 :source    "(fact (+ 2 3) => 6)"
                                 :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/run-test 'octocat.arithmetic-test "(fact (+ 2 3) => 6)" 10) => test-report
+              (runner/run-test {:ns 'octocat.arithmetic-test :source "(fact (+ 2 3) => 6)" :line 10}) => test-report
               (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
@@ -93,7 +91,7 @@
              (test/handle-test {:op        "midje-retest"
                                 :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/re-run-non-passing-tests) => test-report
+              (runner/re-run-non-passing-tests {}) => test-report
               (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 
@@ -104,7 +102,7 @@
                                 :print-fn  println
                                 :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/get-exception-at 'octocat.arithmetic-test 2) => exception
+              (runner/get-exception-at 'octocat.arithmetic-test 2) => exception
               (transport/send ..transport.. (match {:class      "java.lang.RuntimeException"
                                                     :message    "An unexpected error was thrown"
                                                     :stacktrace (complement empty?)}))  => irrelevant
@@ -120,6 +118,6 @@
                                 :print-fn  println
                                 :transport ..transport..}) => irrelevant
              (provided
-              (test-runner/get-exception-at 'octocat.arithmetic-test 0) => nil
+              (runner/get-exception-at 'octocat.arithmetic-test 0) => nil
               (transport/send ..transport.. (match {:status #{:no-stacktrace}})) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant)))
