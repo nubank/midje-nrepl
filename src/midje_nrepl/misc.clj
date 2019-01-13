@@ -1,6 +1,6 @@
 (ns midje-nrepl.misc
-  (:require             [orchard.classpath :as classpath])
-  (:import (java.time Duration LocalDateTime)))
+  (:require [orchard.classpath :as classpath])
+  (:import (java.time Duration Instant)))
 
 (defn dependency-in-classpath?
   "Return true if a given dependency is in the project's classpath, or false otherwise."
@@ -20,13 +20,12 @@
   (reduce (fn [result [key parse-fn]]
             (if-let [value (get options key)]
               (assoc result key (parse-fn value))
-              result)
-            ) {} parsers-map))
+              result)) {} parsers-map))
 
 (defn now
-  "Return a java.time.LocalDateTime object representing the current date and time."
+  "Return a java.time.Instant object representing the current instant."
   []
-  (LocalDateTime/now))
+  (Instant/now))
 
 (defn duration-between
   "Return a java.time.Duration object representing the duration between two temporal objects."

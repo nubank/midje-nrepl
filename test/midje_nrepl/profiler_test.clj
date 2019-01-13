@@ -4,18 +4,15 @@
             [midje-nrepl.misc :as misc]
             [midje-nrepl.profiler :as profiler]
             [midje.sweet :refer :all])
-  (:import [java.time Duration LocalDateTime]))
+  (:import java.time.Duration))
 
-(defn local-date-time [millis]
-  (LocalDateTime/of 2019 01 01 12 0 0 millis))
-
-(defn plus-millis [time millis]
-  (.plusNanos time (* millis 1000000)))
+(defn plus-millis [instant millis]
+  (.plusMillis instant millis))
 
 (defn millis->duration [millis]
   (.plusNanos (Duration/ZERO) (* millis 1000000)))
 
-(def start-point (local-date-time 0))
+(def start-point (misc/now))
 
 (def one-millisecond-later (plus-millis start-point 1))
 

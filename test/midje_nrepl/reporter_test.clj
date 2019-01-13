@@ -6,7 +6,7 @@
             [midje.emission.api :refer [silently]]
             [midje.sweet :refer :all]
             [midje.util.exceptions :as midje.exceptions])
-  (:import java.time.LocalDateTime))
+  (:import java.time.Instant))
 
 (def correct-fact-function (with-meta (constantly true)
                              #:midje {:guid            "d2cd94c3346922886e796da80ab99ab764ba30f9"
@@ -294,8 +294,8 @@ it is interpreted as an error in the test report"
                   first
                   (remove #(= (:type %) :to-do))
                   (every? (fn [{:keys [started-at finished-at]}]
-                            (and (instance? LocalDateTime started-at)
-                                 (instance? LocalDateTime finished-at)))))
+                            (and (instance? Instant started-at)
+                                 (instance? Instant finished-at)))))
              => true)
 
        (fact "future facts don't contain the neither the `:started-at` nor the `finished-at` keys"

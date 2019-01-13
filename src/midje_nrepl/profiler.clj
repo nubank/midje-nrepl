@@ -28,10 +28,10 @@
 (defn time-consumption
   "Returns statistics about the time taken by the supplied test results."
   [test-results total-time]
-  (let [total-time-of-group (reduce (fn [total {:keys [total-time]}]
-                                      (.plus total total-time)) (Duration/ZERO) test-results)
-        percent-of-total-time       (/ (.. total-time-of-group (multipliedBy 100) toMillis)
-                                       (.toMillis total-time))]
+  (let [total-time-of-group   (reduce (fn [total {:keys [total-time]}]
+                                        (.plus total total-time)) (Duration/ZERO) test-results)
+        percent-of-total-time (/ (.. total-time-of-group (multipliedBy 100) toMillis)
+                                 (.toMillis total-time))]
     {:total-time            total-time-of-group
      :percent-of-total-time (format "%.2f%%" (double percent-of-total-time))}))
 
