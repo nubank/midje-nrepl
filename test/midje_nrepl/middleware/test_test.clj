@@ -21,7 +21,7 @@
                      :type     :fail}]}
                   :summary {:check 1 :error 0 :fact 1 :fail 1 :ns 1 :pass 0 :to-do 0}})
 
-(def transformed-report (assoc-in (transform-value test-report) ["summary" "finished-in"] "1 milliseconds"))
+(def transformed-report (assoc-in (transform-value test-report) ["summary" "finished-in"] "1 millisecond"))
 
 (def exception (RuntimeException. "An unexpected error was thrown" (ArithmeticException. "Divid by zero")))
 

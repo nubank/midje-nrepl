@@ -1,16 +1,27 @@
 (ns midje-nrepl.profiler
   (:require [midje-nrepl.misc :as misc])
-  (:import java.time.Duration))
+  (:import java.text.DecimalFormat
+           java.time.Duration
+           java.util.Locale))
+
+(def ^:private formatter (let [decimal-format (DecimalFormat/getInstance (Locale/ENGLISH))]
+                           (.applyPattern decimal-format "#.##")
+                           decimal-format))
+
+(defn- format-duration [value time-unit]
+  (str (.format formatter value) " "
+       (if (= (float value) 1.0)
+         (name time-unit)
+         (str (name time-unit) "s"))))
 
 (defn duration->string
   "Returns a friendly representation of the duration object in question."
   [duration]
-  (let [milliseconds (.toMillis duration)]
+  (let [millis (.toMillis duration)]
     (cond
-      (<= milliseconds 1000)  (str milliseconds " milliseconds")
-      (<= milliseconds 60000) (format "%.2f seconds" (/ milliseconds 1000.0))
-      :else                   (format "%.2f minutes" (/ milliseconds
-                                                        60000.0)))))
+      (<= millis 999)   (format-duration millis :millisecond)
+      (<= millis 59999) (format-duration (float (/ millis 1000)) :second)
+      :else             (format-duration (float (/ millis 60000)) :minute))))
 
 (defn- slowest-test-comparator
   "Compares two test results and determines the slowest one."

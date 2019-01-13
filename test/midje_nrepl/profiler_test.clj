@@ -104,11 +104,15 @@
 (facts "about the profiler"
 
        (tabular (fact "returns a friendly string representing the duration in question"
-                      (profiler/duration->string ?duration) => ?result)
-                ?duration            ?result
-                (Duration/ofMillis 256) "256 milliseconds"
-                (Duration/ofMillis 6537)     "6.54 seconds"
-                (Duration/ofMinutes 4)     "4.00 minutes")
+                             (profiler/duration->string ?duration) => ?result)
+                         ?duration            ?result
+             (Duration/ofMillis 1)    "1 millisecond"
+           (Duration/ofMillis 256) "256 milliseconds"
+          (Duration/ofMillis 1000)         "1 second"
+          (Duration/ofMillis 6537)     "6.54 seconds"
+            (Duration/ofMinutes 1)         "1 minute"
+         (Duration/ofMillis 63885)     "1.06 minutes"
+            (Duration/ofMinutes 4)        "4 minutes")
 
        (fact "given the total time of the test suite and the number of tests in
        that suite, returns the average time taken by each test"
