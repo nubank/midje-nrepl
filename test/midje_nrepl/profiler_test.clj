@@ -1,5 +1,6 @@
 (ns midje-nrepl.profiler-test
   (:require [clojure.java.io :as io]
+            [matcher-combinators.matchers :as m]
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.misc :as misc]
             [midje-nrepl.profiler :as profiler]
@@ -104,24 +105,20 @@
 (facts "about the profiler"
 
        (tabular (fact "returns a friendly string representing the duration in question"
-                             (profiler/duration->string ?duration) => ?result)
-                         ?duration            ?result
-             (Duration/ofMillis 1)    "1 millisecond"
-           (Duration/ofMillis 256) "256 milliseconds"
-          (Duration/ofMillis 1000)         "1 second"
-          (Duration/ofMillis 6537)     "6.54 seconds"
-            (Duration/ofMinutes 1)         "1 minute"
-         (Duration/ofMillis 63885)     "1.06 minutes"
-            (Duration/ofMinutes 4)        "4 minutes")
+                      (profiler/duration->string ?duration) => ?result)
+                ?duration            ?result
+                (Duration/ofMillis 1)    "1 millisecond"
+                (Duration/ofMillis 256) "256 milliseconds"
+                (Duration/ofMillis 1000)         "1 second"
+                (Duration/ofMillis 6537)     "6.54 seconds"
+                (Duration/ofMinutes 1)         "1 minute"
+                (Duration/ofMillis 63885)     "1.06 minutes"
+                (Duration/ofMinutes 4)        "4 minutes")
 
        (fact "given the total time of the test suite and the number of tests in
        that suite, returns the average time taken by each test"
              (profiler/average (misc/duration-between start-point ten-milliseconds-later) 10)
              => (misc/duration-between start-point one-millisecond-later))
-
-       (fact "returns a zeroed duration when the number of tests is zero"
-             (profiler/average (Duration/ZERO) 0)
-             => (Duration/ZERO))
 
        (fact "produces profile statistics for each namespace"
              (profiler/stats-per-ns test-results total-time)
@@ -179,4 +176,9 @@
              ((profiler/profile fake-runner) {:profile?      true
                                               :slowest-tests 3})
              => (match {:profile
-                        {:top-slowest-tests {:tests #(= (count %) 3)}}})))
+                        {:top-slowest-tests {:tests #(= (count %) 3)}}}))
+
+       (fact "when there are no tests, do not try to collect profile statistics"
+             ((profiler/profile (constantly {:summary {:check 0}})) {:profile? true})
+             => (match (m/equals {:summary {:check       0
+                                            :finished-in duration?}}))))

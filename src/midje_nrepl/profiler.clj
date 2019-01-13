@@ -41,10 +41,10 @@
   [test-results total-time]
   (let [total-time-of-group   (reduce (fn [total {:keys [total-time]}]
                                         (.plus total total-time)) (Duration/ZERO) test-results)
-        percent-of-total-time (/ (.. total-time-of-group (multipliedBy 100) toMillis)
-                                 (.toMillis total-time))]
+        percent-of-total-time (float (/ (.. total-time-of-group (multipliedBy 100) toMillis)
+                                        (.toMillis total-time)))]
     {:total-time            total-time-of-group
-     :percent-of-total-time (format "%.2f%%" (double percent-of-total-time))}))
+     :percent-of-total-time (str (.format formatter percent-of-total-time) "%")}))
 
 (defn average
   "Returns the average time taken by each test in the test suite."
@@ -105,5 +105,6 @@
           end        (misc/now)]
       (-> report-map
           (assoc-in [:summary :finished-in] (misc/duration-between start end))
-          (cond-> profile?
+          (cond-> (and profile?
+                       (not (zero? (get-in report-map [:summary :check]))))
             (assoc-stats options))))))
