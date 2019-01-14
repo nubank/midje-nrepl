@@ -12,6 +12,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
   `wrap-test` middleware, `:ns-exclusions` and `:ns-inclusions`. Those options
   allow for clients to send lists of regexes to filter namespaces to be excluded
   or included from/to the test execution.
+  - [#13](https://github.com/nubank/midje-nrepl/pull/13): allow for clients to
+    collect profiling statistics about tests. By default, only the total time
+    taken by the test suite is returned. Clients can obtain more detailed
+    information by sending the parameter `profile?` in the request.
 
 ## [1.1.0] - 2018-12-19
 

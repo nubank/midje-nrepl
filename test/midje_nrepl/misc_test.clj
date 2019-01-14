@@ -1,6 +1,7 @@
 (ns midje-nrepl.misc-test
   (:require [midje-nrepl.misc :as misc]
-            [midje.sweet :refer :all]))
+            [midje.sweet :refer :all])
+  (:import [java.time Duration Instant]))
 
 (facts "about miscellaneous functions"
 
@@ -21,4 +22,12 @@
                 {:ns "octocat.arithmetic-test"}                                            {:ns symbol} {:ns 'octocat.arithmetic-test}
                 {:x "12" :y "true"} {:x #(Integer/parseInt %) :y #(Boolean/parseBoolean %)}                {:x 12 :y true}
                 {:test-paths ["test"]}                                  {:test-paths identity}         {:test-paths ["test"]}
-                {:ns "octocat.arithmetic-test"}                                         {:kind keyword}                             {}))
+                {:ns "octocat.arithmetic-test"}                                         {:kind keyword}                             {})
+
+       (fact "returns a `java.time.Instant` representing the current instant"
+             (misc/now)
+             => #(instance? Instant %))
+
+       (fact "returns a `java.time.Duration` representing the duration between the two temporal objects"
+             (misc/duration-between (misc/now) (misc/now))
+             => #(instance? Duration %)))

@@ -51,10 +51,9 @@
      (set-descriptor! (var ~name) ~descriptor)))
 
 (defmiddleware wrap-format
-  {:expects  #{}
-   :requires #{}
-   :handles  {"midje-format-tabular"
-              {:requires {"code" "The tabular sexpr to be formatted"}}}}
+  {:handles {"midje-format-tabular"
+             {:doc      "Formats tabular facts."
+              :requires {"code" "The tabular sexpr to be formatted."}}}}
   'midje-nrepl.middleware.format/handle-format)
 
 (defn middleware-vars-expected-by-wrap-inhibit-tests []
@@ -68,39 +67,42 @@
   {:expects (middleware-vars-expected-by-wrap-inhibit-tests)
    :handles
    {"eval"
-    {:doc      "Delegates to `interruptible-eval` middleware, by preventing Midje facts from being run"
+    {:doc      "Delegates to `interruptible-eval` middleware, by preventing Midje facts from being run."
      :optional {"load-tests?" "If set to \"true\" any Midje fact loaded in the current operation will be run automatically (defaults to \"false\")."}}
     "warm-ast-cache"
-    {:doc      "Delegates to `refactor-nrepl.middleware/wrap-refactor` middleware, by preventing Midje facts from being run"
+    {:doc      "Delegates to `refactor-nrepl.middleware/wrap-refactor` middleware, by preventing Midje facts from being run."
      :optional {"load-tests?" "If set to \"true\" any Midje fact loaded in the current operation will be run automatically (defaults to \"false\")."}}
     "refresh"
-    {:doc      "Delegates to `cider.nrepl/wrap-refresh` by preventing Midje facts from being run"
+    {:doc      "Delegates to `cider.nrepl/wrap-refresh` by preventing Midje facts from being run."
      :optional {"load-tests?" "If set to \"true\" any Midje fact loaded in the current operation will be run automatically (defaults to \"false\")."}}
     "refresh-all"
-    {:doc      "Delegates to `cider.nrepl/wrap-refresh` by preventing Midje facts from being run"
+    {:doc      "Delegates to `cider.nrepl/wrap-refresh` by preventing Midje facts from being run."
      :optional {"load-tests?" "If set to \"true\" any Midje fact loaded in the current operation will be run automatically (defaults to \"false\")."}}}}
   'midje-nrepl.middleware.inhibit-tests/handle-inhibit-tests)
+
 (defmiddleware wrap-test
-  {:expects  #{}
-   :requires #{}
-   :handles  {"midje-test-all"
-              {:doc "Runs all Midje tests in the project"}
-              "midje-test-ns"
-              {:doc      "Runs all Midje tests in the namespace."
-               :requires {"ns" "A string indicating the namespace containing the tests to be run."}}
-              "midje-test"
-              {:doc      "Runs a given Midje test (either an individual fact or facts)."
-               :requires {"ns"     "The namespace in which the fact(s) sent through `test-forms` should be evaluated."
-                          "source" "The fact(s) to be run."}
-               :optional
-               {"line" "The line number where the facts to be tested starts."}}
-              "midje-retest"
-              {:doc "Re-runs the tests that didn't pass in the last execution."}
-              "midje-test-stacktrace"
-              {:doc      "Returns the stacktrace of a given erring test. Returns the status `no-stacktrace` if there is no stacktrace for the specified test."
-               :requires {"ns"       "A string indicating the namespace of the erring test."
-                          "index"    "An integer indicating the index of the erring test in question."
-                          "print-fn" "Fully qualified name of a print function that will be used to print stacktraces."}}}}
+  {:handles {"midje-test-all"
+             {:doc      "Runs all Midje tests defined in the project."
+              :optional {"ns-exclusions" "A list of regexes to match namespaces against. Matched namespaces will be excluded from the tests."
+                         "ns-inclusions" "A list of regexes to match namespaces against. Only matched namespaces will be included in the tests."
+                         "profile?"      "A boolean indicating whether the middleware should collect profiling information about tests. Defaults to false."
+                         "test-paths"    "A list of test directories to find tests in. Defaults to all known test directories in the current project."}}
+             "midje-test-ns"
+             {:doc      "Runs all Midje tests defined in the namespace."
+              :requires {"ns" "A string indicating the namespace containing the tests to be run."}}
+             "midje-test"
+             {:doc      "Runs only the supplied Midje test (either an individual fact or facts)."
+              :requires {"ns"     "The namespace in which the fact(s) sent through `source` should be evaluated."
+                         "source" "The fact(s) to be run."}
+              :optional
+              {"line" "The line number where the facts to be tested starts."}}
+             "midje-retest"
+             {:doc "Re-runs the tests that didn't pass in the last execution."}
+             "midje-test-stacktrace"
+             {:doc      "Returns the stacktrace of a given erring test. Returns the status `no-stacktrace` if there is no stacktrace for the specified test."
+              :requires {"ns"       "A string indicating the namespace of the erring test."
+                         "index"    "An integer indicating the index of the erring test in question."
+                         "print-fn" "Fully qualified name of a print function that will be used to print stacktraces."}}}}
   'midje-nrepl.middleware.test/handle-test)
 
 (defmiddleware wrap-test-info
@@ -108,15 +110,12 @@
              {:doc "Returns a list of known test paths for the current project."}
              "test-namespaces"
              {:doc      "Returns a list of test namespaces declared within specified test paths."
-              :optional {"test-paths" "A list of test paths to find namespaces
-  in. If omitted find namespaces in all known test paths."}}}}
+              :optional {"test-paths" "A list of test paths to find namespaces in. If omitted find namespaces in all known test paths."}}}}
   'midje-nrepl.middleware.test-info/handle-test-info)
 
 (defmiddleware wrap-version
-  {:expects  #{}
-   :requires #{}
-   :handles  {"midje-nrepl-version"
-              {:doc "Provides information about midje-nrepl's current version."}}}
+  {:handles {"midje-nrepl-version"
+             {:doc "Provides information about midje-nrepl's current version."}}}
   'midje-nrepl.middleware.version/handle-version)
 
 (def middleware `[wrap-format
