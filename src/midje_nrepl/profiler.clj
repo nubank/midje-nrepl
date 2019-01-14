@@ -4,9 +4,12 @@
            java.time.Duration
            java.util.Locale))
 
-(def ^:private formatter (let [decimal-format (DecimalFormat/getInstance (Locale/ENGLISH))]
-                           (.applyPattern decimal-format "#.##")
-                           decimal-format))
+(def ^:private formatter
+  "Instance of java.text.Decimalformat used internally to format decimal
+  values."
+  (let [decimal-format (DecimalFormat/getInstance (Locale/ENGLISH))]
+    (.applyPattern decimal-format "#.##")
+    decimal-format))
 
 (defn- format-duration [value time-unit]
   (str (.format formatter value) " "
@@ -49,9 +52,7 @@
 (defn average
   "Returns the average time taken by each test in the test suite."
   [total-time number-of-tests]
-  (if (zero? number-of-tests)
-    (Duration/ZERO)
-    (.dividedBy total-time number-of-tests)))
+  (.dividedBy total-time number-of-tests))
 
 (defn- stats-for-ns [ns test-results total-time-of-suite]
   (let [number-of-tests (count test-results)]
@@ -62,7 +63,7 @@
             time-consumption-data))))
 
 (defn stats-per-ns
-  "Returns statistics about each namespace tested."
+  "Returns statistics about each tested namespace."
   [test-results total-time]
   (->> test-results
        (group-by :ns)
@@ -83,9 +84,11 @@
        (map (fn [{:keys [started-at finished-at] :as test-data}]
               (assoc test-data :total-time (misc/duration-between started-at finished-at))))))
 
-(defn- assoc-stats [report-map options]
+(defn- assoc-stats
+  "Assoc's profiling statistics to the report map and returns it."
+  [report-map options]
   (let [{:keys [slowest-tests]
-         :or   {slowest-tests 1}} options
+         :or   {slowest-tests 5}} options
         test-results              (distinct-results-with-known-durations report-map)
         total-time                (get-in report-map [:summary :finished-in])
         number-of-tests           (count test-results)
@@ -98,7 +101,9 @@
                                               (time-consumption top-slowest-tests total-time))
                      :namespaces        (stats-per-ns test-results total-time)})))
 
-(defn profile [runner]
+(defn profile
+  "Wraps a runner function by including profiling statistics to the produced report map."
+  [runner]
   (fn [{:keys [profile?] :as options}]
     (let [start      (misc/now)
           report-map (runner options)

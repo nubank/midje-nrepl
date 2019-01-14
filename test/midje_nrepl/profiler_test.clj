@@ -107,6 +107,7 @@
        (tabular (fact "returns a friendly string representing the duration in question"
                       (profiler/duration->string ?duration) => ?result)
                 ?duration            ?result
+                (Duration/ZERO)   "0 milliseconds"
                 (Duration/ofMillis 1)    "1 millisecond"
                 (Duration/ofMillis 256) "256 milliseconds"
                 (Duration/ofMillis 1000)         "1 second"
@@ -118,9 +119,9 @@
        (fact "given the total time of the test suite and the number of tests in
        that suite, returns the average time taken by each test"
              (profiler/average (misc/duration-between start-point ten-milliseconds-later) 10)
-             => (misc/duration-between start-point one-millisecond-later))
+             => (millis->duration 1))
 
-       (fact "produces profile statistics for each namespace"
+       (fact "produces profiling statistics for each namespace"
              (profiler/stats-per-ns test-results total-time)
              => [{:ns                    'octocat.heavy-test
                   :total-time            (millis->duration 10)
@@ -156,9 +157,9 @@
                          :total-time      duration?
                          :number-of-tests 6
                          :top-slowest-tests
-                         {:tests                 [{:context    ["First heavy test"]
-                                                   :line       7
-                                                   :total-time duration?}]
+                         {:tests                 (m/prefix [{:context    ["First heavy test"]
+                                                             :line       7
+                                                             :total-time duration?}])
                           :total-time            duration?
                           :percent-of-total-time string?}
                          :namespaces
@@ -166,13 +167,18 @@
                           {:ns 'octocat.arithmetic-test}]}
                         :summary {:finished-in duration?}}))
 
-       (fact "by default, the profiler/profile only adds the total elapsed
-             time to the summary map"
+       (fact "when the key `:profile?` isn't set to true, the profiler only adds
+       the total time taken by the test suite to the returned report map"
              (let [{:keys [profile summary]} ((profiler/profile fake-runner) {})]
                profile => nil
                (:finished-in summary) => duration?))
 
-       (fact "users can customize the number of slowest tests returned"
+       (fact "the default number of slowest tests is 5"
+             ((profiler/profile fake-runner) {:profile? true})
+             => (match {:profile
+                        {:top-slowest-tests {:tests #(= (count %) 5)}}}))
+
+       (fact "users can customize the number of slowest tests"
              ((profiler/profile fake-runner) {:profile?      true
                                               :slowest-tests 3})
              => (match {:profile
