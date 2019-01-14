@@ -121,6 +121,10 @@
              (profiler/average (misc/duration-between start-point ten-milliseconds-later) 10)
              => (millis->duration 1))
 
+       (fact "when the number of tests is zero, returns a zeroed duration"
+             (profiler/average (Duration/ZERO) 0)
+             => (Duration/ZERO))
+
        (fact "produces profiling statistics for each namespace"
              (profiler/stats-per-ns test-results total-time)
              => [{:ns                    'octocat.heavy-test

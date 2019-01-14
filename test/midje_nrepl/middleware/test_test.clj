@@ -18,7 +18,9 @@
                      :expected 6
                      :actual   5
                      :message  '()
-                     :type     :fail}]}
+                     :type     :fail
+                     :started-at (misc/now)
+                     :finished-at (misc/now)}]}
                   :summary {:check 1 :error 0 :fact 1 :fail 1 :ns 1 :pass 0 :to-do 0}})
 
 (def transformed-report (assoc-in (transform-value test-report) ["summary" "finished-in"] "1 millisecond"))

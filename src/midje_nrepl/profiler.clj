@@ -52,7 +52,9 @@
 (defn average
   "Returns the average time taken by each test in the test suite."
   [total-time number-of-tests]
-  (.dividedBy total-time number-of-tests))
+  (if (zero? number-of-tests)
+    (Duration/ZERO)
+    (.dividedBy total-time number-of-tests)))
 
 (defn- stats-for-ns [ns test-results total-time-of-suite]
   (let [number-of-tests (count test-results)]
