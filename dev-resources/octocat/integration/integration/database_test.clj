@@ -4,7 +4,7 @@
 (defn find-all-users []
   [{:first-name "John" :last-name "Doe"}])
 
-(facts "about database operations"
+(facts "about database operations" :slow
 
        (fact "finds all users in the system"
              (find-all-users)

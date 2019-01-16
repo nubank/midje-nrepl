@@ -11,15 +11,15 @@
 
 (def test-report {:results
                   {'octocat.arithmetic-test
-                   [{:context  ["about arithmetic operations" "this is a crazy arithmetic"]
-                     :ns       'octocat.arithmetic-test
-                     :file     (io/file "/home/john-doe/dev/projects/octocat/test/octocat/arithmetic_test.clj")
-                     :index    0
-                     :expected 6
-                     :actual   5
-                     :message  '()
-                     :type     :fail
-                     :started-at (misc/now)
+                   [{:context     ["about arithmetic operations" "this is a crazy arithmetic"]
+                     :ns          'octocat.arithmetic-test
+                     :file        (io/file "/home/john-doe/dev/projects/octocat/test/octocat/arithmetic_test.clj")
+                     :index       0
+                     :expected    6
+                     :actual      5
+                     :message     '()
+                     :type        :fail
+                     :started-at  (misc/now)
                      :finished-at (misc/now)}]}
                   :summary {:check 1 :error 0 :fact 1 :fail 1 :ns 1 :pass 0 :to-do 0}})
 
@@ -56,6 +56,17 @@
              (provided
               (runner/run-all-tests (match {:ns-exclusions #(= (map str %) ["^integration\\.too-heavy"])
                                             :ns-inclusions #(= (map str %) ["^integration"])})) => test-report
+              (transport/send ..transport.. transformed-report) => irrelevant
+              (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
+
+       (fact "clients can pass `test-exclusions` and/or `test-inclusions` to filter out tests"
+             (test/handle-test {:op              "midje-test-all"
+                                :test-exclusions ["slow"]
+                                :test-inclusions ["integration"]
+                                :transport       ..transport..}) => irrelevant
+             (provided
+              (runner/run-all-tests (match {:test-exclusions [:slow]
+                                            :test-inclusions [:integration]})) => test-report
               (transport/send ..transport.. transformed-report) => irrelevant
               (transport/send ..transport.. (match {:status #{:done}})) => irrelevant))
 

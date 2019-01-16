@@ -14,13 +14,16 @@
   (transport/send transport (response-for message (transform-value report))))
 
 (defn- test-all-reply [message]
-  (let [strings->regexes #(map re-pattern %)
-        options          (misc/parse-options message {:ns-exclusions strings->regexes
-                                                      :ns-inclusions strings->regexes
-                                                      :profile?      #(Boolean/parseBoolean %)
-                                                      :slowest-tests int
-                                                      :test-paths    identity})
-        report           ((profiler/profile runner/run-all-tests) options)]
+  (let [strings->regexes  (partial map re-pattern)
+        strings->keywords (partial map keyword)
+        options           (misc/parse-options message {:ns-exclusions   strings->regexes
+                                                       :ns-inclusions   strings->regexes
+                                                       :test-exclusions strings->keywords
+                                                       :test-inclusions strings->keywords
+                                                       :profile?        #(Boolean/parseBoolean %)
+                                                       :slowest-tests   int
+                                                       :test-paths      identity})
+        report            ((profiler/profile runner/run-all-tests) options)]
     (send-report message report)))
 
 (defn- test-ns-reply [message]
