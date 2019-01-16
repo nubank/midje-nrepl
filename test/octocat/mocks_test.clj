@@ -10,7 +10,7 @@
 
 (with-isolated-output-counters
 
-  (facts "about prerequisits"
+  (facts "about prerequisits" :mark3
 
          (fact "this one is mistakenly mocked out"
                (incredible-stuff {:first-name "John"}) => {:message "Hello John!"}

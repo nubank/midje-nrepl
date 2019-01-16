@@ -203,6 +203,14 @@
              @runner/test-results
              => (match (:results individual-test-report))))
 
+(defn checked-fact-groups [report]
+  (->> report
+       :results
+       vals
+       (map first)
+       (map (comp first :context))
+       distinct))
+
 (facts "about running all tests in the project"
 
        (fact "runs all tests in the project according to supplied options"
@@ -237,6 +245,25 @@
                                     :ns-exclusions [#"arithmetic"]
                                     :ns-inclusions [#"arithmetic"]})
              => (match {:results empty?}))
+
+       (tabular (fact "`:test-exclusions` and `:test-inclusions` allow for users
+                             to filter out the list of facts to be checked"
+                      (->> (runner/run-all-tests {:test-paths      ["test/octocat"]
+                                                  :test-exclusions ?exclusions
+                                                  :test-inclusions ?inclusions})
+                           checked-fact-groups) => (match (m/in-any-order ?result)))
+                ?exclusions     ?inclusions                                            ?result
+                [:mark1]             nil ["about Clojure collections" "about prerequisits"]
+                [:mark1 :mark2]             nil                             ["about prerequisits"]
+                nil        [:mark1]                    ["about arithmetic operations"]
+                nil [:mark2 :mark3] ["about Clojure collections" "about prerequisits"])
+
+       (fact "when both `:test-exclusions` and `:test-inclusions` are present, the former takes precedence over the later"
+             (->> (runner/run-all-tests {:test-paths      ["test/octocat"]
+                                         :test-exclusions [:mark1]
+                                         :test-inclusions [:mark1 :mark3]})
+                  checked-fact-groups)
+             => ["about prerequisits"])
 
        (fact "returns a report with no tests when there are no tests to be run"
              (runner/run-all-tests {:test-paths ["test/octocat"]})
