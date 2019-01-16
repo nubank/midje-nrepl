@@ -15,7 +15,7 @@
   (get-in @test-results [ns index :error]))
 
 (defn- fact-filter
-  "Takes two predicates exclude-test? and include-test? and returns a
+  "Takes two predicates, exclude-test? and include-test?, and returns a
   new predicate function that applies a logical and between those
   predicates on a supplied fact function."
   [exclude-test? include-test?]
@@ -87,7 +87,7 @@
   [keywords]
   (fn [test-function]
     (let [metadata (meta test-function)]
-      (some #(contains? metadata %)
+      (some #(get metadata %)
             keywords))))
 
 (defn- ns-filter
@@ -106,8 +106,14 @@
   :ns-exclusions - seq of regexes to match namespaces against in a logical or. When
   both :ns-exclusions and :ns-inclusions are present, the former takes
   precedence over the later.
-  :test-paths - a vector of test paths (strings) to restrict the test
-  execution. Defaults to all known test paths declared in the
+  :test-exclusions - a seq of keywords to exclude tests whose meta
+  contains at least one of the supplied keywords.
+  :test-inclusions - a seq of keywords to include tests whose meta
+  contains at least one of the supplied keywords. When
+  both :test-exclusions and :test-inclusions are present, the former
+  takes precedence over the later.
+  :test-paths - a seq of test paths (strings) where midje-nrepl looks
+  for tests. Defaults to all known test paths declared in the
   project."
   [options]
   (let [{:keys [ns-exclusions ns-inclusions test-exclusions test-inclusions test-paths]
