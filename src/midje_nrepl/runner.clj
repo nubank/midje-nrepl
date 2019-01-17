@@ -15,15 +15,15 @@
   (get-in @test-results [ns index :error]))
 
 (defn- fact-filter
-  "Takes two predicates, exclude-test? and include-test?, and returns a
+  "Takes two predicates, excludes-test? and includes-test?, and returns a
   new predicate function that applies a logical and between those
   predicates on a supplied fact function."
-  [exclude-test? include-test?]
-  (let [exclude-test? (or exclude-test? (constantly false))
-        include-test? (or include-test? (constantly true))]
+  [excludes-test? includes-test?]
+  (let [excludes-test? (or excludes-test? (constantly false))
+        includes-test? (or includes-test? (constantly true))]
     (fn [fact-function]
-      (and  (not (exclude-test? fact-function))
-            (include-test? fact-function)))))
+      (and  (not (excludes-test? fact-function))
+            (includes-test? fact-function)))))
 
 (defn- source-pushback-reader [source line]
   {:pre [(string? source) (or (nil? line) (pos-int? line))]}
@@ -42,12 +42,12 @@
         (eval `(ns ~namespace))
         (the-ns namespace))))
 
-(defn- check-facts [& {:keys [ns source line exclude-test? include-test?]}]
+(defn- check-facts [& {:keys [ns source line excludes-test? includes-test?]}]
   {:pre [(symbol? ns)]}
   (let [the-ns (ensure-ns ns)
         file   (project-info/file-for-ns ns)
         reader (make-pushback-reader file source line)]
-    (binding [midje.config/*config* (merge midje.config/*config* {:fact-filter (fact-filter exclude-test? include-test?)})]
+    (binding [midje.config/*config* (merge midje.config/*config* {:fact-filter (fact-filter excludes-test? includes-test?)})]
       (with-in-memory-reporter {:ns the-ns :file file}
         (clojure.main/repl
          :read                         #(read reader false %2)
@@ -118,14 +118,14 @@
   [options]
   (let [{:keys [ns-exclusions ns-inclusions test-exclusions test-inclusions test-paths]
          :or   {test-paths (project-info/get-test-paths)}} options
-        exclude-test?                                      (when test-exclusions (test-filter test-exclusions))
-        include-test?                                      (when test-inclusions (test-filter test-inclusions))
+        excludes-test?                                     (when test-exclusions (test-filter test-exclusions))
+        includes-test?                                     (when test-inclusions (test-filter test-inclusions))
         namespaces                                         (-> (project-info/find-namespaces-in test-paths)
                                                                (cond->>
                                                                    ns-inclusions (filter (ns-filter ns-inclusions))
                                                                    ns-exclusions (remove (ns-filter ns-exclusions))))]
     (->> namespaces
-         (map #(check-facts :ns % :exclude-test? exclude-test? :include-test? include-test?))
+         (map #(check-facts :ns % :excludes-test? excludes-test? :includes-test? includes-test?))
          merge-test-reports
          save-test-results!)))
 
