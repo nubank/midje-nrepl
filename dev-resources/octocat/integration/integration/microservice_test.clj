@@ -6,9 +6,10 @@
 
 (def counter (atom 0))
 
-(defn create-user [user]
+(defn create-user! [user]
+  (reset! counter 0)
   (fn [world]
-    (let [user-id 1]
+    (let [user-id (get user :id)]
       (swap! users-service assoc user-id user)
       (assoc world :user-id user-id))))
 
@@ -18,14 +19,17 @@
     nil
     (get @users-service user-id)))
 
-(defn reset-counter! [world]
-  (reset! counter 0)
-  world)
+(def john-doe {:id 1 :first-name "John" :last-name "Doe"})
 
-(def john-doe {:first-name "John" :last-name "Doe"})
+(def linus-torvalds  {:id 2 :first-name "Linus" :last-name "Torvalds"})
 
 (flow "creates and retrieves an user"
-      (create-user john-doe)
+      (create-user! john-doe)
       (fact "the user has been created"
             (get-user-by-id (*world* :user-id)) => john-doe)
-      reset-counter!)
+
+      (create-user! linus-torvalds)
+      (fact "this is the wrong user!"
+            (get-user-by-id (*world* :user-id)) => {:id 2
+                                                    :first-name "Richard"
+                                                    :last-name "Stallman"}))
