@@ -132,10 +132,10 @@ the middleware returns an error"
 
        (fact "runs all tests in the project"
              (send-message {:op "midje-test-all"})
-             => (match (list {:results {:octocat.arithmetic-test   (complement empty?)
-                                        :octocat.side-effects-test (complement empty?)
-                                        :integration.database-test (complement empty?)}
-                              :summary {:check 7 :error 1 :fact 6 :fail 2 :finished-in string? :ns 3 :pass 4 :to-do 0}}
+             => (match (list {:results {:octocat.arithmetic-test       (complement empty?)
+                                        :octocat.side-effects-test     (complement empty?)
+                                        :integration.microservice-test (complement empty?)}
+                              :summary {:check 8 :error 1 :fact 7 :fail 3 :finished-in string? :ns 3 :pass 4 :to-do 0}}
                              {:status ["done"]})))
 
        (fact "runs all tests in the specified test path"
@@ -169,8 +169,8 @@ the middleware returns an error"
                                           :percent-of-total-time string?
                                           :total-time            string?}
                                          {:average               string?
-                                          :ns                    "integration.database-test"
-                                          :number-of-tests       1
+                                          :ns                    "integration.microservice-test"
+                                          :number-of-tests       2
                                           :percent-of-total-time string?
                                           :total-time            string?}
                                          {:average               string?
@@ -178,7 +178,7 @@ the middleware returns an error"
                                           :number-of-tests       1
                                           :percent-of-total-time string?
                                           :total-time            string?}])
-                        :number-of-tests 6
+                        :number-of-tests 7
                         :top-slowest-tests
                         (complement empty?)
                         :total-time      string?}))
