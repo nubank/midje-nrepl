@@ -35,14 +35,20 @@
 (defn finishing-top-level-fact [_]
   (swap! *report* dissoc :top-level-description :current-test))
 
-(defn- resolve-possible-divergences! []
+(defn- drop-possibly-retried-facts!
+  "Some frameworks like nubank/selvage may alter Midje counters after
+  checking a fact (e.g. due to a retry mechanism). This function
+  provides a workaround for those cases by verifying whether counters
+  were changed and dropping failures that may cause divergences in the
+  final report."
+  []
   (let [{current-failures :midje-failures}  (midje.state/output-counters)
         {previous-failures :midje-failures} (@*report* :output-counters)]
     (when (and previous-failures (not= current-failures previous-failures))
-      (let [delta                (- previous-failures current-failures)
+      (let [divergent-failures   (- previous-failures current-failures)
             {:keys [testing-ns]} @*report*]
         (swap! *report* update-in [:results testing-ns]
-               (comp vec (partial drop-last delta)))))))
+               (comp vec (partial drop-last divergent-failures)))))))
 
 (defn- description-for [fact]
   (let [description (or (fact/best-description fact)
@@ -60,7 +66,7 @@
                                          :line       (fact/line fact)
                                          :source     (pr-str (fact/source fact))
                                          :started-at (misc/now)})
-    (resolve-possible-divergences!)))
+    (drop-possibly-retried-facts!)))
 
 (defn prettify-expected-and-actual-values [{:keys [expected actual] :as result-map}]
   (let [pretty-str #(with-out-str (pprint/pprint %))]
@@ -68,14 +74,14 @@
       expected (assoc :expected (pretty-str expected))
       actual   (assoc :actual (pretty-str actual)))))
 
-(defn- conj-test-result! [{:keys [type] :as additional-data}]
+(defn- conj-test-result! [{:keys [type] :as test-data}]
   (let [current-test (@*report* :current-test)
         ns           (@*report* :testing-ns)
         index        (count (get-in @*report* [:results ns]))
         test         (-> current-test
                          (assoc :index index)
                          (cond-> (not= type :to-do) (assoc :finished-at (misc/now)))
-                         (merge additional-data)
+                         (merge test-data)
                          prettify-expected-and-actual-values)]
     (swap! *report* update-in [:results ns]
            (comp vec (partial conj)) test)))
