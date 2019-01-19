@@ -12,7 +12,7 @@
 
        (fact "gets all test namespaces defined in the project"
              (send-message {:op "test-namespaces"})
-             => (match [{:test-namespaces ["integration.database-test"
+             => (match [{:test-namespaces ["integration.microservice-test"
                                            "octocat.arithmetic-test"
                                            "octocat.side-effects-test"]}
                         {:status ["done"]}]))
@@ -24,5 +24,5 @@
                                  {:status ["done"]}]))
                 ?test-paths                                                                         ?namespaces
                 ["test"]                             ["octocat.arithmetic-test" "octocat.side-effects-test"]
-                ["integration"]                                                       ["integration.database-test"]
-                ["integration" "test"] ["integration.database-test" "octocat.arithmetic-test" "octocat.side-effects-test"]))
+                ["integration"]                                                       ["integration.microservice-test"]
+                ["integration" "test"] ["integration.microservice-test" "octocat.arithmetic-test" "octocat.side-effects-test"]))

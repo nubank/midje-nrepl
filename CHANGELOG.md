@@ -17,6 +17,11 @@ Versioning](https://semver.org/spec/v2.0.0.html).
     taken by the test suite is returned. Clients can obtain more detailed
     information by sending the parameter `profile?` in the request.
 
+### Fixed
+- [#14](https://github.com/nubank/midje-nrepl/pull/14): compute failures
+  properly within [Selvage](https://github.com/nubank/selvage) flows where facts
+  are retried.
+
 ## [1.1.0] - 2018-12-19
 
 ### Added

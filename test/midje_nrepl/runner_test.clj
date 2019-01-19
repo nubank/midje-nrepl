@@ -151,16 +151,6 @@
                                        (:results mocks-test-report))
                        :summary {:check 12 :error 1 :fact 8 :fail 9 :ns 3 :pass 2 :to-do 0}})
 
-(defn isolate-test-forms!
-  "Workaround to test the re-run feature without modifying Midje counters."
-  [namespace]
-  (swap! runner/test-results update namespace
-         (fn [results]
-           (->> results
-                (map #(update % :source
-                              (partial format "(with-isolated-output-counters %s)")))
-                vec))))
-
 (facts "about running tests in a given namespace"
 
        (fact "runs all tests in the given namespace"
@@ -282,7 +272,6 @@
 
        (fact "re-runs tests that didn't pass in the last execution"
              (runner/run-tests-in-ns {:ns 'octocat.arithmetic-test}) => (match arithmetic-test-report)
-             (isolate-test-forms! 'octocat.arithmetic-test)
              (runner/re-run-non-passing-tests nil) => (match re-run-arithmetic-test-report))
 
        (fact "returns a report with no tests when there are no failing or erring tests to be run"
@@ -294,16 +283,13 @@
 
        (fact "results of the last execution are kept in the current session as well"
              (runner/run-tests-in-ns {:ns 'octocat.arithmetic-test}) => (match arithmetic-test-report)
-             (isolate-test-forms! 'octocat.arithmetic-test)
              (runner/re-run-non-passing-tests nil) => (match re-run-arithmetic-test-report)
              @runner/test-results
              => (match (:results re-run-arithmetic-test-report)))
 
        (fact "by re-running the same tests twice, the same results are obtained"
              (runner/run-tests-in-ns {:ns 'octocat.arithmetic-test}) => (match arithmetic-test-report)
-             (isolate-test-forms! 'octocat.arithmetic-test)
              (runner/re-run-non-passing-tests nil) => (match re-run-arithmetic-test-report)
-             (isolate-test-forms! 'octocat.arithmetic-test)
              (runner/re-run-non-passing-tests nil) => (match re-run-arithmetic-test-report)))
 
 (facts "about getting test stacktraces"
