@@ -157,18 +157,18 @@ the middleware returns an error"
 
        (fact "uses test-exclusions/test-inclusions to test only a subset of tests"
              (-> (send-message {:op              "midje-test-all"
-                                :test-inclusions ["slow"]})
+                                :test-inclusions ["mark1"]})
                  first
                  :results
                  keys)
-             => (match [:integration.database-test])
+             => (match [:octocat.side-effects-test])
 
              (-> (send-message {:op              "midje-test-all"
-                                :test-exclusions ["slow"]})
+                                :test-exclusions ["mark1"]})
                  first
                  :results
                  keys)
-             => (match (m/in-any-order [:octocat.arithmetic-test :octocat.side-effects-test])))
+             => (match (m/in-any-order [:octocat.arithmetic-test :integration.microservice-test])))
 
        (fact "clients can collect profiling information by sending the parameter
        `profile?` in the request"
