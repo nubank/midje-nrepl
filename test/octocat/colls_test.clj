@@ -6,7 +6,7 @@
 
 (with-isolated-output-counters
 
-  (fact "about Clojure collections"
+  (fact "about Clojure collections" :mark2
 
         (fact "one key is missing in the actual map"
               {:first-name "John"} => {:first-name "John" :last-name "Doe"})
@@ -18,4 +18,3 @@
 
         (fact "the leftmost doesn't have the same elements as the rightmost"
               [1 2 3] => (match (m/in-any-order [3 2 4])))))
--

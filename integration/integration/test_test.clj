@@ -155,6 +155,21 @@ the middleware returns an error"
                  keys)
              => (match [:octocat.arithmetic-test]))
 
+       (fact "uses test-exclusions/test-inclusions to test only a subset of tests"
+             (-> (send-message {:op              "midje-test-all"
+                                :test-inclusions ["mark1"]})
+                 first
+                 :results
+                 keys)
+             => (match [:octocat.side-effects-test])
+
+             (-> (send-message {:op              "midje-test-all"
+                                :test-exclusions ["mark1"]})
+                 first
+                 :results
+                 keys)
+             => (match (m/in-any-order [:octocat.arithmetic-test :integration.microservice-test])))
+
        (fact "clients can collect profiling information by sending the parameter
        `profile?` in the request"
              (-> (send-message {:op       "midje-test-all"
