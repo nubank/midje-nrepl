@@ -16,6 +16,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
     collect profiling statistics about tests. By default, only the total time
     taken by the test suite is returned. Clients can obtain more detailed
     information by sending the parameter `profile?` in the request.
+  - [#15](https://github.com/nubank/midje-nrepl/pull/15): add two new options
+    to `wrap-test` middleware, `:test-exclusions` and `:test-inclusions`. Those
+    options allow for clients to send lists of keywords to filter tests to be
+    excluded or included from/to the test execution.
 
 ### Fixed
 - [#14](https://github.com/nubank/midje-nrepl/pull/14): compute failures
