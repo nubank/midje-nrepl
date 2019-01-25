@@ -4,7 +4,6 @@
             [cloverage.dependency :as dependency]
             [cloverage.instrument :as instrument]
             [cloverage.report :as report]
-            [cloverage.report.console :as console]
             [midje-nrepl.project-info :as project-info]))
 
 (defn- summarize-coverage [forms threshold]
@@ -25,15 +24,16 @@
       (binding [coverage/*instrumented-ns* namespace]
         (instrument/instrument #'coverage/track-coverage namespace)))))
 
-(defn covering [options runner-fn]
-  (let [{:keys [debug? threshold source-namespaces]
-         :or   {debug?            false
-                threshold         50
-                source-namespaces (project-info/find-namespaces-in (project-info/get-source-paths))}} (options :coverage)]
-    (binding [coverage/*covered* (atom [])
-              debug/*debug*      debug?]
-      (instrument-namespaces source-namespaces)
-      (let [report-map (runner-fn)
-            forms      (report/gather-stats @coverage/*covered*)]
-        (assoc report-map
-               :coverage (summarize-coverage forms threshold))))))
+(defn code-coverage [runner]
+  (fn [options]
+    (let [{:keys [debug? threshold source-namespaces]
+           :or   {debug?            false
+                  threshold         50
+                  source-namespaces (project-info/find-namespaces-in (project-info/get-source-paths))}} (options :coverage)]
+      (binding [coverage/*covered* (atom [])
+                debug/*debug*      debug?]
+        (instrument-namespaces source-namespaces)
+        (let [report-map (runner options)
+              forms      (report/gather-stats @coverage/*covered*)]
+          (assoc report-map
+                 :coverage (summarize-coverage forms threshold)))))))
