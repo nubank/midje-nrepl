@@ -1,7 +1,8 @@
-(ns midje-nrepl.test-runner-test
-  (:require [matcher-combinators.midje :refer [match]]
+(ns midje-nrepl.runner-test
+  (:require [matcher-combinators.matchers :as m]
+            [matcher-combinators.midje :refer [match]]
             [midje-nrepl.project-info :as project-info]
-            [midje-nrepl.test-runner :as test-runner]
+            [midje-nrepl.runner :as runner]
             [midje.sweet :refer :all]))
 
 (defn existing-file? [candidate]
@@ -150,113 +151,155 @@
                                        (:results mocks-test-report))
                        :summary {:check 12 :error 1 :fact 8 :fail 9 :ns 3 :pass 2 :to-do 0}})
 
-(defn isolate-test-forms!
-  "Workaround to test the re-run feature without modifying Midje counters."
-  [namespace]
-  (swap! test-runner/test-results update namespace
-         (fn [results]
-           (->> results
-                (map #(update % :source
-                              (partial format "(with-isolated-output-counters %s)")))
-                vec))))
-
 (facts "about running tests in a given namespace"
 
        (fact "runs all tests in the given namespace"
-             (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
-             (test-runner/run-tests-in-ns 'octocat.colls-test) => (match colls-test-report)
-             (test-runner/run-tests-in-ns 'octocat.mocks-test) => (match mocks-test-report))
+             (runner/run-tests-in-ns {:ns 'octocat.arithmetic-test}) => (match arithmetic-test-report)
+             (runner/run-tests-in-ns {:ns 'octocat.colls-test}) => (match colls-test-report)
+             (runner/run-tests-in-ns {:ns 'octocat.mocks-test}) => (match mocks-test-report))
 
        (fact "returns a report with no tests when there are no tests to be run"
-             (test-runner/run-tests-in-ns 'octocat.no-tests)
+             (runner/run-tests-in-ns {:ns 'octocat.no-tests})
              => (match {:results {}
                         :summary {:check 0 :ns 0}}))
 
        (fact "results of the last execution are kept in the current session"
-             (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
-             @test-runner/test-results
+             (runner/run-tests-in-ns {:ns 'octocat.arithmetic-test}) => (match arithmetic-test-report)
+             @runner/test-results
              => (match (:results arithmetic-test-report))))
 
 (facts "about running individual tests"
 
        (fact "runs the test source passed as a string"
-             (test-runner/run-test 'octocat.arithmetic-test "(with-isolated-output-counters (fact 1 => 1))")
+             (runner/run-test {:ns 'octocat.arithmetic-test :source "(with-isolated-output-counters (fact 1 => 1))"})
              => (match individual-test-report))
 
        (fact "line numbers are resolved correctly for individual facts, taking the supplied starting line in consideration"
-             (test-runner/run-test 'octocat.arithmetic-test "(with-isolated-output-counters
+             (runner/run-test {:ns 'octocat.arithmetic-test :source "(with-isolated-output-counters
 (fact \"this is wrong\"
-1 => 2))" 10)
+1 => 2))"                          :line                    10})
              => (match {:results {'octocat.arithmetic-test
                                   [{:type :fail
                                     :line 12}]}}))
 
        (fact "returns a report with no tests when there are no tests to be run"
-             (test-runner/run-test 'octocat.arithmetic-test "(fact)")
+             (runner/run-test {:ns 'octocat.arithmetic-test :source "(fact)"})
              => (match {:results {}
                         :summary {:check 0 :ns 0}}))
 
        (fact "results of the last execution are kept in the current session"
-             (test-runner/run-test 'octocat.arithmetic-test "(with-isolated-output-counters (fact 1 => 1))")
+             (runner/run-test {:ns 'octocat.arithmetic-test :source "(with-isolated-output-counters (fact 1 => 1))"})
              => (match individual-test-report)
-             @test-runner/test-results
+             @runner/test-results
              => (match (:results individual-test-report))))
+
+(defn checked-fact-groups [report]
+  (->> report
+       :results
+       vals
+       (map first)
+       (map (comp first :context))
+       distinct))
 
 (facts "about running all tests in the project"
 
-       (fact "runs all tests in the project"
-             (test-runner/run-all-tests-in ["test/octocat"])
+       (fact "runs all tests in the project according to supplied options"
+             (runner/run-all-tests {:test-paths ["test/octocat"]})
              => (match all-tests-report))
 
+       (fact "when `test-paths` isn't set, uses the test paths declared in the project"
+             (runner/run-all-tests {})
+             => (match all-tests-report)
+             (provided
+              (project-info/get-test-paths) => ["test/octocat"]))
+
+       (tabular (fact "`:ns-exclusions` and `:ns-inclusions` allow for users to
+              filter out the list of namespaces to be tested"
+                      (-> (runner/run-all-tests {:test-paths    ["test/octocat"]
+                                                 :ns-exclusions ?exclusions
+                                                 :ns-inclusions ?inclusions})
+                          :results
+                          keys)
+                      => ?results)
+                ?exclusions             ?inclusions                                                                                    ?results
+                [#"mocks"]                     nil                     (match (m/in-any-order ['octocat.arithmetic-test 'octocat.colls-test]))
+                nil         [#"arithmetic"]                                                                  ['octocat.arithmetic-test]
+                [#"^octocat"]                     nil                                                                                         nil
+                nil           [#"^octocat"] (match (m/in-any-order ['octocat.arithmetic-test 'octocat.colls-test 'octocat.mocks-test]))
+                [#"coll" #"mock"]                     nil                                                                  ['octocat.arithmetic-test]
+                nil [#"^foo" #"arithmetic"]                                                                  ['octocat.arithmetic-test])
+
+       (fact "when both `:ns-exclusions` and `:ns-inclusions` are present, the
+       former takes precedence over the later"
+             (runner/run-all-tests {:test-paths    ["test/octocat"]
+                                    :ns-exclusions [#"arithmetic"]
+                                    :ns-inclusions [#"arithmetic"]})
+             => (match {:results empty?}))
+
+       (tabular (fact "`:test-exclusions` and `:test-inclusions` allow for users
+                             to filter out the list of facts to be checked"
+                      (->> (runner/run-all-tests {:test-paths      ["test/octocat"]
+                                                  :test-exclusions ?exclusions
+                                                  :test-inclusions ?inclusions})
+                           checked-fact-groups) => (match (m/in-any-order ?result)))
+                ?exclusions     ?inclusions                                            ?result
+                [:mark1]             nil ["about Clojure collections" "about prerequisits"]
+                [:mark1 :mark2]             nil                             ["about prerequisits"]
+                nil        [:mark1]                    ["about arithmetic operations"]
+                nil [:mark2 :mark3] ["about Clojure collections" "about prerequisits"])
+
+       (fact "when both `:test-exclusions` and `:test-inclusions` are present, the former takes precedence over the later"
+             (->> (runner/run-all-tests {:test-paths      ["test/octocat"]
+                                         :test-exclusions [:mark1]
+                                         :test-inclusions [:mark1 :mark3]})
+                  checked-fact-groups)
+             => ["about prerequisits"])
+
        (fact "returns a report with no tests when there are no tests to be run"
-             (test-runner/run-all-tests-in ["test/octocat"])
+             (runner/run-all-tests {:test-paths ["test/octocat"]})
              => (match {:results {}
                         :summary {:check 0 :ns 0}})
              (provided
               (project-info/find-namespaces-in ["test/octocat"]) => ['octocat.no-tests]))
 
        (fact "results of the last execution are kept in the current session"
-             (test-runner/run-all-tests-in ["test/octocat"])
+             (runner/run-all-tests {:test-paths ["test/octocat"]})
              => (match all-tests-report)
-             @test-runner/test-results
+             @runner/test-results
              => (match (:results all-tests-report))))
 
 (facts "about re-running tests"
 
        (fact "re-runs tests that didn't pass in the last execution"
-             (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
-             (isolate-test-forms! 'octocat.arithmetic-test)
-             (test-runner/re-run-non-passing-tests) => (match re-run-arithmetic-test-report))
+             (runner/run-tests-in-ns {:ns 'octocat.arithmetic-test}) => (match arithmetic-test-report)
+             (runner/re-run-non-passing-tests nil) => (match re-run-arithmetic-test-report))
 
        (fact "returns a report with no tests when there are no failing or erring tests to be run"
-             (test-runner/run-test 'octocat.arithmetic-test "(with-isolated-output-counters (fact (+ 1 2) => 3))")
+             (runner/run-test {:ns 'octocat.arithmetic-test :source "(with-isolated-output-counters (fact (+ 1 2) => 3))"})
              => (match {:summary {:error 0 :fail 0 :ns 1 :pass 1 :check 1}})
-             (test-runner/re-run-non-passing-tests)
+             (runner/re-run-non-passing-tests nil)
              => (match {:results {}
                         :summary {:check 0 :ns 0}}))
 
        (fact "results of the last execution are kept in the current session as well"
-             (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
-             (isolate-test-forms! 'octocat.arithmetic-test)
-             (test-runner/re-run-non-passing-tests) => (match re-run-arithmetic-test-report)
-             @test-runner/test-results
+             (runner/run-tests-in-ns {:ns 'octocat.arithmetic-test}) => (match arithmetic-test-report)
+             (runner/re-run-non-passing-tests nil) => (match re-run-arithmetic-test-report)
+             @runner/test-results
              => (match (:results re-run-arithmetic-test-report)))
 
        (fact "by re-running the same tests twice, the same results are obtained"
-             (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => (match arithmetic-test-report)
-             (isolate-test-forms! 'octocat.arithmetic-test)
-             (test-runner/re-run-non-passing-tests) => (match re-run-arithmetic-test-report)
-             (isolate-test-forms! 'octocat.arithmetic-test)
-             (test-runner/re-run-non-passing-tests) => (match re-run-arithmetic-test-report)))
+             (runner/run-tests-in-ns {:ns 'octocat.arithmetic-test}) => (match arithmetic-test-report)
+             (runner/re-run-non-passing-tests nil) => (match re-run-arithmetic-test-report)
+             (runner/re-run-non-passing-tests nil) => (match re-run-arithmetic-test-report)))
 
 (facts "about getting test stacktraces"
 
        (fact "given a namespace symbol and an index, returns the exception stored at these coordinates"
-             (test-runner/run-tests-in-ns 'octocat.arithmetic-test) => irrelevant
-             (test-runner/get-exception-at 'octocat.arithmetic-test 4) => #(instance? ArithmeticException %))
+             (runner/run-tests-in-ns {:ns 'octocat.arithmetic-test}) => irrelevant
+             (runner/get-exception-at 'octocat.arithmetic-test 4) => #(instance? ArithmeticException %))
 
        (tabular (fact "when there is no exception at the supplied position, returns nil"
-                      (test-runner/get-exception-at ?ns ?index) => nil)
+                      (runner/get-exception-at ?ns ?index) => nil)
                 ?ns                       ?index
                 'octocat.arithmetic-test       0
                 'octocat.arithmetic-test      10

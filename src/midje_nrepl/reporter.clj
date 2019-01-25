@@ -1,5 +1,6 @@
 (ns midje-nrepl.reporter
   (:require [clojure.pprint :as pprint]
+            [midje-nrepl.misc :as misc]
             [midje.config :as midje.config]
             [midje.data.fact :as fact]
             [midje.emission.plugins.default-failure-lines :as failure-lines]
@@ -7,51 +8,65 @@
             [midje.emission.state :as midje.state]
             [midje.util.exceptions :as midje.exceptions]))
 
-(def report (atom {}))
+(def ^:dynamic *report* nil)
 
 (def no-tests {:results {}
                :summary {:check 0 :error 0 :fact 0 :fail 0 :ns 0 :pass 0 :to-do 0}})
 
 (defn reset-report! [ns file]
   {:pre [(instance? clojure.lang.Namespace ns) (instance? java.io.File file)]}
-  (reset! report
+  (reset! *report*
           (assoc no-tests                :testing-ns (symbol (str ns))
                  :file file)))
 
 (defn summarize-test-results! []
-  (let [namespace  (@report :testing-ns)
-        results    (get-in @report [:results namespace])
+  (let [namespace  (@*report* :testing-ns)
+        results    (get-in @*report* [:results namespace])
         counters   (->> results (map :type) frequencies)
-        namespaces (-> @report :results keys count)
+        namespaces (-> @*report* :results keys count)
         facts      (->> results (keep :id) distinct count)
         checks     (->> counters vals (apply +))]
-    (swap! report update :summary
+    (swap! *report* update :summary
            merge (assoc counters  :check checks :fact facts :ns namespaces))))
 
-(defn drop-irrelevant-keys! []
-  (swap! report dissoc :testing-ns :file))
-
 (defn starting-to-check-top-level-fact [fact]
-  (swap! report assoc :top-level-description [(fact/description fact)]))
+  (swap! *report* assoc :top-level-description [(fact/description fact)]))
 
 (defn finishing-top-level-fact [_]
-  (swap! report dissoc :top-level-description :current-test))
+  (swap! *report* dissoc :top-level-description :current-test))
+
+(defn- drop-possibly-retried-facts!
+  "Some frameworks like nubank/selvage may alter Midje counters after
+  checking a fact (e.g. due to a retry mechanism). This function
+  provides a workaround for those cases by verifying whether counters
+  were changed and dropping failures that may cause divergences in the
+  final report."
+  []
+  (let [{current-failures :midje-failures}  (midje.state/output-counters)
+        {previous-failures :midje-failures} (@*report* :output-counters)]
+    (when (and previous-failures (not= current-failures previous-failures))
+      (let [divergent-failures   (- previous-failures current-failures)
+            {:keys [testing-ns]} @*report*]
+        (swap! *report* update-in [:results testing-ns]
+               (comp vec (partial drop-last divergent-failures)))))))
 
 (defn- description-for [fact]
   (let [description (or (fact/best-description fact)
                         (pr-str (fact/source fact)))]
-    (if-let [description-vec (@report :top-level-description)]
+    (if-let [description-vec (@*report* :top-level-description)]
       (->> (conj description-vec description) distinct (remove nil?) vec)
       [description])))
 
 (defn starting-to-check-fact [fact]
-  (let [{:keys [testing-ns file]} @report]
-    (swap! report assoc :current-test {:id      (fact/guid fact)
-                                       :context (description-for fact)
-                                       :ns      testing-ns
-                                       :file    file
-                                       :line    (fact/line fact)
-                                       :source  (pr-str (fact/source fact))})))
+  (let [{:keys [testing-ns file]} @*report*]
+    (swap! *report* assoc :current-test {:id         (fact/guid fact)
+                                         :context    (description-for fact)
+                                         :ns         testing-ns
+                                         :file       file
+                                         :line       (fact/line fact)
+                                         :source     (pr-str (fact/source fact))
+                                         :started-at (misc/now)})
+    (drop-possibly-retried-facts!)))
 
 (defn prettify-expected-and-actual-values [{:keys [expected actual] :as result-map}]
   (let [pretty-str #(with-out-str (pprint/pprint %))]
@@ -59,15 +74,16 @@
       expected (assoc :expected (pretty-str expected))
       actual   (assoc :actual (pretty-str actual)))))
 
-(defn- conj-test-result! [additional-data]
-  (let [current-test (@report :current-test)
-        ns           (@report :testing-ns)
-        index        (count (get-in @report [:results ns]))
+(defn- conj-test-result! [{:keys [type] :as test-data}]
+  (let [current-test (@*report* :current-test)
+        ns           (@*report* :testing-ns)
+        index        (count (get-in @*report* [:results ns]))
         test         (-> current-test
                          (assoc :index index)
-                         (merge additional-data)
+                         (cond-> (not= type :to-do) (assoc :finished-at (misc/now)))
+                         (merge test-data)
                          prettify-expected-and-actual-values)]
-    (swap! report update-in [:results ns]
+    (swap! *report* update-in [:results ns]
            (comp vec (partial conj)) test)))
 
 (defn pass []
@@ -99,7 +115,7 @@
   {:message (message-list-for failure-map)})
 
 (defn- description-for-failing-tabular-fact [{:keys [description :midje/table-bindings] :or {description []}}]
-  (let [top-level-description (@report :top-level-description)
+  (let [top-level-description (@*report* :top-level-description)
         table-substitutions   (map (fn [[heading value]]
                                      (format "%s %s" (pr-str heading) (pr-str value))) table-bindings)]
     (as-> (into top-level-description description) description-vec
@@ -134,12 +150,16 @@
                       :line    (last position)
                       :type    :to-do}))
 
+(defn finishing-fact [_]
+  (swap! *report* assoc :output-counters (midje.state/output-counters)))
+
 (def emission-map
   (merge silence/emission-map
          {:starting-to-check-top-level-fact starting-to-check-top-level-fact
           :starting-to-check-fact           starting-to-check-fact
           :pass                             pass
           :fail                             fail
+          :finishing-fact                   finishing-fact
           :finishing-top-level-fact         finishing-top-level-fact
           :future-fact                      future-fact}))
 
@@ -165,15 +185,16 @@
 
 (defmacro with-in-memory-reporter
   [{:keys [ns file]} & forms]
-  `(binding [*ns*                           ~ns
-             *file*                         (str ~file)
-             midje.config/*config*          (merge midje.config/*config* {:print-level :print-facts})
-             midje.state/emission-functions emission-map]
+  `(binding [*ns*                             ~ns
+             *file*                           (str ~file)
+             midje.config/*config*            (merge midje.config/*config* {:print-level :print-facts})
+             midje.state/output-counters-atom (atom midje.state/fresh-output-counters)
+             midje.state/emission-functions   emission-map
+             *report*                         (atom {})]
      (try
        (reset-report! ~ns ~file)
        ~@forms
        (summarize-test-results!)
-       (drop-irrelevant-keys!)
-       @report
+       (select-keys @*report* [:results :summary])
        (catch Exception err#
          (report-for-broken-ns ~ns ~file err#)))))

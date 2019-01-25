@@ -11,7 +11,7 @@
 (defn write-hello-world []
   (spit hello-world-file "Hello world!"))
 
-(facts "about write-hello-world"
+(facts "about write-hello-world" :mark1
        (against-background
         (before :contents (safe-delete hello-world-file)))
 

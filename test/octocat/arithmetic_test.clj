@@ -4,7 +4,7 @@
 
 (with-isolated-output-counters
 
-  (facts "about arithmetic operations"
+  (facts "about arithmetic operations" :mark1
 
          (fact (* 2 5) => 10)
 
