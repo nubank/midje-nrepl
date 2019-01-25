@@ -1,6 +1,8 @@
 (ns midje-nrepl.misc
   (:require [orchard.classpath :as classpath])
-  (:import (java.time Duration Instant)))
+  (:import java.text.DecimalFormat
+           [java.time Duration Instant]
+           java.util.Locale))
 
 (defn dependency-in-classpath?
   "Return true if a given dependency is in the project's classpath, or false otherwise."
@@ -31,3 +33,21 @@
   "Return a java.time.Duration object representing the duration between two temporal objects."
   [start end]
   (Duration/between start end))
+
+(def ^:private formatter
+  "Instance of java.text.Decimalformat used internally to format decimal
+  values."
+  (let [decimal-format (DecimalFormat/getInstance (Locale/ENGLISH))]
+    (.applyPattern decimal-format "#.##")
+    decimal-format))
+
+(defn format-decimal
+  "Formats the decimal number as a string."
+  [value]
+  {:pre [value]}
+  (.format formatter value))
+
+(defn percent
+  "Returns the decimal number as a string representing a percent value."
+  [value]
+  (str (format-decimal value) "%"))
