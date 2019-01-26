@@ -16,20 +16,51 @@
                            :low-coverage
                            :acceptable-coverage)}))
 
-(defn- instrument-namespaces [namespaces]
+(defn- handle-error [namespace logger exception])
+
+(defn- instrument-namespace [namespace logger]
+  (binding [coverage/*instrumented-ns* namespace]
+    (logger :info "Instrumenting %s..." namespace)
+    (try
+      (instrument/instrument #'coverage/track-coverage namespace)
+      (coverage/mark-loaded namespace)
+      :success
+      (catch Exception e
+        (handle-error namespace logger e)
+        :error))))
+
+(defn- try-to-instrument-namespaces [namespaces logger]
+  (let [results                    (map #(instrument-namespace % logger) namespaces)
+        {:keys [success error]
+         :or   {success 0, error 0}} (frequencies results)]
+    (if (zero? error)
+      (do (logger :info "All namespaces (%d) were successfully instrumented." (+ success error))
+          :success)
+      (do (logger :error "Could not capture code coverage due to previous error.")
+          :error))))
+
+(defn- instrument-namespaces [namespaces logger]
+  (logger :info "Loading namespaces...")
   (let [ordered-namespaces (dependency/in-dependency-order namespaces)]
-    (doseq [namespace ordered-namespaces]
-      (binding [coverage/*instrumented-ns* namespace]
-        (instrument/instrument #'coverage/track-coverage namespace)))))
+    (if (seq ordered-namespaces)
+      (try-to-instrument-namespaces ordered-namespaces logger)
+      (do (logger :error "Cannot instrument namespaces. There is a cyclic dependency.")
+          ::error))))
+
+(defn- wrap-logger [coverage-logger]
+  (fn [level message & args]
+    (coverage-logger level (apply format message args))))
 
 (defn code-coverage [runner]
   (fn [options]
-    (let [{:keys [coverage-threshold source-namespaces]
+    (let [{:keys [coverage-threshold coverage-logger source-namespaces]
            :or   {coverage-threshold 50
-                  source-namespaces  (project-info/find-namespaces-in (project-info/get-source-paths))}} options]
+                  coverage-logger    (constantly nil)
+                  source-namespaces  (project-info/find-namespaces-in (project-info/get-source-paths))}} options
+          logger                                                                                         (wrap-logger coverage-logger)]
       (binding [coverage/*covered* (atom [])]
-        (instrument-namespaces source-namespaces)
-        (let [report-map (runner options)
-              forms      (report/gather-stats @coverage/*covered*)]
+        (let [instrumentation-result (instrument-namespaces source-namespaces logger)
+              report-map             (runner options)
+              forms                  (report/gather-stats @coverage/*covered*)]
           (assoc report-map
                  :coverage {:summary (summarize-coverage forms coverage-threshold)}))))))
