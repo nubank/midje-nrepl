@@ -16,6 +16,11 @@
                            :low-coverage
                            :acceptable-coverage)}))
 
+(defn- assoc-coverage-stats [report-map coverage-threshold]
+  (let [forms (report/gather-stats @coverage/*covered*)]
+    (assoc report-map
+           :coverage {:summary (summarize-coverage forms coverage-threshold)})))
+
 (defn- handle-error [namespace logger exception])
 
 (defn- instrument-namespace [namespace logger]
@@ -30,7 +35,7 @@
         :error))))
 
 (defn- try-to-instrument-namespaces [namespaces logger]
-  (let [results                    (map #(instrument-namespace % logger) namespaces)
+  (let [results                      (map #(instrument-namespace % logger) namespaces)
         {:keys [success error]
          :or   {success 0, error 0}} (frequencies results)]
     (if (zero? error)
@@ -39,13 +44,13 @@
       (do (logger :error "Could not capture code coverage due to previous error.")
           :error))))
 
-(defn- instrument-namespaces [namespaces logger]
+(defn instrument-namespaces [namespaces logger]
   (logger :info "Loading namespaces...")
   (let [ordered-namespaces (dependency/in-dependency-order namespaces)]
     (if (seq ordered-namespaces)
       (try-to-instrument-namespaces ordered-namespaces logger)
       (do (logger :error "Cannot instrument namespaces. There is a cyclic dependency.")
-          ::error))))
+          :error))))
 
 (defn- wrap-logger [coverage-logger]
   (fn [level message & args]
@@ -60,7 +65,7 @@
           logger                                                                                         (wrap-logger coverage-logger)]
       (binding [coverage/*covered* (atom [])]
         (let [instrumentation-result (instrument-namespaces source-namespaces logger)
-              report-map             (runner options)
-              forms                  (report/gather-stats @coverage/*covered*)]
-          (assoc report-map
-                 :coverage {:summary (summarize-coverage forms coverage-threshold)}))))))
+              report-map             (runner options)]
+          (if (= instrumentation-result :success)
+            (assoc-coverage-stats report-map coverage-threshold)
+            report-map))))))

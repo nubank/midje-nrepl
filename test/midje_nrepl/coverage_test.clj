@@ -1,5 +1,6 @@
 (ns midje-nrepl.coverage-test
-  (:require [matcher-combinators.midje :refer [match]]
+  (:require [matcher-combinators.matchers :as m]
+            [matcher-combinators.midje :refer [match]]
             [midje-nrepl.coverage :as coverage]
             [midje-nrepl.runner :as runner]
             [midje.sweet :refer :all]))
@@ -26,4 +27,11 @@
              @logging-messages
              => (match [{:level :info :message "Loading namespaces..."}
                         {:level :info :message "Instrumenting midje-nrepl.middleware.version..."}
-                        {:level :info :message "All namespaces (1) were successfully instrumented."}])))
+                        {:level :info :message "All namespaces (1) were successfully instrumented."}]))
+
+       (fact "runs tests but do not assoc the coverage report when namespaces cannot be properly instrumented"
+             (keys ((coverage/code-coverage runner/run-tests-in-ns) {:ns                'midje-nrepl.middleware.version-test
+                                                                     :source-namespaces ['midje-nrepl.middleware.version]}))
+             => (match (m/in-any-order [:results :summary]))
+             (provided
+              (coverage/instrument-namespaces ['midje-nrepl.middleware.version] anything) => :error)))
