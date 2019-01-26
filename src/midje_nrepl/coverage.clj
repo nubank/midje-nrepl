@@ -21,8 +21,6 @@
     (assoc report-map
            :coverage {:summary (summarize-coverage forms coverage-threshold)})))
 
-(defn- handle-error [namespace logger exception])
-
 (defn- instrument-namespace [namespace logger]
   (binding [coverage/*instrumented-ns* namespace]
     (logger :info "Instrumenting %s..." namespace)
@@ -31,7 +29,7 @@
       (coverage/mark-loaded namespace)
       :success
       (catch Exception e
-        (handle-error namespace logger e)
+        (logger :error "Could not instrument namespace %s. %s." namespace (str e))
         :error))))
 
 (defn- try-to-instrument-namespaces [namespaces logger]
@@ -41,7 +39,7 @@
     (if (zero? error)
       (do (logger :info "All namespaces (%d) were successfully instrumented." (+ success error))
           :success)
-      (do (logger :error "Could not capture code coverage due to previous error.")
+      (do (logger :error "Could not capture code coverage due to previous problems.")
           :error))))
 
 (defn instrument-namespaces [namespaces logger]
@@ -49,10 +47,10 @@
   (let [ordered-namespaces (dependency/in-dependency-order namespaces)]
     (if (seq ordered-namespaces)
       (try-to-instrument-namespaces ordered-namespaces logger)
-      (do (logger :error "Cannot instrument namespaces. There is a cyclic dependency.")
+      (do (logger :error "Could not instrument namespaces: there is a cyclic dependency.")
           :error))))
 
-(defn- wrap-logger [coverage-logger]
+(defn wrap-logger [coverage-logger]
   (fn [level message & args]
     (coverage-logger level (apply format message args))))
 
