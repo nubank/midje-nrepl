@@ -21,19 +21,22 @@
     (assoc report-map
            :coverage {:summary (summarize-coverage forms coverage-threshold)})))
 
-(defn- instrument-namespace [namespace logger]
+(defn- instrument-namespace [namespace]
   (binding [coverage/*instrumented-ns* namespace]
+    (instrument/instrument #'coverage/track-coverage namespace)
+    (coverage/mark-loaded namespace)))
+
+(defn- try-to-instrument-namespace [namespace logger]
+  (try
     (logger :info "Instrumenting %s..." namespace)
-    (try
-      (instrument/instrument #'coverage/track-coverage namespace)
-      (coverage/mark-loaded namespace)
-      :success
-      (catch Exception e
-        (logger :error "Could not instrument namespace %s. %s." namespace (str e))
-        :error))))
+    (instrument-namespace namespace)
+    :success
+    (catch Exception e
+      (logger :error "Could not instrument namespace %s. %s." namespace (str e))
+      :error)))
 
 (defn- try-to-instrument-namespaces [namespaces logger]
-  (let [results                      (map #(instrument-namespace % logger) namespaces)
+  (let [results                      (map #(try-to-instrument-namespace % logger) namespaces)
         {:keys [success error]
          :or   {success 0, error 0}} (frequencies results)]
     (if (zero? error)

@@ -1,6 +1,5 @@
 (ns midje-nrepl.coverage-test
   (:require [cloverage.dependency :as dependency]
-            [cloverage.instrument :as instrument]
             [matcher-combinators.matchers :as m]
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.coverage :as coverage]
@@ -15,9 +14,9 @@
 
 (facts "about instrumenting namespaces"
        (against-background
-        (instrument/instrument anything 'midje-nrepl.middleware.format) => :success
-        (instrument/instrument anything 'midje-nrepl.middleware.inhibit-tests) => :success
-        (instrument/instrument anything 'midje-nrepl.middleware.test) => :success)
+        (#'coverage/instrument-namespace 'midje-nrepl.middleware.format) => :success
+        (#'coverage/instrument-namespace 'midje-nrepl.middleware.inhibit-tests) => :success
+        (#'coverage/instrument-namespace 'midje-nrepl.middleware.test) => :success)
 
        (fact "returns `:success` when all namespaces are properly instrumented and logs the relevant events"
              (coverage/instrument-namespaces source-namespaces (coverage/wrap-logger noop-logger)) => :success
@@ -38,7 +37,7 @@
        (fact "returns `:error` when some namespace cannot be instrumented and logs the relevant events"
              (coverage/instrument-namespaces source-namespaces (coverage/wrap-logger noop-logger)) => :error
              (provided
-              (instrument/instrument anything 'midje-nrepl.middleware.inhibit-tests) =throws=> (ex-info "Boom!" {:reason :some-failure})
+              (#'coverage/instrument-namespace 'midje-nrepl.middleware.inhibit-tests) =throws=> (ex-info "Boom!" {:reason :some-failure})
               (noop-logger :info "Loading namespaces...") => irrelevant
               (noop-logger :info "Instrumenting midje-nrepl.middleware.format...") => irrelevant
               (noop-logger :info "Instrumenting midje-nrepl.middleware.inhibit-tests...") => irrelevant
