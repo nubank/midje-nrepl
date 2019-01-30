@@ -2,7 +2,7 @@
   (:require [midje-nrepl.middleware.version :as version]
             [midje-nrepl.nrepl :as midje-nrepl]))
 
-(def ^:private clojure-tools-namespace ['org.clojure/tools.namespace "0.3.0-alpha4"])
+(def ^:private clojure-tools-namespace ['org.clojure/tools.namespace "0.3.0-alpha4" :exclusions ['org.clojure/tools.reader]])
 
 (defn- remove-conflicting-dependencies [dependencies]
   (remove (fn [[name]]

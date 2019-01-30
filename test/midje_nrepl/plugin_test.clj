@@ -35,7 +35,7 @@
                                                                   [`identity])))
 
 (def deps-with-midje-nrepl-and-clojure-tools-namespace [['nubank/midje-nrepl "1.0.0"]
-                                                        (m/equals ['org.clojure/tools.namespace #"^0\.3"])])
+                                                        (m/equals ['org.clojure/tools.namespace #"^0\.3" :exclusions ['org.clojure/tools.reader]])])
 
 (def deps-with-clojure-midje-nrepl-and-clojure-tools-namespace (into [['org.clojure/clojure "1.9.0"]]
                                                                      deps-with-midje-nrepl-and-clojure-tools-namespace))
