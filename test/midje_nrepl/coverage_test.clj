@@ -58,10 +58,15 @@
              ((coverage/code-coverage runner/run-tests-in-ns) {:ns                'midje-nrepl.middleware.version-test
                                                                :source-namespaces ['midje-nrepl.middleware.version]
                                                                :coverage-logger   coverage-logger})
-             => (match {:coverage {:summary {:percent-of-forms   "100%"
+             => (match {:coverage {:namespaces [{:ns 'midje-nrepl.middleware.version
+    :forms {:total 46 :covered 46 :percent-value "100%"}
+                                                 :lines {:covered 16 :total 16     :percent-value "100%"}
+                                                 :result :good-coverage
+                                                 }]
+                                   :summary {:percent-of-forms   "100%"
                                              :percent-of-lines   "100%"
                                              :coverage-threshold 50
-                                             :result             :acceptable-coverage}}}))
+                                             :result             :good-coverage}}}))
 
        (fact "logs some events as they happen"
              @logging-messages

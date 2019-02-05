@@ -6,20 +6,41 @@
             [midje-nrepl.misc :as misc]
             [midje-nrepl.project-info :as project-info]))
 
+(defn- coverage-result [percent-covered threshold]
+  (if (<= percent-covered threshold)
+    :low-coverage
+    :good-coverage))
+
+(defn- stats-per-ns [forms threshold]
+  (letfn [(percent-value [covered total]
+            (if (zero? covered)
+              0
+              (float (/ (* covered 100) total))))]
+    (->> forms
+         report/file-stats
+         (sort-by :lib)
+         (map (fn [{:keys [lib covered-forms forms covered-lines instrd-lines partial-lines]}]
+                (let [covered-lines    (+ covered-lines partial-lines)
+                      percent-of-forms (percent-value covered-forms forms)
+                      percent-of-lines (percent-value covered-lines instrd-lines)]
+                  {:ns     lib
+                   :forms  {:total forms :covered covered-forms :percent-value (misc/percent percent-of-forms)}
+                   :lines  {:covered covered-lines :total instrd-lines :percent-value (misc/percent percent-of-lines)}
+                   :result (coverage-result (min percent-of-forms percent-of-lines) threshold)}))))))
+
 (defn- summarize-coverage [forms threshold]
   (let [{:keys [percent-forms-covered percent-lines-covered] :as totals} (report/total-stats forms)
         percent-covered                                                  (apply min (vals totals))]
     {:percent-of-forms   (misc/percent percent-forms-covered)
      :percent-of-lines   (misc/percent percent-lines-covered)
      :coverage-threshold threshold
-     :result             (if (<= percent-covered threshold)
-                           :low-coverage
-                           :acceptable-coverage)}))
+     :result             (coverage-result percent-covered threshold)}))
 
 (defn- assoc-coverage-stats [report-map coverage-threshold]
   (let [forms (report/gather-stats @coverage/*covered*)]
     (assoc report-map
-           :coverage {:summary (summarize-coverage forms coverage-threshold)})))
+           :coverage {:namespaces (stats-per-ns forms coverage-threshold)
+                      :summary    (summarize-coverage forms coverage-threshold)})))
 
 (defn- instrument-namespace [namespace]
   (binding [coverage/*instrumented-ns* namespace]
