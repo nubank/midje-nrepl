@@ -1,8 +1,8 @@
 (ns midje-nrepl.middleware.version
   (:require [clojure.java.io :as io]
             [clojure.string :as string]
-            [clojure.tools.nrepl.misc :refer [response-for]]
-            [clojure.tools.nrepl.transport :as transport]))
+            [nrepl.misc :refer [response-for]]
+            [nrepl.transport :as transport]))
 
 (def ^:private project-clj "META-INF/leiningen/nubank/midje-nrepl/project.clj")
 

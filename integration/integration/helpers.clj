@@ -1,7 +1,7 @@
 (ns integration.helpers
   (:require [clojure.java.io :as io]
-            [clojure.tools.nrepl :as nrepl]
-            [diehard.core :refer [with-retry]]))
+            [diehard.core :refer [with-retry]]
+            [nrepl :as nrepl]))
 
 (def ^:private octocat-dir "dev-resources/octocat")
 

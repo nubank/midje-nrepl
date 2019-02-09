@@ -1,8 +1,8 @@
 (ns midje-nrepl.middleware.version-test
   (:require [clojure.java.io :as io]
-            [clojure.tools.nrepl.transport :as transport]
             [midje-nrepl.middleware.version :as version]
-            [midje.sweet :refer :all]))
+            [midje.sweet :refer :all]
+            [nrepl.transport :as transport]))
 
 (def project-clj "(defproject nubank/midje-nrepl \"1.0.0\"
   :description \"FIXME\"

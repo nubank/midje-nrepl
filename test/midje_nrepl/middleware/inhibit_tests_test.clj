@@ -1,13 +1,13 @@
 (ns midje-nrepl.middleware.inhibit-tests-test
   (:require [clojure.java.io :as io]
             [clojure.test :refer [*load-tests*]]
-            [clojure.tools.nrepl.misc :refer [response-for]]
-            [clojure.tools.nrepl.transport :as transport]
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.middleware.inhibit-tests :as inhibit-tests]
             [midje-nrepl.reporter :as reporter :refer [with-in-memory-reporter]]
             [midje.emission.api :refer [silently]]
-            [midje.sweet :refer :all]))
+            [midje.sweet :refer :all]
+            [nrepl.misc :refer [response-for]]
+            [nrepl.transport :as transport]))
 
 (def eval-message {:op      "eval"
                    :code    "(+ 1 2)"

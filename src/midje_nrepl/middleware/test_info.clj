@@ -1,7 +1,7 @@
 (ns midje-nrepl.middleware.test-info
-  (:require [clojure.tools.nrepl.misc :refer [response-for]]
-            [clojure.tools.nrepl.transport :as transport]
-            [midje-nrepl.project-info :as project-info]
+  (:require [midje-nrepl.project-info :as project-info]
+            [nrepl.misc :refer [response-for]]
+            [nrepl.transport :as transport]
             [orchard.misc :as misc]))
 
 (defn- test-namespaces-reply [{:keys [transport test-paths] :as message}]

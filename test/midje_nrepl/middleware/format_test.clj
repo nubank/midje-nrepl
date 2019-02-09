@@ -1,9 +1,9 @@
 (ns midje-nrepl.middleware.format-test
-  (:require [clojure.tools.nrepl.transport :as transport]
-            [matcher-combinators.midje :refer [match]]
+  (:require [matcher-combinators.midje :refer [match]]
             [midje-nrepl.formatter :as formatter]
             [midje-nrepl.middleware.format :as format]
-            [midje.sweet :refer :all]))
+            [midje.sweet :refer :all]
+            [nrepl.transport :as transport]))
 
 (def basic-tabular "(tabular (fact (+ ?x ?y) => ?z)
   ?x ?y ?z
