@@ -15,7 +15,7 @@
 
   :profiles {:dev      {:dependencies [[diehard "0.7.2"]
                                        [midje "1.9.4"]
-                                       [nubank/matcher-combinators "0.4.2"]]
+                                       [nubank/matcher-combinators "0.6.1"]]
                         :plugins      [[lein-midje "3.2.1"]]}
              :provided {:dependencies [[cider/cider-nrepl "0.20.0"]
                                        [nrepl "0.5.3"]

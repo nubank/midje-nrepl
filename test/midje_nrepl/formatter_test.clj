@@ -1,5 +1,5 @@
 (ns midje-nrepl.formatter-test
-  (:require [matcher-combinators.core :as matcher-combinators]
+  (:require [matcher-combinators.midje :refer [throws-match]]
             [midje-nrepl.formatter :as formatter]
             [midje.sweet :refer :all]))
 
@@ -113,9 +113,6 @@
   1 2
   10
   100 101)")
-
-(defn throws-match [matcher]
-  (throws clojure.lang.ExceptionInfo #(matcher-combinators/match? (matcher-combinators/match matcher (ex-data %)))))
 
 (facts "about aligning tabular forms"
        (tabular (fact "formats the tabular fact according to default options"
