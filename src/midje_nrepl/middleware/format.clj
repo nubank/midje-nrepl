@@ -1,7 +1,7 @@
 (ns midje-nrepl.middleware.format
-  (:require             [clojure.tools.nrepl.misc :refer [response-for]]
-                        [clojure.tools.nrepl.transport :as transport]
-                        [midje-nrepl.formatter :as formatter]))
+  (:require [midje-nrepl.formatter :as formatter]
+            [nrepl.misc :refer [response-for]]
+            [nrepl.transport :as transport]))
 
 (defn- send-error-response [{:keys [transport] :as message} {:keys [type error-message]}]
   (transport/send transport (response-for message :error-message error-message

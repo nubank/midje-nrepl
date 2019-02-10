@@ -1,11 +1,11 @@
 (ns midje-nrepl.nrepl
   (:require [cider.nrepl :as cider]
             [clojure.set :as set]
-            [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
-            [clojure.tools.nrepl.middleware.interruptible-eval :as eval]
-            [clojure.tools.nrepl.misc :refer [response-for]]
-            [clojure.tools.nrepl.transport :as transport]
-            [midje-nrepl.misc :as misc]))
+            [midje-nrepl.misc :as misc]
+            [nrepl.middleware :refer [set-descriptor!]]
+            [nrepl.middleware.interruptible-eval :as eval]
+            [nrepl.misc :refer [response-for]]
+            [nrepl.transport :as transport]))
 
 (defn- greatest-arity-of [handler-var]
   {:post [(or (= % 1) (= % 2))]}

@@ -1,10 +1,10 @@
 (ns midje-nrepl.middleware.test
   (:require [cider.nrepl.middleware.stacktrace :as stacktrace]
-            [clojure.tools.nrepl.misc :refer [response-for]]
-            [clojure.tools.nrepl.transport :as transport]
             [midje-nrepl.misc :as misc]
             [midje-nrepl.profiler :as profiler]
             [midje-nrepl.runner :as runner]
+            [nrepl.misc :refer [response-for]]
+            [nrepl.transport :as transport]
             [orchard.misc :refer [transform-value]]))
 
 (defmethod transform-value java.time.Duration [duration]
@@ -42,11 +42,11 @@
   (->> ((profiler/profile runner/re-run-non-passing-tests) {})
        (send-report message)))
 
-(defn- test-stacktrace-reply [{:keys [index ns print-fn transport] :as message}]
+(defn- test-stacktrace-reply [{:keys [index ns print-fn print-options transport] :as message}]
   (let [namespace (symbol ns)
         exception (runner/get-exception-at namespace index)]
     (if exception
-      (doseq [cause (stacktrace/analyze-causes exception print-fn)]
+      (doseq [cause (stacktrace/analyze-causes exception print-fn print-options)]
         (transport/send transport (response-for message cause)))
       (transport/send transport (response-for message :status :no-stacktrace)))))
 

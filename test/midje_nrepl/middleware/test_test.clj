@@ -1,11 +1,11 @@
 (ns midje-nrepl.middleware.test-test
   (:require [clojure.java.io :as io]
-            [clojure.tools.nrepl.transport :as transport]
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.middleware.test :as test]
             [midje-nrepl.misc :as misc]
             [midje-nrepl.runner :as runner]
             [midje.sweet :refer :all]
+            [nrepl.transport :as transport]
             [orchard.misc :refer [transform-value]])
   (:import java.time.Duration))
 

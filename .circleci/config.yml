@@ -1,7 +1,7 @@
 version: 2
 job_defaults: &defaults
   docker:
-    - image: circleci/clojure:lein-2.8.1
+    - image: circleci/clojure:lein-2.8.3
 
 jobs:
   unit-tests:

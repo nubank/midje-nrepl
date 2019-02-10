@@ -21,6 +21,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
     options allow for clients to send lists of keywords to filter tests to be
     excluded or included from/to the test execution.
 
+### Changed
+- [#18](https://github.com/nubank/midje-nrepl/pull/18): upgrade to Cider 0.20.0
+  and nrepl 0.5.3. As of this version midje-nrepl requires Lein 2.8.3 or higher.
+
 ### Fixed
 - [#14](https://github.com/nubank/midje-nrepl/pull/14): compute failures
   properly within [Selvage](https://github.com/nubank/selvage) flows where facts
