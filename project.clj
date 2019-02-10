@@ -20,6 +20,6 @@
              :provided {:dependencies [[cider/cider-nrepl "0.20.0"]
                                        [nrepl "0.5.3"]
                                        [refactor-nrepl "2.4.0"]
-                                       [leiningen-core "2.8.1"]]}}
+                                       [leiningen-core "2.8.3"]]}}
 
   :test-paths ["integration" "test"])
