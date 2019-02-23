@@ -1,6 +1,6 @@
 (ns midje-nrepl.middleware.inhibit-tests
   (:require [clojure.test :refer [*load-tests*]]
-            [clojure.tools.nrepl.transport :as transport :refer [Transport]]))
+            [nrepl.transport :as transport :refer [Transport]]))
 
 (defn- done? [{:keys [status]}]
   (contains? status :done))

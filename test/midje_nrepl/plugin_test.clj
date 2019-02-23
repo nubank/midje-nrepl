@@ -1,5 +1,6 @@
 (ns midje-nrepl.plugin-test
-  (:require [matcher-combinators.matchers :as m]
+  (:require [leiningen.core.main :as lein]
+            [matcher-combinators.matchers :as m]
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.middleware.version :as version]
             [midje-nrepl.nrepl :as midje-nrepl]
@@ -59,7 +60,14 @@
 
 (facts "about the Leiningen plugin"
        (against-background
+        (lein/leiningen-version) => "2.8.3"
         (version/get-current-version) => "1.0.0")
+
+       (fact "don't include midje-nrepl when Leiningen version doesn't satisfy
+             the min required version"
+             (plugin/middleware basic-project) => basic-project
+             (provided
+              (lein/leiningen-version) => "2.7.1"))
 
        (tabular (fact "augments the project map by injecting midje-nrepl's middleware"
                       (plugin/middleware ?project)

@@ -1,8 +1,5 @@
 (ns midje-nrepl.nrepl-test
   (:require [cider.nrepl :as cider]
-            [clojure.tools.nrepl.middleware :as middleware]
-            [clojure.tools.nrepl.middleware.interruptible-eval :as eval]
-            [clojure.tools.nrepl.transport :as transport]
             [matcher-combinators.midje :refer [match]]
             [midje-nrepl.middleware.fake :as fake]
             [midje-nrepl.misc :as misc]
@@ -10,6 +7,9 @@
              :refer
              [defmiddleware middleware-vars-expected-by-wrap-inhibit-tests]]
             [midje.sweet :refer :all]
+            [nrepl.middleware :as middleware]
+            [nrepl.middleware.interruptible-eval :as eval]
+            [nrepl.transport :as transport]
             [refactor-nrepl.middleware :as refactor-nrepl]))
 
 (defmiddleware wrap-greeting

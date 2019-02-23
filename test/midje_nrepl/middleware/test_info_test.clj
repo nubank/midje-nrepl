@@ -1,9 +1,9 @@
 (ns midje-nrepl.middleware.test-info-test
-  (:require [clojure.tools.nrepl.transport :as transport]
-            [matcher-combinators.midje :refer [match]]
+  (:require [matcher-combinators.midje :refer [match]]
             [midje-nrepl.middleware.test-info :as test-info]
             [midje-nrepl.project-info :as project-info]
-            [midje.sweet :refer :all]))
+            [midje.sweet :refer :all]
+            [nrepl.transport :as transport]))
 
 (facts "about getting information about test paths and namespaces"
 
