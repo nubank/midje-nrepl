@@ -80,14 +80,14 @@
 
 (defn code-coverage [runner]
   (fn [options]
-    (let [{:keys [coverage-threshold coverage-logger source-namespaces]
-           :or   {coverage-threshold 50
-                  coverage-logger    (constantly nil)
-                  source-namespaces  (project-info/find-namespaces-in (project-info/get-source-paths))}} options
-          logger                                                                                         (wrap-logger coverage-logger)]
+    (let [{:keys [threshold logger source-namespaces]
+           :or   {threshold         50
+                  logger            (constantly nil)
+                  source-namespaces (project-info/find-namespaces-in (project-info/get-source-paths))}} (:coverage options)
+          coverage-logger                                                                                (wrap-logger logger)]
       (binding [coverage/*covered* (atom [])]
-        (let [instrumentation-result (instrument-namespaces source-namespaces logger)
+        (let [instrumentation-result (instrument-namespaces source-namespaces coverage-logger)
               report-map             (runner options)]
           (if (= instrumentation-result :success)
-            (assoc-coverage-stats report-map coverage-threshold)
+            (assoc-coverage-stats report-map threshold)
             report-map))))))

@@ -55,18 +55,18 @@
         (before :contents (reset! logging-messages [])))
 
        (fact "runs tests by collecting coverage information"
-             ((coverage/code-coverage runner/run-tests-in-ns) {:ns                'midje-nrepl.middleware.version-test
-                                                               :source-namespaces ['midje-nrepl.middleware.version]
-                                                               :coverage-logger   coverage-logger})
-             => (match {:coverage {:namespaces [{:ns 'midje-nrepl.middleware.version
-    :forms {:total 46 :covered 46 :percent-value "100%"}
-                                                 :lines {:covered 16 :total 16     :percent-value "100%"}
-                                                 :result :good-coverage
-                                                 }]
-                                   :summary {:percent-of-forms   "100%"
-                                             :percent-of-lines   "100%"
-                                             :coverage-threshold 50
-                                             :result             :good-coverage}}}))
+             ((coverage/code-coverage runner/run-tests-in-ns)
+              {:ns       'midje-nrepl.middleware.version-test
+               :coverage {:source-namespaces ['midje-nrepl.middleware.version]
+                          :logger            coverage-logger}})
+             => (match {:coverage {:namespaces [{:ns     'midje-nrepl.middleware.version
+                                                 :forms  {:total 46 :covered 46 :percent-value "100%"}
+                                                 :lines  {:covered 16 :total 16 :percent-value "100%"}
+                                                 :result :good-coverage}]
+                                   :summary    {:percent-of-forms   "100%"
+                                                :percent-of-lines   "100%"
+                                                :coverage-threshold 50
+                                                :result             :good-coverage}}}))
 
        (fact "logs some events as they happen"
              @logging-messages
@@ -75,8 +75,9 @@
                         {:level :info :message "All namespaces (1) were successfully instrumented."}]))
 
        (fact "runs tests but do not assoc the coverage report when namespaces cannot be properly instrumented"
-             (keys ((coverage/code-coverage runner/run-tests-in-ns) {:ns                'midje-nrepl.middleware.version-test
-                                                                     :source-namespaces ['midje-nrepl.middleware.version]}))
+             (keys ((coverage/code-coverage runner/run-tests-in-ns)
+                    {:ns       'midje-nrepl.middleware.version-test
+                     :coverage {:source-namespaces ['midje-nrepl.middleware.version]}}))
              => (match (m/in-any-order [:results :summary]))
              (provided
               (coverage/instrument-namespaces ['midje-nrepl.middleware.version] anything) => :error)))
