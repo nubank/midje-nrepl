@@ -11,11 +11,11 @@
 
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [cider/orchard "0.4.0"]
-                 [rewrite-clj "0.6.0"]
+                 [rewrite-clj "0.6.0" :exclusions [org.clojure/tools.reader]]
                  [cloverage "1.0.13"]]
 
   :profiles {:dev      {:dependencies [[diehard "0.7.2"]
-                                       [midje "1.9.4"]
+                                       [midje "1.9.6"]
                                        [nubank/matcher-combinators "0.6.1"]]
                         :plugins      [[lein-midje "3.2.1"]]}
              :provided {:dependencies [[cider/cider-nrepl "0.20.0"]

@@ -5,7 +5,7 @@
 
 (def ^:private min-lein-version "2.8.3")
 
-(def ^:private clojure-tools-namespace ['org.clojure/tools.namespace "0.3.0-alpha4" :exclusions ['org.clojure/tools.reader]])
+(def ^:private clojure-tools-namespace ['org.clojure/tools.namespace "0.3.0-alpha4"])
 
 (defn- lein-satisfies-min-required-version? []
   (lein/version-satisfies? (lein/leiningen-version) min-lein-version))
