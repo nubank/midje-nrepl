@@ -145,6 +145,12 @@
     (conj-error! failure-map)
     (conj-failure! failure-map)))
 
+(defn info [message]
+  (let [ns           (@*report* :testing-ns)
+        last-result (dec (count (get-in @*report* [:results ns])))]
+    (swap! *report* update-in [:results ns last-result :message]
+           #(into (vec %) message))))
+
 (defn future-fact [description-vec position]
   (conj-test-result! {:context description-vec
                       :line    (last position)
@@ -159,6 +165,7 @@
           :starting-to-check-fact           starting-to-check-fact
           :pass                             pass
           :fail                             fail
+          :info info
           :finishing-fact                   finishing-fact
           :finishing-top-level-fact         finishing-top-level-fact
           :future-fact                      future-fact}))

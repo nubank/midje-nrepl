@@ -14,8 +14,9 @@
                  [rewrite-clj "0.6.0"]]
 
   :profiles {:dev      {:dependencies [[diehard "0.7.2"]
-                                       [midje "1.9.4"]
-                                       [nubank/matcher-combinators "0.6.1"]]
+                                       [midje "1.9.6"]
+                                       [nubank/matcher-combinators "0.6.1"]
+                                       [org.clojure/test.check "0.10.0-alpha3"]]
                         :plugins      [[lein-midje "3.2.1"]]}
              :provided {:dependencies [[cider/cider-nrepl "0.20.0"]
                                        [nrepl "0.5.3"]
