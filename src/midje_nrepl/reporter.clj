@@ -147,9 +147,12 @@
 
 (defn info [message]
   (let [ns           (@*report* :testing-ns)
-        last-result (dec (count (get-in @*report* [:results ns])))]
-    (swap! *report* update-in [:results ns last-result :message]
-           #(into (vec %) message))))
+        index-of-last-result (-> @*report*
+                                 (get-in [:results ns])
+                                 last
+                                 :index)]
+    (swap! *report* update-in [:results ns index-of-last-result]
+           assoc :info (map str message))))
 
 (defn future-fact [description-vec position]
   (conj-test-result! {:context description-vec
