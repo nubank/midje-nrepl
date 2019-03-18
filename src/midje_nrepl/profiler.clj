@@ -1,18 +1,9 @@
 (ns midje-nrepl.profiler
   (:require [midje-nrepl.misc :as misc])
-  (:import java.text.DecimalFormat
-           java.time.Duration
-           java.util.Locale))
-
-(def ^:private formatter
-  "Instance of java.text.Decimalformat used internally to format decimal
-  values."
-  (let [decimal-format (DecimalFormat/getInstance (Locale/ENGLISH))]
-    (.applyPattern decimal-format "#.##")
-    decimal-format))
+  (:import java.time.Duration))
 
 (defn- format-duration [value time-unit]
-  (str (.format formatter value) " "
+  (str (misc/format-decimal value) " "
        (if (= (float value) 1.0)
          (name time-unit)
          (str (name time-unit) "s"))))
@@ -47,7 +38,7 @@
         percent-of-total-time (float (/ (.. total-time-of-group (multipliedBy 100) toMillis)
                                         (.toMillis total-time)))]
     {:total-time            total-time-of-group
-     :percent-of-total-time (str (.format formatter percent-of-total-time) "%")}))
+     :percent-of-total-time (misc/percent percent-of-total-time)}))
 
 (defn average
   "Returns the average time taken by each test in the test suite."

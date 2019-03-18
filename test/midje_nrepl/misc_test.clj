@@ -30,4 +30,14 @@
 
        (fact "returns a `java.time.Duration` representing the duration between the two temporal objects"
              (misc/duration-between (misc/now) (misc/now))
-             => #(instance? Duration %)))
+             => #(instance? Duration %))
+
+       (tabular (fact "formats the supplied decimal number as a string"
+                      (misc/format-decimal ?value) => ?result)
+                ?value ?result
+                15.142 "15.14"
+                20.00    "20"
+                37.088 "37.09")
+
+       (fact "returns the decimal number as a string representing a percent value"
+             (misc/percent 28.016) => "28.02%"))
